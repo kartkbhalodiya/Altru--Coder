@@ -2,7 +2,7 @@ import { Button } from "@altru-coder/altru-coder-ui/button"
 import { useVSCode } from "../../context/vscode"
 import { useLanguage } from "../../context/language"
 
-const REPO_URL = "https://github.com/Altru-Coder/altru-marketplace"
+const REPO_URL = "https://github.com/kartkbhalodiya/Altru--Coder"
 
 export const MarketplaceContribute = () => {
   const vscode = useVSCode()

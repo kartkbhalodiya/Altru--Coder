@@ -33,6 +33,7 @@ import type {
   SendMessageFailedMessage,
   McpStatusEntry,
   MessageLoadMode,
+  AltruBuiltinQuota,
 } from "../types/messages"
 import { removeSessionPermissions, upsertPermission } from "./permission-queue"
 import {
@@ -160,6 +161,7 @@ interface SessionContextValue {
   // Cost and context usage for the current session
   costBreakdown: Accessor<Array<{ label: string; cost: number }>>
   contextUsage: Accessor<ContextUsage | undefined>
+  altruBuiltinQuota: Accessor<AltruBuiltinQuota | undefined>
 
   // Skills loaded from the CLI backend
   skills: Accessor<SkillInfo[]>
@@ -382,6 +384,7 @@ export const SessionProvider: ParentComponent = (props) => {
   const [worktreeStats, setWorktreeStats] = createSignal<
     { files: number; additions: number; deletions: number } | undefined
   >()
+  const [quota, setQuota] = createSignal<AltruBuiltinQuota>()
 
   // Tracks optimistic messageIDs that haven't been confirmed by the server yet.
   // Prevents handleMessagesLoaded from wiping them when it replaces the array.
@@ -753,6 +756,13 @@ export const SessionProvider: ParentComponent = (props) => {
   })
   vscode.postMessage({ type: "requestFavorites" })
   onCleanup(unsubFavorites)
+
+  const unsubQuota = vscode.onMessage((message: ExtensionMessage) => {
+    if (message.type !== "altruBuiltinQuotaLoaded") return
+    setQuota(message.quota)
+  })
+  vscode.postMessage({ type: "requestAltruBuiltinQuota" })
+  onCleanup(unsubQuota)
 
   function handleError(message: Extract<ExtensionMessage, { type: "error" }>) {
     if (!message.sessionID || message.sessionID === currentSessionID()) setLoading(false)
@@ -2298,6 +2308,7 @@ export const SessionProvider: ParentComponent = (props) => {
     clearModelOverride,
     costBreakdown,
     contextUsage,
+    altruBuiltinQuota: quota,
     agents,
     allAgents,
     skills,

@@ -1,4 +1,5 @@
 import type { ModelEntry, VariantEntry } from "./CustomProviderModelCard"
+import { CUSTOM_PROVIDER_PACKAGE, isCustomProviderPackage } from "../../../../src/shared/provider-model"
 
 type Translator = (key: string, params?: Record<string, string>) => string
 
@@ -11,6 +12,7 @@ export type FormState = {
   providerID: string
   name: string
   baseURL: string
+  npm: string
   apiKey: string
   models: ModelEntry[]
   headers: HeaderRow[]
@@ -53,8 +55,6 @@ type ValidateResult = {
 }
 
 const PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
-const OPENAI_COMPATIBLE = "@ai-sdk/openai-compatible"
-
 function checkVariant(v: VariantEntry, seen: Set<string>, t: Translator) {
   const n = v.name.trim()
   if (!n) return { name: t("provider.custom.error.required") }
@@ -137,6 +137,7 @@ export function validateCustomProvider(input: ValidateArgs): ValidateResult {
   const providerID = input.form.providerID.trim()
   const name = input.form.name.trim()
   const baseURL = input.form.baseURL.trim()
+  const npm = isCustomProviderPackage(input.form.npm) ? input.form.npm : CUSTOM_PROVIDER_PACKAGE
   const apiKey = input.form.apiKey.trim()
 
   const rawEnv = apiKey.match(/^\{env:([^}]+)\}$/)?.[1]?.trim()
@@ -198,7 +199,7 @@ export function validateCustomProvider(input: ValidateArgs): ValidateResult {
       name,
       key,
       config: {
-        npm: OPENAI_COMPATIBLE,
+        npm,
         name,
         ...resolveEnv(rawEnv, savedEnv),
         options,

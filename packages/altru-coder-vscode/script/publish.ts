@@ -5,10 +5,14 @@ import { existsSync } from "node:fs"
 import { Script } from "@opencode-ai/script"
 
 const prerelease = process.env.ALTRU_CODER_PRE_RELEASE === "true"
+const packageJson = await Bun.file(join(import.meta.dir, "..", "package.json")).json()
+const version = process.env.ALTRU_CODER_VERSION ? process.env.ALTRU_CODER_VERSION : packageJson.version
+const display = packageJson.displayName || "Altru Coder"
 
-console.log(`Publishing VSCode extension for ${prerelease ? "pre-release" : "release"}: v${Script.version}`)
+console.log(`Publishing VSCode extension for ${prerelease ? "pre-release" : "release"}: v${version}`)
 
 const outDir = process.env.VSIX_DIR || join(import.meta.dir, "..", "out")
+const openvsx = process.env.OPENVSX_TOKEN
 
 console.log(`Using VSIX directory: ${outDir}`)
 
@@ -16,7 +20,7 @@ if (!existsSync(outDir)) {
   throw new Error(`VSIX directory not found: ${outDir}`)
 }
 
-const targets = [
+const all = [
   "linux-x64",
   "linux-arm64",
   "alpine-x64",
@@ -27,9 +31,20 @@ const targets = [
   "win32-arm64",
 ]
 
+const names = process.env.VSIX_TARGETS?.split(",").map((item) => item.trim()).filter(Boolean)
+const targets = names ? all.filter((target) => names.includes(target)) : all
+
+if (targets.length === 0) {
+  throw new Error(`No VSIX targets matched VSIX_TARGETS=${process.env.VSIX_TARGETS}`)
+}
+
+function vsix(target: string) {
+  return `${display} ${version} ${target}.vsix`
+}
+
 const vsixFiles: string[] = []
 for (const target of targets) {
-  const vsixPath = join(outDir, `altru-coder-vscode-${target}.vsix`)
+  const vsixPath = join(outDir, vsix(target))
   if (!existsSync(vsixPath)) {
     throw new Error(`VSIX file not found: ${vsixPath}`)
   }
@@ -41,13 +56,18 @@ console.log(`\nFound ${vsixFiles.length} VSIX files`)
 const flag = prerelease ? ["--pre-release"] : []
 
 for (const target of targets) {
-  const vsixPath = join(outDir, `altru-coder-vscode-${target}.vsix`)
+  const vsixPath = join(outDir, vsix(target))
   console.log(`\n🚀 Publishing ${target} to VS Code Marketplace${prerelease ? " (pre-release)" : ""}...`)
   await $`vsce publish ${flag} --packagePath ${vsixPath}`
   console.log(`  ✅ Published ${target} to VS Code Marketplace`)
 
+  if (!openvsx) {
+    console.log(`  Skipping Open VSX for ${target}; OPENVSX_TOKEN is not set`)
+    continue
+  }
+
   console.log(`\n📤 Publishing ${target} to Open VSX${prerelease ? " (pre-release)" : ""}...`)
-  await retry(() => $`npx ovsx publish ${flag} --pat ${process.env.OPENVSX_TOKEN} --packagePath ${vsixPath}`, {
+  await retry(() => $`npx ovsx publish ${flag} --pat ${openvsx} --packagePath ${vsixPath}`, {
     attempts: 3,
     delay: 10_000,
     label: `ovsx publish ${target}`,
@@ -56,8 +76,8 @@ for (const target of targets) {
 }
 
 if (Script.release) {
-  console.log(`\n📤 Uploading VSIX files to GitHub release v${Script.version}...`)
-  await $`gh release upload v${Script.version} ${vsixFiles} --clobber`
+  console.log(`\n📤 Uploading VSIX files to GitHub release v${version}...`)
+  await $`gh release upload v${version} ${vsixFiles} --clobber`
   console.log(`  ✅ Uploaded all VSIX files to GitHub release`)
 }
 

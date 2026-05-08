@@ -50,6 +50,8 @@ export const SkillTool = Tool.define(
               metadata: {
                 name: info.name,
                 dir: Skill.BUILTIN_LOCATION,
+                displayName: info.displayName, // altrucoder_change
+                shortDescription: info.shortDescription, // altrucoder_change
               },
             }
           }
@@ -86,6 +88,8 @@ export const SkillTool = Tool.define(
             metadata: {
               name: info.name,
               dir,
+              displayName: info.displayName, // altrucoder_change
+              shortDescription: info.shortDescription, // altrucoder_change
             },
           }
         }).pipe(Effect.orDie),

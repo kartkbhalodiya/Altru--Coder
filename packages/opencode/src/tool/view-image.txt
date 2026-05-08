@@ -1,0 +1,3 @@
+Load an image file from the workspace and attach it to the conversation for visual inspection.
+
+Use this instead of plain read when the task depends on seeing the actual image, screenshot, design, diagram, or rendered UI. It supports common raster image formats such as PNG, JPEG, GIF, BMP, and WebP.

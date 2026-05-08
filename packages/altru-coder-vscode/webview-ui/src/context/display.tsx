@@ -25,7 +25,7 @@ export const DisplayContext = createContext<DisplayContextValue>()
 export const DisplayProvider: ParentComponent = (props) => {
   const { config, updateConfig } = useConfig()
   const vscode = useVSCode()
-  const reasoningAutoCollapse = createMemo(() => config().auto_collapse_reasoning ?? false)
+  const reasoningAutoCollapse = createMemo(() => config().auto_collapse_reasoning ?? true)
   const [fontSize, setFontSizeSignal] = createSignal(readFontSize())
 
   const unsubscribe = vscode.onMessage((message: ExtensionMessage) => {

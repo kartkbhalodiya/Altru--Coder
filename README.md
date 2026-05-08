@@ -172,7 +172,7 @@ These are the provider logo assets currently shipped in the VS Code extension an
 | <img src="packages/altru-coder-vscode/assets/icons/provider-logos/together.png" width="24" alt="Together AI"> | Together AI | Hosted open models |
 | <img src="packages/altru-coder-vscode/assets/icons/provider-logos/venice.png" width="24" alt="Venice"> | Venice | Hosted OpenAI-compatible |
 | <img src="packages/altru-coder-vscode/assets/icons/provider-logos/xAI.png" width="24" alt="xAI"> | xAI | Hosted Grok models |
-| <img src="packages/altru-coder-vscode/assets/icons/provider-logos/zai.svg" width="24" alt="Z.ai"> | Z.ai | Hosted GLM models |
+| Z.ai | Z.ai | Hosted GLM models |
 
 ## Built-In Model Presets
 

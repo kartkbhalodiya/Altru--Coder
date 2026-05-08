@@ -897,6 +897,7 @@ export interface FetchCustomProviderModelsMessage {
   baseURL: string
   apiKey?: string
   headers?: Record<string, string>
+  npm?: string
 }
 
 export interface PersistRecentsRequest {
@@ -917,6 +918,10 @@ export interface ToggleFavoriteRequest {
 
 export interface RequestFavoritesMessage {
   type: "requestFavorites"
+}
+
+export interface RequestAltruBuiltinQuotaMessage {
+  type: "requestAltruBuiltinQuota"
 }
 
 // Per-mode model selection persistence (webview → extension)
@@ -1163,6 +1168,7 @@ export type WebviewMessage =
   | RequestRecentsMessage
   | ToggleFavoriteRequest
   | RequestFavoritesMessage
+  | RequestAltruBuiltinQuotaMessage
   | PersistModelSelectionRequest
   | ClearModelSelectionRequest
   | RequestModelSelectionsMessage

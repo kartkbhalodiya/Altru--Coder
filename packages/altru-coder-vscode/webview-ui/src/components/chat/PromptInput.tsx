@@ -22,6 +22,7 @@ import { useConfig } from "../../context/config"
 import { ModelSelector } from "../shared/ModelSelector"
 import { ModeSwitcher } from "../shared/ModeSwitcher"
 import { ThinkingSelector } from "../shared/ThinkingSelector"
+import { AltruBuiltinQuotaIndicator } from "./AltruBuiltinQuotaIndicator"
 import { useFileMention } from "../../hooks/useFileMention"
 import { useTerminalContext } from "../../hooks/useTerminalContext"
 import { useGitChangesContext } from "../../hooks/useGitChangesContext"
@@ -37,6 +38,7 @@ import { fileName, dirName, buildHighlightSegments, atEnd, isPromptBusy } from "
 import type { ReviewComment, TextPart } from "../../types/messages"
 import { formatReviewCommentsMarkdown } from "../../utils/review-comment-markdown"
 import { pendingDraftKey, scopeDraftKey, sessionDraftKey } from "../../utils/prompt-drafts"
+import { isAltruCoderBuiltinModel } from "../../../../src/shared/provider-model"
 
 // Per-session input text storage (module-level so it survives remounts)
 const drafts = new Map<string, string>()
@@ -327,7 +329,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const isBusy = () => isPromptBusy(session.status(), !!props.suggesting?.(), !!props.questioning?.())
   const isDisabled = () => !server.isConnected()
   const hasInput = () => text().trim().length > 0 || imageAttach.images().length > 0 || reviewComments().length > 0
-  const canSend = () => hasInput() && !isDisabled() && !terminal.pending() && !git.pending() && !props.blocked?.()
+  const quotaBlocked = () => {
+    const selection = session.selected(sid())
+    const quota = session.altruBuiltinQuota()
+    if (!selection || !quota || !isAltruCoderBuiltinModel(selection.providerID, selection.modelID)) return false
+    return quota.remaining <= 0
+  }
+  const canSend = () =>
+    hasInput() && !isDisabled() && !terminal.pending() && !git.pending() && !props.blocked?.() && !quotaBlocked()
   const showStop = () => isBusy() && !hasInput()
   const isAtEnd = () =>
     textareaRef ? atEnd(textareaRef.selectionStart, textareaRef.selectionEnd, textareaRef.value.length) : false
@@ -339,8 +348,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   }
   const placeholder = () => {
     switch (server.connectionState()) {
-      case "connecting":
-        return language.t("prompt.placeholder.connecting")
       case "error":
         return language.t("prompt.placeholder.error")
       default:
@@ -691,7 +698,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const pending = reviewComments()
     const review = pending.length > 0 ? formatReviewCommentsMarkdown(pending) : ""
     const message = draft && review ? `${review}\n\n${draft}` : draft || review
-    if ((!message && imgs.length === 0) || isDisabled() || terminal.pending() || git.pending() || props.blocked?.())
+    if (
+      (!message && imgs.length === 0) ||
+      isDisabled() ||
+      terminal.pending() ||
+      git.pending() ||
+      props.blocked?.() ||
+      quotaBlocked()
+    )
       return
 
     const mentionFiles = mention.parseFileAttachments(draft)
@@ -974,6 +988,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         <div class="prompt-input-hint-selectors">
           <ModeSwitcher sessionID={sid} />
           <ModelSelector sessionID={sid} />
+          <AltruBuiltinQuotaIndicator sessionID={sid} />
           <ThinkingSelector sessionID={sid} />
           <Show when={session.hasModelOverride(sid())}>
             <Tooltip value={language.t("prompt.action.resetModel")} placement="top">
@@ -1045,7 +1060,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
               variant="ghost"
               size="small"
               onClick={handleEnhance}
-              disabled={!canEnhance()}
+              aria-disabled={!canEnhance()}
               aria-label={language.t("prompt.action.enhance")}
             >
               <WandSparkles size={16} class={enhancing() ? "enhance-spinner" : ""} />
@@ -1055,7 +1070,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
             when={showStop()}
             fallback={
               <Tooltip
-                value={props.blocked?.() ? language.t("prompt.action.send.blocked") : language.t("prompt.action.send")}
+                value={
+                  quotaBlocked()
+                    ? "Altru built-in model token limit reached"
+                    : props.blocked?.()
+                      ? language.t("prompt.action.send.blocked")
+                      : language.t("prompt.action.send")
+                }
                 placement="top"
               >
                 <Button

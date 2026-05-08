@@ -17,7 +17,7 @@ import CustomProviderDialog from "./CustomProviderDialog"
 import ProviderConnectDialog from "./ProviderConnectDialog"
 import ProviderSelectDialog from "./ProviderSelectDialog"
 import { disabledProviderOptions, providersWithAltruCoderFallback, visibleConnectedIds } from "./provider-visibility"
-import { ALTRU_CODER_PROVIDER_ID, CUSTOM_PROVIDER_PACKAGE } from "../../../../src/shared/provider-model"
+import { ALTRU_CODER_PROVIDER_ID, isCustomProviderPackage } from "../../../../src/shared/provider-model"
 import { createProviderAction } from "../../utils/provider-action"
 import { PROVIDER_PRESETS } from "./provider-presets"
 
@@ -71,7 +71,7 @@ const ProvidersTab: Component = () => {
     if (current === "api") return language.t("provider.connect.method.apiKey")
     if (current === "config") {
       const cfg = config().provider?.[item.id]
-      if (cfg?.npm === "@ai-sdk/openai-compatible") return language.t("settings.providers.tag.custom")
+      if (isCustomProviderPackage(cfg?.npm)) return language.t("settings.providers.tag.custom")
       return language.t("settings.providers.tag.config")
     }
     if (item.id === "openai" && current === "custom") return language.t("settings.providers.tag.chatgpt")
@@ -85,7 +85,7 @@ const ProvidersTab: Component = () => {
 
   function isCustom(item: Provider) {
     const cfg = config().provider?.[item.id]
-    return cfg?.npm === CUSTOM_PROVIDER_PACKAGE
+    return isCustomProviderPackage(cfg?.npm)
   }
 
   function editProvider(item: Provider) {

@@ -1,7 +1,39 @@
 export const ALTRU_CODER_PROVIDER_ID = "altru-coder"
 export const ALTRU_CODER_AUTO = { providerID: ALTRU_CODER_PROVIDER_ID, modelID: "altru-coder-auto/free" } as const
+export const ALTRU_CODER_BUILTIN_TOKEN_LIMIT = 200_000
+export const ALTRU_CODER_BUILTIN_TOKEN_WINDOW_MS = 48 * 60 * 60 * 1000
+export const ALTRU_CODER_BUILTIN_MODELS = [
+  {
+    providerID: ALTRU_CODER_PROVIDER_ID,
+    modelID: "altru-coder-auto/free",
+    name: "Altru Coder Auto Free",
+    context: 204_800,
+    output: 131_072,
+    reasoning: true,
+    recommendedIndex: 1,
+  },
+  {
+    providerID: ALTRU_CODER_PROVIDER_ID,
+    modelID: "openai/gpt-oss-120b",
+    name: "GPT OSS 120B",
+    context: 131_072,
+    output: 26_215,
+    reasoning: true,
+    recommendedIndex: 2,
+  },
+] as const
 export const CUSTOM_PROVIDER_PACKAGE = "@ai-sdk/openai-compatible"
+export const ANTHROPIC_PROVIDER_PACKAGE = "@ai-sdk/anthropic"
+export const CUSTOM_PROVIDER_PACKAGES = [CUSTOM_PROVIDER_PACKAGE, ANTHROPIC_PROVIDER_PACKAGE] as const
 export const PROVIDER_ID_PATTERN = /^[a-z0-9][a-z0-9-_]*$/
+
+export type CustomProviderPackage = (typeof CUSTOM_PROVIDER_PACKAGES)[number]
+
+const CUSTOM_PROVIDER_SET = new Set<string>(CUSTOM_PROVIDER_PACKAGES)
+
+export function isCustomProviderPackage(pkg: unknown): pkg is CustomProviderPackage {
+  return typeof pkg === "string" && CUSTOM_PROVIDER_SET.has(pkg)
+}
 
 export const PROVIDER_PRIORITY = [
   ALTRU_CODER_PROVIDER_ID,
@@ -32,5 +64,32 @@ export function createAltruCoderFallbackProvider() {
     source: "custom" as const,
     env: ["ALTRU_CODER_API_KEY"],
     models: {},
+  }
+}
+
+export function isAltruCoderBuiltinModel(providerID: string | undefined, modelID: string | undefined) {
+  if (providerID !== ALTRU_CODER_PROVIDER_ID || !modelID) return false
+  return ALTRU_CODER_BUILTIN_MODELS.some((model) => model.modelID === modelID)
+}
+
+export function createAltruCoderBuiltinProvider() {
+  return {
+    id: ALTRU_CODER_PROVIDER_ID,
+    name: "Altru Coder",
+    source: "custom" as const,
+    env: ["ALTRU_CODER_API_KEY"],
+    models: Object.fromEntries(
+      ALTRU_CODER_BUILTIN_MODELS.map((model) => [
+        model.modelID,
+        {
+          id: model.modelID,
+          name: model.name,
+          isFree: true,
+          recommendedIndex: model.recommendedIndex,
+          limit: { context: model.context, output: model.output },
+          capabilities: { reasoning: model.reasoning },
+        },
+      ]),
+    ),
   }
 }

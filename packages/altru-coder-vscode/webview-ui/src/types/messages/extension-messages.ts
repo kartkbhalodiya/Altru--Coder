@@ -585,6 +585,19 @@ export interface FavoritesLoadedMessage {
   favorites: ModelSelection[]
 }
 
+export interface AltruBuiltinQuota {
+  limit: number
+  used: number
+  remaining: number
+  resetAt: number
+  models: Array<{ providerID: string; modelID: string; name: string }>
+}
+
+export interface AltruBuiltinQuotaLoadedMessage {
+  type: "altruBuiltinQuotaLoaded"
+  quota: AltruBuiltinQuota
+}
+
 // Per-mode model selections loaded from model.json (extension → webview)
 export interface ModelSelectionsLoadedMessage {
   type: "modelSelectionsLoaded"
@@ -990,6 +1003,7 @@ export type ExtensionMessage =
   | CustomProviderModelsFetchedMessage
   | RecentsLoadedMessage
   | FavoritesLoadedMessage
+  | AltruBuiltinQuotaLoadedMessage
   | ModelSelectionsLoadedMessage
   | LanguageChangedMessage
   | ContinueInWorktreeProgressMessage

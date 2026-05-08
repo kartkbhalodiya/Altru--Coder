@@ -13,6 +13,7 @@
   --glass-radius: 8px;
   --glass-radius-sm: 6px;
   --glass-blur: blur(16px) saturate(1.12);
+  --glass-tool-command: var(--vscode-terminal-ansiGreen, #73c991);
 }
 
 html,
@@ -66,24 +67,273 @@ body,
 }
 
 html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-part-type="tool"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 64%, transparent) !important;
+  border-radius: var(--glass-radius) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.026), transparent 48%),
+    color-mix(in srgb, var(--glass-bg-strong) 56%, transparent) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(6px) saturate(1.02);
+  -webkit-backdrop-filter: blur(6px) saturate(1.02);
+  overflow: hidden !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-part-type="tool"]:has(> [data-component="tool-part-wrapper"][data-part-type="tool"]) {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   overflow: visible !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="collapsible"].tool-collapsible {
+  gap: 0 !important;
+  border-radius: inherit !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-trigger"] {
+  min-height: 38px;
+  height: auto !important;
+  padding: 0 10px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-trigger"][aria-expanded="true"] {
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 48%, transparent) !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-trigger"]:hover {
+  background: color-mix(in srgb, var(--glass-hover) 28%, transparent) !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-trigger"] {
+  min-height: 38px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="bash-output"] {
+  margin-bottom: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable] {
+  padding: 10px 12px 12px !important;
+  max-height: 260px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable]:has([data-component="task-tools"]) {
+  padding: 0 !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable]
+  [data-component="markdown-code"]
+  .shiki {
+  border: 0 !important;
+  border-radius: var(--glass-radius-sm) !important;
+  background: color-mix(in srgb, var(--glass-bg-soft) 34%, transparent) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="task-tools"] {
+  padding: 8px 10px 10px !important;
+  gap: 6px !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="task-tool-item"],
+html[data-theme="altru-coder-vscode"] [data-component="task-tool-card"] {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 42%, transparent) !important;
+  border-radius: var(--glass-radius-sm) !important;
+  background: color-mix(in srgb, var(--glass-bg-soft) 28%, transparent) !important;
+  padding: 6px 8px !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="bash-output"]
+  [data-slot="bash-pre"] {
+  color: color-mix(in srgb, var(--vscode-terminal-foreground, var(--vscode-foreground)) 92%, #ffffff 8%);
+  padding: 10px 12px 12px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="bash-command-line"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="bash-prompt"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-shell"] [data-slot="shell-expanded-command"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-command"] {
+  color: var(--glass-tool-command) !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="bash-output-text"],
+html[data-theme="altru-coder-vscode"] [data-slot="shell-expanded-output-text"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-output"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-row"] {
+  color: color-mix(in srgb, var(--vscode-terminal-foreground, var(--vscode-foreground)) 92%, #ffffff 8%) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-slot="shell-output-link"] {
+  color: var(--vscode-textLink-foreground, #4daafc) !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+html[data-theme="altru-coder-vscode"] [data-slot="shell-output-link"]:hover {
+  color: var(--vscode-textLink-activeForeground, var(--vscode-textLink-foreground, #4daafc)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-results"],
+html[data-theme="altru-coder-vscode"] [data-component="assistant-part-item"][data-kind="context"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 64%, transparent) !important;
+  border-radius: var(--glass-radius) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.026), transparent 48%),
+    color-mix(in srgb, var(--glass-bg-strong) 56%, transparent) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(6px) saturate(1.02);
+  -webkit-backdrop-filter: blur(6px) saturate(1.02);
+  overflow: hidden;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-results"] [data-slot="shell-rolling-header"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="assistant-part-item"][data-kind="context"]
+  [data-component="tool-trigger"] {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-shell"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-results"] [data-slot="shell-rolling-preview"],
+html[data-theme="altru-coder-vscode"] [data-component="context-tool-expanded-list"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="assistant-part-item"][data-kind="context"]
+  [data-component="rolling-results"] {
+  border-top: 1px solid color-mix(in srgb, var(--glass-border) 48%, transparent);
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-shell"] [data-slot="shell-expanded-body"],
+html[data-theme="altru-coder-vscode"] [data-component="context-tool-expanded-list"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="assistant-part-item"][data-kind="context"]
+  [data-component="rolling-results"]
+  [data-slot="rolling-results-viewport"] {
+  padding: 10px 12px 12px;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="context-tool-expanded-row"],
+html[data-theme="altru-coder-vscode"] [data-component="context-tool-rolling-row"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 88%, #ffffff 12%);
+}
+
+html[data-theme="altru-coder-vscode"] [data-slot="context-tool-expanded-action"],
+html[data-theme="altru-coder-vscode"] [data-slot="context-tool-rolling-action"] {
+  flex: 0 0 auto;
+  color: var(--glass-tool-command);
+  font-weight: 500;
+}
+
+html[data-theme="altru-coder-vscode"] [data-slot="context-tool-expanded-detail"],
+html[data-theme="altru-coder-vscode"] [data-slot="context-tool-rolling-detail"],
+html[data-theme="altru-coder-vscode"] [data-slot="shell-rolling-subtitle"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--vscode-descriptionForeground, #c8c8c8) 86%, #ffffff 14%);
 }
 
 [data-component="reasoning-part"] {
   box-sizing: border-box;
   min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, transparent) !important;
+  opacity: 0.56;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 38%, transparent) !important;
   border-radius: var(--glass-radius) !important;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.025), transparent 48%),
-    color-mix(in srgb, var(--glass-bg-soft) 52%, transparent) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035);
-  backdrop-filter: blur(6px) saturate(1.02);
-  -webkit-backdrop-filter: blur(6px) saturate(1.02);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.014), transparent 48%),
+    color-mix(in srgb, var(--glass-bg-soft) 30%, transparent) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(3px) saturate(1);
+  -webkit-backdrop-filter: blur(3px) saturate(1);
+  transition:
+    opacity 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+  overflow: hidden;
+}
+
+[data-component="reasoning-part"][data-streaming] {
+  opacity: 0.72;
+}
+
+[data-component="reasoning-part"]:hover,
+[data-component="reasoning-part"]:focus-within {
+  opacity: 0.92;
+  border-color: color-mix(in srgb, var(--glass-border) 54%, transparent) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.022), transparent 48%),
+    color-mix(in srgb, var(--glass-bg-soft) 42%, transparent) !important;
 }
 
 [data-component="text-part"] {
@@ -98,7 +348,7 @@ html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-
 }
 
 [data-component="reasoning-part"] [data-component="markdown"] {
-  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 92%, #ffffff 8%) !important;
+  color: color-mix(in srgb, var(--vscode-descriptionForeground, #c8c8c8) 82%, transparent) !important;
 }
 
 [data-component="text-part"] [data-component="markdown"] {
@@ -106,10 +356,49 @@ html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-
 }
 
 [data-component="reasoning-part"] {
-  padding: 10px 12px;
+  padding: 0;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.025), transparent 48%),
-    color-mix(in srgb, var(--glass-bg-soft) 50%, transparent) !important;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.014), transparent 48%),
+    color-mix(in srgb, var(--glass-bg-soft) 30%, transparent) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-component="collapsible"].tool-collapsible,
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="collapsible-content"] {
+  border-radius: inherit !important;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-component="collapsible"].tool-collapsible {
+  gap: 0 !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="collapsible-trigger"] {
+  min-height: 40px;
+  height: auto !important;
+  padding: 10px 12px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="reasoning-part"]
+  [data-slot="collapsible-trigger"][aria-expanded="true"] {
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 42%, transparent);
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-header"] {
+  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 56%, var(--vscode-descriptionForeground, #c8c8c8) 44%) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-header"] [data-component="icon"] {
+  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 52%, var(--vscode-descriptionForeground, #c8c8c8) 48%) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-content"] {
+  padding: 0 14px 14px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 [data-component="reasoning-part"] [data-component="markdown"] {
@@ -118,12 +407,9 @@ html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-
 
 [data-component="reasoning-part"] [data-component="markdown"] strong,
 [data-component="reasoning-part"] [data-component="markdown"] b {
-  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 82%, #ffffff 18%) !important;
+  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 64%, var(--vscode-descriptionForeground, #c8c8c8) 36%) !important;
 }
 
-[data-component="tool-trigger"],
-[data-component="bash-output"],
-[data-component="tool-output"][data-scrollable],
 [data-component="markdown-code"] .shiki,
 [data-component="task-tool-card"],
 [data-component="card"][data-kind="tool-error-card"] {
@@ -137,12 +423,6 @@ html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-
   -webkit-backdrop-filter: blur(6px) saturate(1.02);
 }
 
-[data-component="tool-trigger"] {
-  min-height: 34px;
-  padding: 6px 10px;
-}
-
-[data-component="tool-trigger"][data-clickable="true"]:hover,
 [data-component="task-tool-card"]:hover,
 [data-component="card"][data-kind="tool-error-card"]:hover {
   border-color: color-mix(in srgb, var(--glass-border-strong) 68%, transparent) !important;
@@ -151,13 +431,6 @@ html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-
     color-mix(in srgb, var(--glass-hover) 62%, transparent) !important;
 }
 
-[data-component="bash-output"],
-[data-component="tool-output"][data-scrollable] {
-  overflow: hidden;
-}
-
-[data-component="bash-output"] [data-slot="bash-pre"],
-[data-component="tool-output"][data-scrollable] pre,
 [data-component="markdown-code"] .shiki {
   color: color-mix(in srgb, var(--vscode-editor-foreground, var(--vscode-foreground)) 92%, #ffffff 8%);
 }

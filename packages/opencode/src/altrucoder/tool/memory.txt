@@ -1,0 +1,5 @@
+Read and write durable project memory for this workspace.
+
+Use this tool only for stable information that should help future sessions: project decisions, user preferences, non-obvious fixes, repository conventions, provider/model setup, or facts the user explicitly asks you to remember.
+
+Do not store secrets, API keys, private unrelated text, temporary errors, or one-off command output.

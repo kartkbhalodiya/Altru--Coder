@@ -208,7 +208,7 @@ const AboutAltruCoderTab: Component<AboutAltruCoderTabProps> = (props) => {
           }}
         >
           {language.t("settings.aboutAltruCoder.feedback.prefix")}{" "}
-          <span style={linkStyle} onClick={() => open("https://github.com/Altru-Coder/altrucoder")}>
+          <span style={linkStyle} onClick={() => open("https://github.com/kartkbhalodiya/Altru--Coder")}>
             GitHub
           </span>
           ,{" "}
@@ -216,8 +216,8 @@ const AboutAltruCoderTab: Component<AboutAltruCoderTabProps> = (props) => {
             Reddit
           </span>
           , {language.t("settings.aboutAltruCoder.feedback.or")}{" "}
-          <span style={linkStyle} onClick={() => open("https://altru-coder.ai/discord")}>
-            Discord
+          <span style={linkStyle} onClick={() => open("https://altrucoder.vercel.app")}>
+            Website
           </span>
           .
         </p>
@@ -230,8 +230,8 @@ const AboutAltruCoderTab: Component<AboutAltruCoderTabProps> = (props) => {
           }}
         >
           {language.t("settings.aboutAltruCoder.support.prefix")}{" "}
-          <span style={linkStyle} onClick={() => open("https://altru-coder.ai/support")}>
-            altru-coder.ai/support
+          <span style={linkStyle} onClick={() => open("https://chat.whatsapp.com/J0XfY7LF9RDDNQN54CQOTY")}>
+            WhatsApp Support
           </span>
           .
         </p>

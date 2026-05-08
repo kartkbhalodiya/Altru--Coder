@@ -1,0 +1,5 @@
+List and read structured resources exposed by connected MCP servers.
+
+Use list mode first when you do not know the exact resource URI. Use read mode with the server name and resource URI returned by list mode.
+
+This tool is read-only. It may still expose external or private MCP data, so it asks for permission before listing or reading resources.

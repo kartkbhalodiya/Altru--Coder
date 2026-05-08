@@ -1,8 +1,11 @@
+import { ANTHROPIC_PROVIDER_PACKAGE } from "../../../../src/shared/provider-model"
+
 export type ProviderPreset = {
   id: string
   name: string
   baseURL: string
   note: string
+  npm?: string
   models?: ProviderPresetModel[]
   local?: boolean
   headers?: Record<string, string>
@@ -26,6 +29,27 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
       { id: "gpt-5", name: "GPT-5", reasoning: true },
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "o3", name: "o3", reasoning: true },
+    ],
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    baseURL: "https://api.anthropic.com/v1",
+    note: "Use Claude directly from Anthropic with your API key.",
+    npm: ANTHROPIC_PROVIDER_PACKAGE,
+    models: [
+      { id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true },
+      { id: "claude-opus-4-6", name: "Claude Opus 4.6", reasoning: true },
+      { id: "claude-opus-4-5", name: "Claude Opus 4.5", reasoning: true },
+      { id: "claude-opus-4-1", name: "Claude Opus 4.1", reasoning: true },
+      { id: "claude-opus-4-0", name: "Claude Opus 4", reasoning: true },
+      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", reasoning: true },
+      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true },
+      { id: "claude-sonnet-4-0", name: "Claude Sonnet 4", reasoning: true },
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", reasoning: true },
+      { id: "claude-3-7-sonnet-20250219", name: "Claude Sonnet 3.7", reasoning: true },
+      { id: "claude-3-5-sonnet-20241022", name: "Claude Sonnet 3.5 v2" },
+      { id: "claude-3-5-haiku-latest", name: "Claude Haiku 3.5" },
     ],
   },
   {

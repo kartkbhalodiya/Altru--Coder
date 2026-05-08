@@ -1,5 +1,10 @@
 import { z } from "zod"
-import { CUSTOM_PROVIDER_PACKAGE, PROVIDER_ID_PATTERN } from "./provider-model"
+import {
+  CUSTOM_PROVIDER_PACKAGE,
+  PROVIDER_ID_PATTERN,
+  isCustomProviderPackage,
+  type CustomProviderPackage,
+} from "./provider-model"
 
 const INVALID_PROVIDER_ID = "Invalid provider ID"
 const INVALID_ENV = "Invalid environment variable name"
@@ -53,7 +58,7 @@ export const CustomProviderConfigSchema = z
   .strict()
 
 export type SanitizedProviderConfig = {
-  npm: typeof CUSTOM_PROVIDER_PACKAGE
+  npm: CustomProviderPackage
   name: string
   env?: string[]
   options: {
@@ -118,7 +123,7 @@ export function normalizeCustomProviderConfig(
     : undefined
 
   return {
-    npm: CUSTOM_PROVIDER_PACKAGE,
+    npm: isCustomProviderPackage(config.npm) ? config.npm : CUSTOM_PROVIDER_PACKAGE,
     name: config.name.trim(),
     ...(config.env ? { env: config.env.map((item) => item.trim()) } : {}),
     options: {

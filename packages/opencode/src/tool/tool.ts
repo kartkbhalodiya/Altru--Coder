@@ -4,8 +4,10 @@ import type { Permission } from "../permission"
 import type { SessionID, MessageID } from "../session/schema"
 import * as Truncate from "./truncate"
 import { Agent } from "@/agent/agent"
+import { AltruCoderToolHooks } from "@/altrucoder/tool/hooks" // altrucoder_change
+import { AltruCoderPolicy } from "@/altrucoder/policy" // altrucoder_change
 
-interface Metadata {
+export interface Metadata {
   [key: string]: any
 }
 
@@ -106,17 +108,24 @@ function wrap<Parameters extends Schema.Decoder<unknown>, Result extends Metadat
                   ),
             ),
           )
-          const result = yield* execute(decoded as Schema.Schema.Type<Parameters>, ctx)
-          if (result.metadata.truncated !== undefined) {
-            return result
+          // altrucoder_change start - centralized policy + hook lifecycle for every built-in tool
+          yield* AltruCoderPolicy.validate({ tool: id, args: decoded, ctx })
+          yield* AltruCoderToolHooks.before({ tool: id, args: decoded, ctx })
+          const result = yield* execute(decoded as Schema.Schema.Type<Parameters>, ctx).pipe(
+            Effect.tapError((error) => AltruCoderToolHooks.failure({ tool: id, args: decoded, ctx, error })),
+          )
+          const checked = yield* AltruCoderToolHooks.after({ tool: id, args: decoded, ctx, result })
+          // altrucoder_change end
+          if (checked.metadata.truncated !== undefined) {
+            return checked
           }
           const agent = yield* agents.get(ctx.agent)
-          const truncated = yield* truncate.output(result.output, {}, agent)
+          const truncated = yield* truncate.output(checked.output, {}, agent)
           return {
-            ...result,
+            ...checked,
             output: truncated.content,
             metadata: {
-              ...result.metadata,
+              ...checked.metadata,
               truncated: truncated.truncated,
               ...(truncated.truncated && { outputPath: truncated.outputPath }),
             },

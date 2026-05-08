@@ -6,7 +6,7 @@ import {
   localProviders,
   mergeLocalProviders,
 } from "../../webview-ui/src/context/provider-utils"
-import { CUSTOM_PROVIDER_PACKAGE } from "../../src/shared/provider-model"
+import { ANTHROPIC_PROVIDER_PACKAGE, CUSTOM_PROVIDER_PACKAGE } from "../../src/shared/provider-model"
 import type { Provider } from "../../webview-ui/src/types/messages"
 
 function makeProvider(id: string, name: string, modelIds: string[]): Provider {
@@ -152,5 +152,21 @@ describe("local custom providers", () => {
         modelID: "moonshotai/kimi-k2-instruct-0905",
       }),
     ).toBe(true)
+  })
+
+  it("builds provider models from Anthropic custom config", () => {
+    const providers = localProviders({
+      anthropic: {
+        npm: ANTHROPIC_PROVIDER_PACKAGE,
+        name: "Anthropic",
+        models: {
+          "claude-opus-4-7": { name: "Claude Opus 4.7", reasoning: true },
+        },
+      },
+    })
+
+    expect(providers.anthropic?.name).toBe("Anthropic")
+    expect(providers.anthropic?.models["claude-opus-4-7"]?.name).toBe("Claude Opus 4.7")
+    expect(providers.anthropic?.models["claude-opus-4-7"]?.capabilities?.reasoning).toBe(true)
   })
 })

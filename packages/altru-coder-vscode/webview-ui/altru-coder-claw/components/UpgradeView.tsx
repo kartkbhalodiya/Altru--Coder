@@ -23,7 +23,7 @@ export function UpgradeView() {
         </CardDescription>
         <CardActions>
           <div />
-          <Button variant="primary" onClick={() => claw.openExternal("https://app.altru-coder.ai/claw")}>
+          <Button variant="primary" onClick={() => claw.openExternal("https://altrucoder.vercel.app/chat.html")}>
             {t("altruClaw.upgrade.openDashboard")}
           </Button>
         </CardActions>

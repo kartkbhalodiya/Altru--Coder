@@ -946,7 +946,7 @@ export const dict = {
   "feedback.button": "Feedback & Support",
   "feedback.dialog.message": "We'd love to hear your feedback or help with any issues you're experiencing.",
   "feedback.dialog.github": "Report an issue on GitHub",
-  "feedback.dialog.discord": "Join our Discord community",
+  "feedback.dialog.discord": "Open Altru Coder website",
   "feedback.dialog.support": "Customer Support",
   "session.cloud.import.title": "Import session",
   "session.cloud.import.placeholder": "Session ID, URL, or altru-coder import command",

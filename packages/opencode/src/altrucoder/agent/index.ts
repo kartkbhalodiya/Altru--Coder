@@ -230,7 +230,7 @@ export interface AltruCoderData {
 // Prepare altru-coder-specific data derived from config. Call once per state initialization.
 export function prepare(cfg: Config.Info): AltruCoderData {
   const mcpRules = getMcpRules(cfg)
-  const defaultsPatch = Permission.fromConfig({ bash, recall: "ask" })
+  const defaultsPatch = Permission.fromConfig({ bash, recall: "ask", memory: "ask", mcp_resource: "ask" })
   return { mcpRules, defaultsPatch }
 }
 

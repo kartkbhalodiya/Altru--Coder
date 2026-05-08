@@ -10,6 +10,8 @@ script/**
 .npmrc
 esbuild.js
 vsc-extension-quickstart.md
+CHANGELOG.md
+changelog.md
 **/tsconfig.json
 **/eslint.config.mjs
 **/*.map

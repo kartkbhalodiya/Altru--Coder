@@ -11,6 +11,7 @@ import { Tooltip } from "./tooltip"
 import { GROW_SPRING } from "./motion"
 import { useSpring } from "./motion-spring"
 import { busy, createThrottledValue, updateScrollMask, useCollapsible, useRowWipe, useToolFade } from "./tool-utils"
+import { ShellLinkText } from "./shell-link-text"
 
 function ShellRollingSubtitle(props: { text: string; animate?: boolean }) {
   let ref: HTMLSpanElement | undefined
@@ -157,7 +158,9 @@ function ShellExpanded(props: { cmd: string; out: string; open: boolean }) {
                 style={{ "max-height": `${cap()}px` }}
               >
                 <pre data-slot="shell-expanded-pre">
-                  <code>{props.out}</code>
+                  <code>
+                    <ShellLinkText text={props.out} slot="shell-expanded-output-text" />
+                  </code>
                 </pre>
               </div>
             </>
@@ -278,7 +281,7 @@ export function ShellRollingResults(props: { part: ToolPart; animate?: boolean; 
             return (
               <div data-component="shell-rolling-row">
                 <span ref={setTextRef} data-slot="shell-rolling-text">
-                  {row.text}
+                  <ShellLinkText text={row.text} />
                 </span>
               </div>
             )

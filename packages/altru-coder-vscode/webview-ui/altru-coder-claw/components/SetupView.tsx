@@ -19,10 +19,10 @@ export function SetupView() {
           <p class="altru-coder-claw-card-text">{t("altruClaw.setup.description2")}</p>
         </CardDescription>
         <CardActions>
-          <Button variant="ghost" onClick={() => claw.openExternal("https://altru-coder.ai/altru-coder-claw")}>
+          <Button variant="ghost" onClick={() => claw.openExternal("https://altrucoder.vercel.app/docs.html")}>
             {t("altruClaw.setup.learnMore")}
           </Button>
-          <Button variant="primary" onClick={() => claw.openExternal("https://app.altru-coder.ai/claw")}>
+          <Button variant="primary" onClick={() => claw.openExternal("https://altrucoder.vercel.app/chat.html")}>
             {t("altruClaw.setup.tryAltruCoderClaw")}
           </Button>
         </CardActions>

@@ -34,6 +34,14 @@ const SKILL_PATTERN = "**/SKILL.md"
 export const Info = Schema.Struct({
   name: Schema.String,
   description: Schema.String,
+  displayName: Schema.optional(Schema.String), // altrucoder_change
+  shortDescription: Schema.optional(Schema.String), // altrucoder_change
+  iconSmall: Schema.optional(Schema.String), // altrucoder_change
+  iconLarge: Schema.optional(Schema.String), // altrucoder_change
+  brandColor: Schema.optional(Schema.String), // altrucoder_change
+  defaultPrompt: Schema.optional(Schema.String), // altrucoder_change
+  enabled: Schema.optional(Schema.Boolean), // altrucoder_change
+  dependencies: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)), // altrucoder_change
   location: Schema.String,
   content: Schema.String,
 }).pipe(withStatics((s) => ({ zod: zod(s) })))
@@ -99,7 +107,20 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
 
   if (!md) return
 
-  const parsed = z.object({ name: z.string(), description: z.string() }).safeParse(md.data)
+  const parsed = z
+    .object({
+      name: z.string(),
+      description: z.string(),
+      displayName: z.string().optional(),
+      shortDescription: z.string().optional(),
+      iconSmall: z.string().optional(),
+      iconLarge: z.string().optional(),
+      brandColor: z.string().optional(),
+      defaultPrompt: z.string().optional(),
+      enabled: z.boolean().optional(),
+      dependencies: z.record(z.string(), z.unknown()).optional(),
+    })
+    .safeParse(md.data)
   if (!parsed.success) return
 
   if (state.skills[parsed.data.name]) {
@@ -114,6 +135,14 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
   state.skills[parsed.data.name] = {
     name: parsed.data.name,
     description: parsed.data.description,
+    displayName: parsed.data.displayName, // altrucoder_change
+    shortDescription: parsed.data.shortDescription, // altrucoder_change
+    iconSmall: parsed.data.iconSmall, // altrucoder_change
+    iconLarge: parsed.data.iconLarge, // altrucoder_change
+    brandColor: parsed.data.brandColor, // altrucoder_change
+    defaultPrompt: parsed.data.defaultPrompt, // altrucoder_change
+    enabled: parsed.data.enabled ?? true, // altrucoder_change
+    dependencies: parsed.data.dependencies, // altrucoder_change
     location: match,
     content: md.content,
   }
@@ -215,6 +244,14 @@ const loadSkills = Effect.fnUntraced(function* (state: State, discovered: Discov
     state.skills[skill.name] = {
       name: skill.name,
       description: skill.description,
+      displayName: skill.displayName,
+      shortDescription: skill.shortDescription,
+      iconSmall: skill.iconSmall,
+      iconLarge: skill.iconLarge,
+      brandColor: skill.brandColor,
+      defaultPrompt: skill.defaultPrompt,
+      enabled: skill.enabled ?? true,
+      dependencies: skill.dependencies,
       location: BUILTIN_LOCATION,
       content: skill.content,
     }
@@ -269,8 +306,9 @@ export const layer = Layer.effect(
     const available = Effect.fn("Skill.available")(function* (agent?: Agent.Info) {
       const s = yield* InstanceState.get(state)
       const list = Object.values(s.skills).toSorted((a, b) => a.name.localeCompare(b.name))
-      if (!agent) return list
-      return list.filter((skill) => Permission.evaluate("skill", skill.name, agent.permission).action !== "deny")
+      const enabled = list.filter((skill) => skill.enabled !== false) // altrucoder_change
+      if (!agent) return enabled
+      return enabled.filter((skill) => Permission.evaluate("skill", skill.name, agent.permission).action !== "deny")
     })
 
     return Service.of({ get, all, dirs, available })
@@ -294,6 +332,7 @@ export const dirs = () => runPromise((svc) => svc.dirs())
 
 export function fmt(list: Info[], opts: { verbose: boolean }) {
   if (list.length === 0) return "No skills are currently available."
+  const loc = (skill: Info) => (skill.location === BUILTIN_LOCATION ? BUILTIN_LOCATION : pathToFileURL(skill.location).href)
   if (opts.verbose) {
     return [
       "<available_skills>",
@@ -302,8 +341,12 @@ export function fmt(list: Info[], opts: { verbose: boolean }) {
         .flatMap((skill) => [
           "  <skill>",
           `    <name>${skill.name}</name>`,
+          ...(skill.displayName ? [`    <display_name>${skill.displayName}</display_name>`] : []),
           `    <description>${skill.description}</description>`,
-          `    <location>${pathToFileURL(skill.location).href}</location>`,
+          ...(skill.shortDescription ? [`    <short_description>${skill.shortDescription}</short_description>`] : []),
+          ...(skill.brandColor ? [`    <brand_color>${skill.brandColor}</brand_color>`] : []),
+          ...(skill.defaultPrompt ? [`    <default_prompt>${skill.defaultPrompt}</default_prompt>`] : []),
+          `    <location>${loc(skill)}</location>`,
           "  </skill>",
         ]),
       "</available_skills>",
@@ -314,7 +357,7 @@ export function fmt(list: Info[], opts: { verbose: boolean }) {
     "## Available Skills",
     ...list
       .toSorted((a, b) => a.name.localeCompare(b.name))
-      .map((skill) => `- **${skill.name}**: ${skill.description}`),
+      .map((skill) => `- **${skill.displayName ?? skill.name}**: ${skill.shortDescription ?? skill.description}`),
   ].join("\n")
 }
 

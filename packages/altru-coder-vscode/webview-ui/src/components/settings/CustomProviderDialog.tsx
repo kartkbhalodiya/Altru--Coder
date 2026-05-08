@@ -27,6 +27,7 @@ import { validateCustomProvider } from "./CustomProviderValidation"
 import type { FormErrors, FormState, HeaderRow } from "./CustomProviderValidation"
 import { ProviderLogo } from "../shared/ProviderLogo"
 import type { ProviderPreset, ProviderPresetModel } from "./provider-presets"
+import { CUSTOM_PROVIDER_PACKAGE } from "../../../../src/shared/provider-model"
 const DEBOUNCE_MS = 500
 const SEARCH_DEBOUNCE_MS = 150
 const FETCH_ALL_ID = "__altru_fetch_all__"
@@ -125,6 +126,36 @@ function initialAuth(
   return states[existing.providerID]
 }
 
+function initialID(existing: Existing | undefined, preset: ProviderPreset | undefined) {
+  if (existing?.providerID) return existing.providerID
+  if (preset?.id) return preset.id
+  return ""
+}
+
+function initialName(existing: Existing | undefined, preset: ProviderPreset | undefined) {
+  if (existing?.name) return existing.name
+  if (preset?.name) return preset.name
+  return ""
+}
+
+function initialNpm(existing: Existing | undefined, preset: ProviderPreset | undefined) {
+  if (existing?.config?.npm) return existing.config.npm
+  if (preset?.npm) return preset.npm
+  return CUSTOM_PROVIDER_PACKAGE
+}
+
+function initialURL(existing: Existing | undefined, preset: ProviderPreset | undefined) {
+  const opts = existing?.config?.options as { baseURL?: string } | undefined
+  if (opts?.baseURL) return opts.baseURL
+  if (preset?.baseURL) return preset.baseURL
+  return ""
+}
+
+function initialPicked(compact: boolean, models: ModelEntry[]) {
+  if (compact) return FETCH_ALL_ID
+  return models.find((m) => m.id.trim())?.id ?? ""
+}
+
 export interface CustomProviderDialogProps {
   onBack?: () => void
   preset?: ProviderPreset
@@ -144,7 +175,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
   const editing = () => !!props.existing
   const compact = () => !!props.preset && !props.existing
   const presets = suggestions(props.preset)
-  const [picked, setPicked] = createSignal(compact() ? FETCH_ALL_ID : presets.find((m) => m.id.trim())?.id ?? "")
+  const [picked, setPicked] = createSignal(initialPicked(compact(), presets))
   const presetOptions = createMemo(() => [
     ...presets.filter((m) => m.id.trim()).map(option),
     { id: FETCH_ALL_ID, name: language.t("provider.custom.preset.models.autofetch"), fetch: true },
@@ -198,9 +229,10 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
   const auth = initialAuth(props.existing, provider.authStates())
 
   const [form, setForm] = createStore<FormState>({
-    providerID: props.existing?.providerID ?? props.preset?.id ?? "",
-    name: props.existing?.name ?? props.preset?.name ?? "",
-    baseURL: (props.existing?.config?.options as { baseURL?: string } | undefined)?.baseURL ?? props.preset?.baseURL ?? "",
+    providerID: initialID(props.existing, props.preset),
+    name: initialName(props.existing, props.preset),
+    npm: initialNpm(props.existing, props.preset),
+    baseURL: initialURL(props.existing, props.preset),
     apiKey: resolveCustomProviderKey(auth),
     models: initModels(),
     headers: initHeaders(),
@@ -362,6 +394,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
       baseURL: url,
       apiKey,
       headers,
+      npm: form.npm,
     })
   }
 
@@ -806,12 +839,12 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
             <div style={{ "font-size": "var(--altru-coder-font-size-14)", color: "var(--text-base)" }}>
               {language.t("provider.custom.description.prefix")}
               <a
-                href="https://altru-coder.ai/docs/providers/#custom-provider"
+                href="https://altrucoder.vercel.app/docs.html"
                 onClick={(e) => {
                   e.preventDefault()
                   vscode.postMessage({
                     type: "openExternal",
-                    url: "https://altru-coder.ai/docs/providers/#custom-provider",
+                    url: "https://altrucoder.vercel.app/docs.html",
                   })
                 }}
               >

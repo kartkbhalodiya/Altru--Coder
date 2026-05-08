@@ -6174,6 +6174,16 @@ export type AppSkillsResponses = {
   200: Array<{
     name: string
     description: string
+    displayName?: string
+    shortDescription?: string
+    iconSmall?: string
+    iconLarge?: string
+    brandColor?: string
+    defaultPrompt?: string
+    enabled?: boolean
+    dependencies?: {
+      [key: string]: unknown
+    }
     location: string
     content: string
   }>

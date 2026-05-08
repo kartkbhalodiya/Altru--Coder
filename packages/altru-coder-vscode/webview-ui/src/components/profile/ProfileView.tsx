@@ -15,6 +15,7 @@ export interface ProfileViewProps {
   profileData: ProfileData | null | undefined
   deviceAuth: DeviceAuthState
   onLogin: () => void
+  onDashboard: () => void
 }
 
 const formatBalance = (amount: number): string => {
@@ -90,7 +91,7 @@ const ProfileView: Component<ProfileViewProps> = (props) => {
   }
 
   const handleDashboard = () => {
-    vscode.postMessage({ type: "openExternal", url: "https://app.altru-coder.ai/profile" })
+    props.onDashboard()
   }
 
   const handleCancelLogin = () => {

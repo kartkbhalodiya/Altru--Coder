@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, rmSync, chmodSync } from "node:fs"
 const packageJsonPath = join(import.meta.dir, "..", "package.json")
 const packageJson = await Bun.file(packageJsonPath).json()
 const version = process.env.ALTRU_CODER_VERSION ? process.env.ALTRU_CODER_VERSION : packageJson.version
+const display = packageJson.displayName || "Altru Coder"
 const prerelease = process.env.ALTRU_CODER_PRE_RELEASE === "true"
 
 console.log(`Building VSCode extension version: ${version}${prerelease ? " (pre-release)" : ""}`)
@@ -23,7 +24,7 @@ if (!existsSync(cliDistDir)) {
   throw new Error(`CLI dist directory not found: ${cliDistDir}`)
 }
 
-const targets = [
+const all = [
   { target: "linux-x64", cliDir: "@altru-coder/cli-linux-x64", binary: "altru-coder" },
   { target: "linux-arm64", cliDir: "@altru-coder/cli-linux-arm64", binary: "altru-coder" },
   { target: "alpine-x64", cliDir: "@altru-coder/cli-linux-x64-musl", binary: "altru-coder" },
@@ -34,16 +35,39 @@ const targets = [
   { target: "win32-arm64", cliDir: "@altru-coder/cli-windows-arm64", binary: "altru-coder.exe" },
 ]
 
+const names = process.env.VSIX_TARGETS?.split(",").map((item) => item.trim()).filter(Boolean)
+const targets = names ? all.filter((item) => names.includes(item.target)) : all
+
+if (targets.length === 0) {
+  throw new Error(`No VSIX targets matched VSIX_TARGETS=${process.env.VSIX_TARGETS}`)
+}
+
+function vsix(target: string) {
+  return `${display} ${version} ${target}.vsix`
+}
+
+function clean(dir: string) {
+  if (!existsSync(dir)) return
+
+  try {
+    rmSync(dir, { recursive: true, force: true })
+  } catch (err) {
+    throw new Error(
+      `Failed to clean ${dir}. Stop any running Altru Coder extension or CLI process that may be locking files and rerun the VSIX build.`,
+      { cause: err },
+    )
+  }
+
+  console.log(`  ✅ Cleaned ${dir}`)
+}
+
 const binDir = join(import.meta.dir, "..", "bin")
 const distDir = join(import.meta.dir, "..", "dist")
 const outDir = join(import.meta.dir, "..", "out")
 
 console.log("\n🧹 Cleaning up directories...")
 for (const dir of [binDir, distDir, outDir]) {
-  if (existsSync(dir)) {
-    rmSync(dir, { recursive: true, force: true })
-    console.log(`  ✓ Cleaned ${dir}`)
-  }
+  clean(dir)
 }
 
 mkdirSync(outDir, { recursive: true })
@@ -53,7 +77,7 @@ console.log("\n🔄 Rebuilding SDK types (ensures dist/ is in sync with server A
 await $`bun run --cwd ${join(import.meta.dir, "..", "..", "sdk", "js")} build`
 
 console.log("\n📦 Compiling extension...")
-await $`bun run check-types`
+await $`bun run typecheck`
 await $`bun run lint`
 await $`node ${join(import.meta.dir, "..", "esbuild.js")} --production`
 
@@ -61,7 +85,7 @@ for (const config of targets) {
   console.log(`\n🎯 Processing target: ${config.target}`)
 
   if (existsSync(binDir)) {
-    rmSync(binDir, { recursive: true, force: true })
+    clean(binDir)
   }
   mkdirSync(binDir, { recursive: true })
 
@@ -82,7 +106,7 @@ for (const config of targets) {
   console.log(`  ✅ Binary ready at ${targetBinary}`)
 
   console.log(`  📦 Packaging .vsix for ${config.target}${prerelease ? " (pre-release)" : ""}...`)
-  const vsixPath = join(outDir, `altru-coder-vscode-${config.target}.vsix`)
+  const vsixPath = join(outDir, vsix(config.target))
   const args = ["--no-dependencies", "--skip-license", "--target", config.target, "-o", vsixPath]
   if (prerelease) args.push("--pre-release")
   await $`vsce package ${args}`.env({

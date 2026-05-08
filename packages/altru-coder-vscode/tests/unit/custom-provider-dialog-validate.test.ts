@@ -10,6 +10,7 @@ function base(): FormState {
     providerID: "my-provider",
     name: "My Provider",
     baseURL: "https://example.com/v1",
+    npm: "@ai-sdk/openai-compatible",
     apiKey: "",
     models: [{ id: "model-1", name: "Model One", reasoning: false, variants: [] }],
     headers: [],

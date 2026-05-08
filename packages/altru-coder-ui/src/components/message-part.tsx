@@ -52,6 +52,7 @@ import { COLLAPSIBLE_SPRING } from "./motion"
 import { busy, createThrottledValue, useToolFade, useContextToolPending } from "./tool-utils"
 import { ContextToolGroupHeader, ContextToolExpandedList, ContextToolRollingResults } from "./context-tool-results"
 import { ShellRollingResults } from "./shell-rolling-results"
+import { ShellLinkText } from "./shell-link-text"
 import { extractFilePathFromHref } from "../file-path"
 import { normalize } from "./session-diff"
 
@@ -1461,8 +1462,15 @@ PART_MAPPING["reasoning"] = function ReasoningPartDisplay(props: MessagePartProp
   // explicitly collapsed this reasoning part.
   const initial = props.reasoningAutoCollapse ? !done() || was || userOpened.has(id) : !userCollapsed.has(id)
   const [open, setOpen] = createSignal(initial)
+  const close = { timer: undefined as ReturnType<typeof setTimeout> | undefined }
+  const clear = () => {
+    if (!close.timer) return
+    clearTimeout(close.timer)
+    close.timer = undefined
+  }
 
   const track = (value: boolean) => {
+    clear()
     if (props.reasoningAutoCollapse) {
       if (value) rememberReasoningState(userOpened, id)
       else userOpened.delete(id)
@@ -1476,15 +1484,25 @@ PART_MAPPING["reasoning"] = function ReasoningPartDisplay(props: MessagePartProp
   }
 
   createEffect(() => {
-    if (!props.reasoningAutoCollapse) return
+    if (!props.reasoningAutoCollapse) {
+      clear()
+      return
+    }
     // Skip auto-collapse for blocks the user explicitly opened.
     if (done() && open() && !autocollapsed.has(id) && !userOpened.has(id)) {
       rememberReasoningState(autocollapsed, id)
-      setOpen(false)
+      clear()
+      close.timer = setTimeout(() => {
+        close.timer = undefined
+        if (!userOpened.has(id)) setOpen(false)
+      }, 700)
+      return
     }
+    if (!open() || !done()) clear()
   })
 
   onCleanup(() => {
+    clear()
     if (done()) streamed.delete(id)
   })
 
@@ -2048,8 +2066,6 @@ ToolRegistry.register({
       return ""
     })
     const out = createMemo(() => processCarriageReturns(stripAnsi(rawOutput())))
-    const text = createMemo(() => `$ ${cmd()}${out() ? "\n\n" + out() : ""}`)
-
     const hasOutput = createMemo(() => out().length > 0)
     const [copied, setCopied] = createSignal(false)
 
@@ -2099,7 +2115,19 @@ ToolRegistry.register({
           </div>
           <div data-slot="bash-scroll" data-scrollable>
             <pre data-slot="bash-pre">
-              <code>{text()}</code>
+              <code>
+                <span data-slot="bash-command-line">
+                  <span data-slot="bash-prompt">$</span> {cmd()}
+                </span>
+                <Show when={out()}>
+                  {(text) => (
+                    <>
+                      {"\n\n"}
+                      <ShellLinkText text={text()} slot="bash-output-text" />
+                    </>
+                  )}
+                </Show>
+              </code>
             </pre>
           </div>
         </div>

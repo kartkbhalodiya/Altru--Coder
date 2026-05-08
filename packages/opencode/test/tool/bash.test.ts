@@ -81,6 +81,13 @@ const fill = (mode: "lines" | "bytes", n: number) => {
   if (PS.has(sh())) return `& ${text}`
   return text
 }
+// altrucoder_change start
+const js = (code: string) => {
+  const text = `${bin} -e ${evalarg(code)}`
+  if (PS.has(sh())) return `& ${text}`
+  return text
+}
+// altrucoder_change end
 const glob = (p: string) =>
   process.platform === "win32" ? Filesystem.normalizePathPattern(p) : p.replaceAll("\\", "/")
 
@@ -1044,10 +1051,17 @@ describe("tool.bash abort", () => {
       directory: projectRoot,
       fn: async () => {
         const bash = await initBash()
+        // altrucoder_change start
+        const command = (() => {
+          if (PS.has(sh())) return "Write-Output started; Start-Sleep -Seconds 60"
+          if (sh() === "cmd") return "echo started && ping -n 60 127.0.0.1 > nul"
+          return "echo started && sleep 60"
+        })()
+        // altrucoder_change end
         const result = await Effect.runPromise(
           bash.execute(
             {
-              command: `echo started && sleep 60`,
+              command, // altrucoder_change
               description: "Timeout test",
               timeout: 500,
             },
@@ -1129,6 +1143,64 @@ describe("tool.bash abort", () => {
       },
     })
   })
+
+  // altrucoder_change start
+  test("background command returns after ready output", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await initBash()
+        const command = js(
+          "console.log(String.fromCharCode(114,101,97,100,121,32,105,110,32,49,32,109,115)); setInterval(() => {}, 1000)",
+        )
+        const result = await Effect.runPromise(
+          bash.execute(
+            {
+              command,
+              description: "Start ready background command",
+              background: true,
+              timeout: 5_000,
+            },
+            ctx,
+          ),
+        )
+        expect(result.output).toContain("ready in 1 ms")
+        expect(result.output).toContain("background command is still running")
+        expect(result.metadata.exit).toBe(null)
+        expect(result.metadata.background).toBe(true)
+        expect(result.metadata.running).toBe(true)
+        expect(result.metadata.ready).toBe(true)
+      },
+    })
+  }, 15_000)
+
+  test("background command returns after monitor timeout", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await initBash()
+        const command = js("console.log(String.fromCharCode(98,111,111,116,105,110,103)); setInterval(() => {}, 1000)")
+        const result = await Effect.runPromise(
+          bash.execute(
+            {
+              command,
+              description: "Start slow background command",
+              background: true,
+              timeout: 3_000,
+            },
+            ctx,
+          ),
+        )
+        expect(result.output).toContain("booting")
+        expect(result.output).toContain("background command is still running after monitor timeout")
+        expect(result.metadata.exit).toBe(null)
+        expect(result.metadata.background).toBe(true)
+        expect(result.metadata.running).toBe(true)
+        expect(result.metadata.ready).toBe(false)
+      },
+    })
+  }, 15_000)
+  // altrucoder_change end
 })
 
 describe("tool.bash truncation", () => {

@@ -94,7 +94,10 @@ import {
   handleLogout,
   handleSetOrganization,
   handleRefreshProfile,
+  profileFromWebsiteSession,
+  WEBSITE_SESSION_KEY,
   type AuthContext,
+  type WebsiteLoginSession,
 } from "./altru-coder-provider/handlers/auth"
 import {
   handleRequestCloudSessions,
@@ -114,6 +117,7 @@ import {
 } from "./altru-coder-provider/handlers/question"
 import { fetchAndSendPendingSuggestions, routeSuggestionWebviewMessage } from "./altru-coder-provider/handlers/suggestion"
 import { nativeTitle } from "./altru-coder-provider/native-tab-title"
+import { BuiltinQuota } from "./altru-coder-provider/builtin-quota"
 
 import {
   buildActionContext,
@@ -164,8 +168,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
   private connectionState: "connecting" | "connected" | "disconnected" | "error" = "connecting"
   private loginAttempt = 0
   private isWebviewReady = false
-  private readonly extensionVersion =
-    vscode.extensions.getExtension("altrucoder.altru-coder")?.packageJSON?.version ?? "unknown"
+  private readonly extensionVersion: string
   private cachedProvidersMessage: unknown = null
   /** Coalesce provider refreshes — at most one follow-up rerun when a request lands mid-flight. */
   private providersRefresh: Promise<void> | null = null
@@ -258,6 +261,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
   private diffVirtualProvider: import("./DiffVirtualProvider").DiffVirtualProvider | undefined
   private remoteService: RemoteStatusService | null = null
   private unsubscribeRemote: (() => void) | null = null
+  private readonly quota: BuiltinQuota | undefined
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -265,8 +269,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     private readonly extensionContext?: vscode.ExtensionContext,
     private readonly opts: AltruCoderProviderOptions = {},
   ) {
+    this.extensionVersion = extensionContext?.extension.packageJSON?.version ?? "unknown"
     this.projectDirectory = opts.projectDirectory
     this.slimEditMetadata = opts.slimEditMetadata ?? true
+    this.quota = extensionContext ? new BuiltinQuota(extensionContext.globalState) : undefined
 
     TelemetryProxy.getInstance().setProvider(this)
   }
@@ -291,6 +297,31 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     const s = this.remoteService?.getState()
     if (s) this.postMessage({ type: "remoteStatus", enabled: s.enabled, connected: s.connected })
   }
+
+  private async sendBuiltinQuota(): Promise<void> {
+    if (!this.quota) return
+    const quota = await this.quota.snapshot()
+    this.postMessage({ type: "altruBuiltinQuotaLoaded", quota })
+  }
+
+  private recordBuiltinQuota(info: unknown): void {
+    if (!this.quota) return
+    void this.quota.record(info).then(
+      (quota) => {
+        if (quota) this.postMessage({ type: "altruBuiltinQuotaLoaded", quota })
+      },
+      (error) => console.error("[Altru Coder New] Failed to record built-in model quota:", error),
+    )
+  }
+
+  private async builtinQuotaError(providerID?: string, modelID?: string): Promise<string | undefined> {
+    if (!this.quota || (await this.quota.canSend(providerID, modelID))) return undefined
+    const quota = await this.quota.snapshot()
+    const reset = new Date(quota.resetAt).toLocaleString()
+    this.postMessage({ type: "altruBuiltinQuotaLoaded", quota })
+    return `Altru built-in model token limit reached. The 200K token quota refreshes ${reset}.`
+  }
+
   private focusSession(id?: string): void {
     this.streams.focus(id)
     if (id) this.connectionService.registerFocused(this.instanceId, id)
@@ -372,6 +403,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     // Always push connection state first so the UI can render appropriately.
     this.postMessage({ type: "connectionState", state: this.connectionState })
     pushTelemetryState((m) => this.postMessage(m))
+    void this.sendBuiltinQuota()
 
     // Re-send ready so the webview can recover after refresh.
     if (serverInfo) {
@@ -392,7 +424,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     if (this.connectionState === "connected" && this.client) {
       console.log("[Altru Coder New] AltruCoderProvider: 👤 syncWebviewState fetching profile...")
       const profileResult = await retry(() => this.client!.altruCoder.profile())
-      const profileData = profileResult.data ?? null
+      const profileData = profileResult.data ?? profileFromWebsiteSession(this.getWebsiteSession())
       console.log("[Altru Coder New] AltruCoderProvider: 👤 syncWebviewState profile:", profileData ? "received" : "null")
       this.postMessage({
         type: "profileData",
@@ -1026,6 +1058,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
           this.postMessage({ type: "favoritesLoaded", favorites })
           break
         }
+        case "requestAltruBuiltinQuota":
+          void this.sendBuiltinQuota()
+          break
         // legacy-migration start
         case "requestLegacyMigrationData":
           void handleRequestLegacyMigrationData(this.migrationCtx)
@@ -1764,8 +1799,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     if (!rid || !url) return
     const key = typeof msg.apiKey === "string" ? msg.apiKey : undefined
     const headers = msg.headers && typeof msg.headers === "object" ? (msg.headers as Record<string, string>) : undefined
+    const npm = typeof msg.npm === "string" ? msg.npm : undefined
     try {
-      const models = await fetchOpenAIModels({ baseURL: url, apiKey: key, headers })
+      const models = await fetchOpenAIModels({ baseURL: url, apiKey: key, headers, npm })
       this.postMessage({ type: "customProviderModelsFetched", requestId: rid, models })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to fetch models"
@@ -2555,6 +2591,20 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       return
     }
 
+    const quotaError = await this.builtinQuotaError(providerID, modelID)
+    if (quotaError) {
+      this.postMessage({
+        type: "sendMessageFailed",
+        error: quotaError,
+        text,
+        sessionID,
+        draftID,
+        messageID,
+        files,
+      })
+      return
+    }
+
     let resolved: { sid: string; dir: string } | undefined
     try {
       resolved = await this.resolveSession(sessionID, draftID, context)
@@ -2623,6 +2673,20 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       this.postMessage({
         type: "sendMessageFailed",
         error: "Not connected to CLI backend",
+        text: `/${command} ${args}`.trim(),
+        sessionID,
+        draftID,
+        messageID,
+        files,
+      })
+      return
+    }
+
+    const quotaError = await this.builtinQuotaError(providerID, modelID)
+    if (quotaError) {
+      this.postMessage({
+        type: "sendMessageFailed",
+        error: quotaError,
         text: `/${command} ${args}`.trim(),
         sessionID,
         draftID,
@@ -2833,7 +2897,18 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       disposeGlobal: () => this.disposeGlobal(),
       fetchAndSendProviders: () => this.fetchAndSendProviders(),
       fetchAndSendAgents: () => this.fetchAndSendAgents(),
+      openExternal: (url) => this.openExternal(url),
+      getWebsiteSession: () => this.getWebsiteSession(),
+      setWebsiteSession: (session) => this.setWebsiteSession(session),
     }
+  }
+
+  private getWebsiteSession(): WebsiteLoginSession | undefined {
+    return this.extensionContext?.globalState.get<WebsiteLoginSession>(WEBSITE_SESSION_KEY)
+  }
+
+  private async setWebsiteSession(session: WebsiteLoginSession | undefined): Promise<void> {
+    await this.extensionContext?.globalState.update(WEBSITE_SESSION_KEY, session)
   }
 
   private async disposeGlobal(): Promise<void> {
@@ -2847,9 +2922,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     try {
       const profileResult = await this.client!.altruCoder.profile()
       // Broadcast to all webviews (sidebar, profile tab, agent manager, etc.)
-      this.connectionService.notifyProfileChanged(profileResult.data ?? null)
+      this.connectionService.notifyProfileChanged(profileResult.data ?? profileFromWebsiteSession(this.getWebsiteSession()))
     } catch (error) {
       console.error("[Altru Coder New] AltruCoderProvider: Failed to refresh profile after org switch:", error)
+      this.connectionService.notifyProfileChanged(profileFromWebsiteSession(this.getWebsiteSession()))
     }
     try {
       await this.fetchAndSendProviders()
@@ -2947,8 +3023,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     if (confirmed !== "Reset") return
 
     const prefix = "altru-coder.new."
-    const ext = vscode.extensions.getExtension("altrucoder.altru-coder")
-    const properties = ext?.packageJSON?.contributes?.configuration?.properties as Record<string, unknown> | undefined
+    const properties = this.extensionContext?.extension.packageJSON?.contributes?.configuration?.properties as
+      | Record<string, unknown>
+      | undefined
     if (!properties) return
 
     for (const key of Object.keys(properties)) {
@@ -3050,6 +3127,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
     if (event.type === "message.updated") {
       this.confirmations.confirm(event.properties.info.id)
+      this.recordBuiltinQuota(event.properties.info)
     }
 
     // session.status events pass the onEventFiltered pre-filter for all providers (see line 842),

@@ -28,7 +28,7 @@ export interface Entry {
   virtual?: boolean
 }
 
-const SCHEMA = "https://app.altru-coder.ai/config.json"
+const SCHEMA = "https://altrucoder.vercel.app/config.json"
 
 const MODERN = ["altru-coder.jsonc", "altru-coder.json"]
 const LEGACY = ["opencode.jsonc", "opencode.json"]

@@ -2,6 +2,7 @@ import { Schema } from "effect"
 import { PositiveInt } from "@/util/schema"
 import os from "os"
 import { createWriteStream } from "node:fs"
+import { randomUUID } from "node:crypto" // altrucoder_change
 import * as Tool from "./tool"
 import path from "path"
 import DESCRIPTION from "./bash.txt"
@@ -24,9 +25,11 @@ import { Effect, Stream } from "effect"
 import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { InstanceState } from "@/effect/instance-state"
+import { Process } from "@/util/process" // altrucoder_change
 
 const MAX_METADATA_LENGTH = 30_000
 const DEFAULT_TIMEOUT = Flag.ALTRU_CODER_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
+const BACKGROUND_POLL_MS = 7_000 // altrucoder_change
 const CWD = new Set(["cd", "push-location", "set-location"])
 const FILES = new Set([
   ...CWD,
@@ -59,6 +62,12 @@ const SWITCHES = new Set(["-confirm", "-debug", "-force", "-nonewline", "-recurs
 export const Parameters = Schema.Struct({
   command: Schema.String.annotate({ description: "The command to execute" }),
   timeout: Schema.optional(PositiveInt).annotate({ description: "Optional timeout in milliseconds" }),
+  // altrucoder_change start
+  background: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Run long-lived server/watch commands in the background. Polls output every 7 seconds and returns when the process exits, prints a known ready message, or reaches the monitor timeout while leaving the process running.",
+  }),
+  // altrucoder_change end
   workdir: Schema.optional(Schema.String).annotate({
     description: `The working directory to run the command in. Defaults to the current directory. Use this instead of 'cd' commands.`,
   }),
@@ -91,6 +100,44 @@ type Chunk = {
   text: string
   size: number
 }
+
+// altrucoder_change start
+type Job = {
+  id: string
+  child: ReturnType<typeof Process.spawn>
+  command: string
+  cwd: string
+  list: Chunk[]
+  used: number
+  cut: boolean
+  exit?: number
+  error?: string
+}
+
+type BashState = {
+  jobs: Map<string, Job>
+}
+
+type Metadata = {
+  output: string
+  exit: number | null
+  description: string
+  truncated: boolean
+  outputPath?: string
+  background?: boolean
+  jobID?: string
+  pid?: number
+  running?: boolean
+  ready?: boolean
+  status?: string
+}
+
+const background: BashState = {
+  jobs: new Map(),
+}
+
+let cleanup = false
+// altrucoder_change end
 
 export const log = Log.create({ service: "bash-tool" })
 
@@ -270,6 +317,82 @@ function tail(text: string, maxLines: number, maxBytes: number) {
   }
 }
 
+// altrucoder_change start
+const READY = [
+  /\bready in\s+\d+/i,
+  /\bcompiled successfully\b/i,
+  /\bwebpack compiled\b/i,
+  /\bserver\s+(?:running|started|listening)\b/i,
+  /\blistening on\b/i,
+  /\brunning at\b/i,
+  /\blocal:\s+https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])/i,
+  /https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?/i,
+  /\bpress\s+(?:ctrl|control)\+c\b/i,
+]
+
+function append(job: Job, chunk: string, keep: number) {
+  const size = Buffer.byteLength(chunk, "utf-8")
+  job.list.push({ text: chunk, size })
+  job.used += size
+  while (job.used > keep && job.list.length > 1) {
+    const item = job.list.shift()
+    if (!item) break
+    job.used -= item.size
+    job.cut = true
+  }
+}
+
+function raw(job: Job) {
+  return job.list.map((item) => item.text).join("")
+}
+
+function view(job: Job, limits: { maxLines: number; maxBytes: number }) {
+  const text = raw(job)
+  const end = tail(text, limits.maxLines, limits.maxBytes)
+  const cut = job.cut || end.cut
+  const output = end.text || "(no output yet)"
+  return {
+    output: cut ? "...output truncated...\n\n" + output : output,
+    cut,
+  }
+}
+
+function ready(text: string) {
+  return READY.some((pattern) => pattern.test(text))
+}
+
+function native(shell: string, command: string) {
+  if (process.platform === "win32" && Shell.ps(shell)) {
+    return {
+      cmd: [shell, "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command],
+      shell: false,
+    }
+  }
+  return {
+    cmd: [command],
+    shell,
+  }
+}
+
+function stop(pid: number | undefined) {
+  if (!pid) return "Stop it later from the OS process list if needed."
+  if (process.platform === "win32") return `Stop it later with: taskkill /PID ${pid} /T /F`
+  return `Stop it later with: kill ${pid}`
+}
+
+function registerCleanup() {
+  if (cleanup) return
+  cleanup = true
+  process.once("exit", () => {
+    for (const job of background.jobs.values()) {
+      if (job.child.exitCode !== null || job.child.signalCode !== null) continue
+      job.child.kill()
+    }
+    background.jobs.clear()
+  })
+}
+// altrucoder_change end
+
 const parse = Effect.fn("BashTool.parse")(function* (command: string, ps: boolean) {
   const tree = yield* Effect.promise(() => parser().then((p) => (ps ? p.ps : p.bash).parse(command)))
   if (!tree) throw new Error("Failed to parse command")
@@ -346,7 +469,11 @@ const parser = lazy(async () => {
 })
 
 // TODO: we may wanna rename this tool so it works better on other shells
-export const BashTool = Tool.define(
+export const BashTool = Tool.define<
+  typeof Parameters,
+  Metadata,
+  Config.Service | ChildProcessSpawner | AppFileSystem.Service | Truncate.Service | Plugin.Service
+>(
   "bash",
   Effect.gen(function* () {
     const config = yield* Config.Service
@@ -354,6 +481,7 @@ export const BashTool = Tool.define(
     const fs = yield* AppFileSystem.Service
     const trunc = yield* Truncate.Service
     const plugin = yield* Plugin.Service
+    registerCleanup() // altrucoder_change
 
     const cygpath = Effect.fn("BashTool.cygpath")(function* (shell: string, text: string) {
       const lines = yield* spawner
@@ -444,6 +572,184 @@ export const BashTool = Tool.define(
         ...extra.env,
       }
     })
+
+    // altrucoder_change start
+    const runBackground = Effect.fn("BashTool.runBackground")(function* (
+      input: {
+        shell: string
+        command: string
+        cwd: string
+        env: NodeJS.ProcessEnv
+        timeout: number
+        description: string
+      },
+      ctx: Tool.Context,
+    ) {
+      const limits = yield* trunc.limits()
+      const keep = limits.maxBytes * 2
+      const spec = native(input.shell, input.command)
+      const child = Process.spawn(spec.cmd, {
+        cwd: input.cwd,
+        env: input.env,
+        shell: spec.shell,
+        stdin: "ignore",
+        stdout: "pipe",
+        stderr: "pipe",
+      })
+      const job: Job = {
+        id: randomUUID(),
+        child,
+        command: input.command,
+        cwd: input.cwd,
+        list: [],
+        used: 0,
+        cut: false,
+      }
+      background.jobs.set(job.id, job)
+
+      const ingest = (chunk: Buffer | string) => append(job, chunk.toString(), keep)
+      child.stdout?.on("data", ingest)
+      child.stderr?.on("data", ingest)
+      child.once("error", (err) => {
+        job.error = err instanceof Error ? err.message : String(err)
+      })
+      void child.exited
+        .then((code) => {
+          job.exit = code
+          background.jobs.delete(job.id)
+        })
+        .catch((err) => {
+          job.error = err instanceof Error ? err.message : String(err)
+          background.jobs.delete(job.id)
+          log.warn("background bash job failed", { id: job.id, error: job.error })
+        })
+
+      const pid = child.pid
+      const emit = (status: string) =>
+        ctx.metadata({
+          metadata: {
+            output: preview(view(job, limits).output),
+            description: input.description,
+            background: true,
+            jobID: job.id,
+            pid,
+            status,
+          },
+        })
+
+      yield* emit("running")
+
+      const abort = Effect.callback<void>((resume) => {
+        if (ctx.abort.aborted) return resume(Effect.void)
+        const handler = () => resume(Effect.void)
+        ctx.abort.addEventListener("abort", handler, { once: true })
+        return Effect.sync(() => ctx.abort.removeEventListener("abort", handler))
+      })
+
+      const deadline = Date.now() + input.timeout
+      let reason: "ready" | "exit" | "timeout" | "abort" | "error" = "timeout"
+      let code: number | null = null
+
+      while (true) {
+        if (job.error) {
+          reason = "error"
+          break
+        }
+        if (job.exit !== undefined) {
+          reason = "exit"
+          code = job.exit
+          break
+        }
+        if (ready(raw(job))) {
+          reason = "ready"
+          break
+        }
+
+        const remaining = deadline - Date.now()
+        if (remaining <= 0) {
+          reason = "timeout"
+          break
+        }
+
+        const event = yield* Effect.raceAll([
+          Effect.promise(() =>
+            child.exited.then(
+              (exit) => ({ kind: "exit" as const, exit }),
+              (err) => ({
+                kind: "error" as const,
+                error: err instanceof Error ? err.message : String(err),
+              }),
+            ),
+          ),
+          abort.pipe(Effect.map(() => ({ kind: "abort" as const }))),
+          Effect.sleep(`${Math.min(BACKGROUND_POLL_MS, remaining)} millis`).pipe(
+            Effect.map(() => ({ kind: "tick" as const })),
+          ),
+        ])
+
+        if (event.kind === "tick") {
+          yield* emit("running")
+          continue
+        }
+        if (event.kind === "abort") {
+          reason = "abort"
+          yield* Effect.promise(() =>
+            Process.stop(child).catch((err) => {
+              log.warn("failed to stop aborted background bash job", {
+                id: job.id,
+                error: err instanceof Error ? err.message : String(err),
+              })
+            }),
+          )
+          background.jobs.delete(job.id)
+          break
+        }
+        if (event.kind === "error") {
+          reason = "error"
+          job.error = event.error
+          background.jobs.delete(job.id)
+          break
+        }
+        reason = "exit"
+        code = event.exit
+        break
+      }
+
+      const running = reason === "ready" || reason === "timeout"
+      if (!running) background.jobs.delete(job.id)
+      const end = view(job, limits)
+      const meta: string[] = []
+      if (reason === "ready") meta.push("background command is still running; ready output was detected")
+      if (reason === "timeout") {
+        meta.push(`background command is still running after monitor timeout ${input.timeout} ms`)
+      }
+      if (reason === "abort") meta.push("User aborted the command")
+      if (reason === "error") meta.push(`background command failed to start or stream output: ${job.error ?? "unknown error"}`)
+      if (running) meta.push(`Background job id: ${job.id}`)
+      if (running && pid) meta.push(`Process id: ${pid}`)
+      if (running) meta.push(stop(pid))
+
+      const output =
+        end.output + (meta.length > 0 ? "\n\n<bash_metadata>\n" + meta.join("\n") + "\n</bash_metadata>" : "")
+
+      return {
+        title: input.description,
+        metadata: {
+          output: preview(output),
+          exit: code,
+          description: input.description,
+          truncated: end.cut,
+          background: true,
+          jobID: job.id,
+          pid,
+          running,
+          ready: reason === "ready",
+          status: reason,
+        },
+        output,
+      }
+    })
+    // altrucoder_change end
 
     const run = Effect.fn("BashTool.run")(function* (
       input: {
@@ -654,14 +960,24 @@ export const BashTool = Tool.define(
                 }),
               )
 
+              const input = {
+                shell,
+                command: params.command,
+                cwd,
+                env: yield* shellEnv(ctx, cwd),
+                timeout,
+                description: params.description ?? params.command, // altrucoder_change
+              }
+
+              // altrucoder_change start
+              if (params.background) {
+                return yield* runBackground(input, ctx)
+              }
+              // altrucoder_change end
+
               return yield* run(
                 {
-                  shell,
-                  command: params.command,
-                  cwd,
-                  env: yield* shellEnv(ctx, cwd),
-                  timeout,
-                  description: params.description ?? params.command, // altrucoder_change
+                  ...input,
                 },
                 ctx,
               )

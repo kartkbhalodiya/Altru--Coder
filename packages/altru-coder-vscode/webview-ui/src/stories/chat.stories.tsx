@@ -654,7 +654,7 @@ const MOCK_NOTIFICATION = {
   id: "notif-1",
   title: "Try BYOK for Altru Coder Gateway",
   message: "Bring your own API key for even more flexibility with Altru Coder Gateway models.",
-  action: { actionText: "Learn more", actionURL: "https://altru-coder.ai/docs" },
+  action: { actionText: "Learn more", actionURL: "https://altrucoder.vercel.app/docs.html" },
 }
 
 /** Mock server context with profile data so AccountSwitcher is visible */

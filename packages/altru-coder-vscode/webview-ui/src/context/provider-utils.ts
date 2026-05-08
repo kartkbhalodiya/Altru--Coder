@@ -1,4 +1,4 @@
-import { CUSTOM_PROVIDER_PACKAGE } from "../../../src/shared/provider-model"
+import { createAltruCoderBuiltinProvider, isCustomProviderPackage } from "../../../src/shared/provider-model"
 import type { Provider, ProviderConfig, ProviderModel, ModelSelection } from "../types/messages"
 
 export type EnrichedModel = ProviderModel & { providerID: string; providerName: string }
@@ -27,23 +27,29 @@ function model(id: string, raw: unknown): ProviderModel | undefined {
 }
 
 export function localProviders(config: Record<string, ProviderConfig> | undefined): Record<string, Provider> {
-  const result: Record<string, Provider> = {}
+  const builtin = createAltruCoderBuiltinProvider()
+  const result: Record<string, Provider> = {
+    [builtin.id]: builtin,
+  }
 
   for (const [id, cfg] of Object.entries(config ?? {})) {
-    if (cfg?.npm !== CUSTOM_PROVIDER_PACKAGE) continue
+    if (!isCustomProviderPackage(cfg?.npm)) continue
     const models = Object.fromEntries(
       Object.entries(cfg.models ?? {})
         .map(([mid, raw]) => [mid, model(mid, raw)] as const)
         .filter((entry): entry is [string, ProviderModel] => !!entry[1]),
     )
     if (Object.keys(models).length === 0) continue
-    result[id] = {
+    const provider: Provider = {
       id,
       name: typeof cfg.name === "string" && cfg.name.trim() ? cfg.name.trim() : id,
       source: "config",
       env: cfg.env,
       models,
     }
+    result[id] = result[id]
+      ? { ...provider, models: { ...result[id]!.models, ...provider.models } }
+      : provider
   }
 
   return result

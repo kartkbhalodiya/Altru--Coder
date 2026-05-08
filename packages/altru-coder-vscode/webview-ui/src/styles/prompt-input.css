@@ -480,6 +480,60 @@
   }
 }
 
+.altru-builtin-quota {
+  --quota-pct: 0%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--vscode-button-border, var(--vscode-editorWidget-border));
+  border-radius: 999px;
+  color: var(--vscode-descriptionForeground);
+  background: var(--vscode-button-secondaryBackground);
+  font-size: var(--altru-coder-font-size-11);
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.altru-builtin-quota-ring {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--vscode-progressBar-background) var(--quota-pct),
+    var(--vscode-editorWidget-border) 0
+  );
+}
+
+.altru-builtin-quota-ring::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--vscode-button-secondaryBackground);
+}
+
+.altru-builtin-quota-label {
+  max-width: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.altru-builtin-quota--hot {
+  color: var(--vscode-errorForeground);
+  border-color: color-mix(in srgb, var(--vscode-errorForeground) 60%, transparent);
+}
+
+.altru-builtin-quota--hot .altru-builtin-quota-ring {
+  background: conic-gradient(
+    var(--vscode-errorForeground) var(--quota-pct),
+    var(--vscode-editorWidget-border) 0
+  );
+}
+
 /* Remote Settings */
 [data-component="remote-settings"] {
   display: flex;

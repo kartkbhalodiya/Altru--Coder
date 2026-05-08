@@ -13,6 +13,7 @@ import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
 import { SkillTool } from "./skill"
+import * as ToolSearch from "./tool-search" // altrucoder_change
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@altru-coder/plugin"
@@ -23,9 +24,13 @@ import { Plugin } from "../plugin"
 import { Provider } from "@/provider/provider"
 import { ProviderID, type ModelID } from "../provider/schema"
 import { WebSearchTool } from "./websearch"
+import { McpResourceTool } from "./mcp-resource" // altrucoder_change
+import { ViewImageTool } from "./view-image" // altrucoder_change
 // altrucoder_change start
 import { AltruCoderToolRegistry } from "../altrucoder/tool/registry"
 import { makeRuntime } from "@/effect/run-service"
+import { AltruCoderPolicy } from "@/altrucoder/policy"
+import { AltruCoderToolHooks } from "@/altrucoder/tool/hooks"
 // altrucoder_change end
 import { Flag } from "@opencode-ai/core/flag/flag"
 import * as Log from "@opencode-ai/core/util/log"
@@ -39,6 +44,7 @@ import { Effect, Layer, Context } from "effect"
 import { FetchHttpClient, HttpClient } from "effect/unstable/http"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { MCP } from "@/mcp" // altrucoder_change
 import { Ripgrep } from "../file/ripgrep"
 import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
@@ -93,6 +99,7 @@ export const layer: Layer.Layer<
   | Ripgrep.Service
   | Format.Service
   | Truncate.Service
+  | MCP.Service // altrucoder_change
 > = Layer.effect(
   Service,
   Effect.gen(function* () {
@@ -111,6 +118,8 @@ export const layer: Layer.Layer<
     const plan = yield* PlanExitTool
     const webfetch = yield* WebFetchTool
     const websearch = yield* WebSearchTool
+    const resource = yield* McpResourceTool // altrucoder_change
+    const image = yield* ViewImageTool // altrucoder_change
     const bash = yield* BashTool
     const globtool = yield* GlobTool
     const writetool = yield* WriteTool
@@ -149,16 +158,32 @@ export const layer: Layer.Layer<
                   directory: ctx.directory,
                   worktree: ctx.worktree,
                 }
-                const result = yield* Effect.promise(() => def.execute(args as any, pluginCtx))
+                // altrucoder_change start - apply the same policy/hook lifecycle to custom/plugin tools
+                yield* AltruCoderPolicy.validate({ tool: id, args, ctx: toolCtx })
+                yield* AltruCoderToolHooks.before({ tool: id, args, ctx: toolCtx })
+                const result = yield* Effect.promise(() => def.execute(args as any, pluginCtx)).pipe(
+                  Effect.tapError((error) => AltruCoderToolHooks.failure({ tool: id, args, ctx: toolCtx, error })),
+                )
                 const output = typeof result === "string" ? result : result.output
                 const metadata = typeof result === "string" ? {} : (result.metadata ?? {})
+                const checked = yield* AltruCoderToolHooks.after({
+                  tool: id,
+                  args,
+                  ctx: toolCtx,
+                  result: {
+                    title: typeof result === "string" ? "" : ("title" in result ? String(result.title ?? "") : ""),
+                    output,
+                    metadata,
+                  },
+                })
+                // altrucoder_change end
                 const info = yield* agent.get(toolCtx.agent)
-                const out = yield* truncate.output(output, {}, info)
+                const out = yield* truncate.output(checked.output, {}, info)
                 return {
-                  title: "",
-                  output: out.truncated ? out.content : output,
+                  title: checked.title,
+                  output: out.truncated ? out.content : checked.output,
                   metadata: {
-                    ...metadata,
+                    ...checked.metadata,
                     truncated: out.truncated,
                     ...(out.truncated && { outputPath: out.outputPath }),
                   },
@@ -214,6 +239,8 @@ export const layer: Layer.Layer<
           fetch: Tool.init(webfetch),
           todo: Tool.init(todo),
           search: Tool.init(websearch),
+          resource: Tool.init(resource), // altrucoder_change
+          image: Tool.init(image), // altrucoder_change
           skill: Tool.init(skilltool),
           patch: Tool.init(patchtool),
           question: Tool.init(question),
@@ -239,6 +266,8 @@ export const layer: Layer.Layer<
             tool.fetch,
             tool.todo,
             tool.search,
+            tool.resource, // altrucoder_change
+            tool.image, // altrucoder_change
             tool.skill,
             tool.patch,
             // altrucoder_change start
@@ -314,8 +343,10 @@ export const layer: Layer.Layer<
         return true
       })
 
+      const searchable = [...filtered, ToolSearch.create(filtered)] // altrucoder_change
+
       return yield* Effect.forEach(
-        filtered,
+        searchable,
         Effect.fnUntraced(function* (tool: Tool.Def) {
           using _ = log.time(tool.id)
           const output = {
@@ -360,6 +391,7 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(Agent.defaultLayer),
     Layer.provide(Session.defaultLayer),
     Layer.provide(Provider.defaultLayer),
+    Layer.provide(MCP.defaultLayer), // altrucoder_change
     Layer.provide(LSP.defaultLayer),
     Layer.provide(Instruction.defaultLayer),
     Layer.provide(AppFileSystem.defaultLayer),

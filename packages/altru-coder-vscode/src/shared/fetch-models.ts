@@ -1,12 +1,15 @@
 /**
- * Fetch available models from an OpenAI-compatible /models endpoint.
+ * Fetch available models from provider /models endpoints.
  * Runs in the extension host — no CLI backend dependency.
  */
+
+import { ANTHROPIC_PROVIDER_PACKAGE } from "./provider-model"
 
 type Options = {
   baseURL: string
   apiKey?: string
   headers?: Record<string, string>
+  npm?: string
 }
 
 type ModelEntry = {
@@ -28,20 +31,35 @@ export class FetchModelsError extends Error {
   }
 }
 
-export async function fetchOpenAIModels(opts: Options): Promise<ModelEntry[]> {
-  const base = opts.baseURL.replace(/\/+$/, "")
-  const url = /\/models$/i.test(base) ? base : `${base}/models`
-  const headers: Record<string, string> = {
+function endpoint(baseURL: string) {
+  const base = baseURL.replace(/\/+$/, "")
+  return /\/models$/i.test(base) ? base : `${base}/models`
+}
+
+function anthropic(opts: Options) {
+  return opts.npm === ANTHROPIC_PROVIDER_PACKAGE || /^https:\/\/api\.anthropic\.com(?:\/|$)/i.test(opts.baseURL.trim())
+}
+
+function headers(opts: Options): Record<string, string> {
+  const result: Record<string, string> = {
     "Content-Type": "application/json",
     ...opts.headers,
   }
-  if (opts.apiKey) {
-    headers["Authorization"] = `Bearer ${opts.apiKey}`
+
+  if (anthropic(opts)) {
+    if (!result["anthropic-version"]) result["anthropic-version"] = "2023-06-01"
+    if (opts.apiKey) result["x-api-key"] = opts.apiKey
+    return result
   }
 
-  const response = await fetch(url, {
+  if (opts.apiKey) result["Authorization"] = `Bearer ${opts.apiKey}`
+  return result
+}
+
+export async function fetchOpenAIModels(opts: Options): Promise<ModelEntry[]> {
+  const response = await fetch(endpoint(opts.baseURL), {
     method: "GET",
-    headers,
+    headers: headers(opts),
     signal: AbortSignal.timeout(15_000),
   })
 

@@ -116,6 +116,7 @@ describe("config file discovery", () => {
     process.env.ALTRU_CODER_CONFIG_DIR = extra
     process.env.ALTRU_CODER_CONFIG_CONTENT = "{}"
     await file(path.join(xdg, "altru-coder", "altru-coder.json"))
+    await file(path.join(home, ".altru-coder", "altru-coder.json"))
     await file(path.join(home, ".altrucoder", "opencode.json"))
     await file(path.join(home, ".opencode", "altru-coder.jsonc"))
     await file(envfile)
@@ -191,7 +192,7 @@ describe("openConfig", () => {
 
     expect(win.showQuickPick).toHaveBeenCalled()
     expect(await Bun.file(cfg).text()).toBe(`{
-  "$schema": "https://app.altru-coder.ai/config.json"
+  "$schema": "https://altrucoder.vercel.app/config.json"
 }
 `)
     expect(workspace.openTextDocument).toHaveBeenCalledWith(expect.objectContaining({ fsPath: cfg }))

@@ -6,9 +6,9 @@ import { useDialog } from "@altru-coder/altru-coder-ui/context/dialog"
 import { useVSCode } from "../../context/vscode"
 import { useLanguage } from "../../context/language"
 
-const GITHUB_ISSUES_URL = "https://github.com/Altru-Coder/altrucoder/issues/new/choose"
-const DISCORD_URL = "https://altru-coder.ai/discord"
-const SUPPORT_URL = "https://altru-coder.ai/support"
+const GITHUB_ISSUES_URL = "https://github.com/kartkbhalodiya/Altru--Coder/issues/new/choose"
+const WEBSITE_URL = "https://altrucoder.vercel.app"
+const SUPPORT_URL = "https://chat.whatsapp.com/J0XfY7LF9RDDNQN54CQOTY"
 
 const AltruCoderLogo = (): JSX.Element => {
   const iconsBaseUri = (window as { ICONS_BASE_URI?: string }).ICONS_BASE_URI || ""
@@ -40,8 +40,8 @@ export const FeedbackDialog: Component = () => {
             <Icon name="github" size="small" />
             {language.t("feedback.dialog.github")}
           </Button>
-          <Button variant="secondary" size="large" data-full-width="true" onClick={() => open(DISCORD_URL)}>
-            <Icon name="discord" size="small" />
+          <Button variant="secondary" size="large" data-full-width="true" onClick={() => open(WEBSITE_URL)}>
+            <Icon name="help" size="small" />
             {language.t("feedback.dialog.discord")}
           </Button>
           <Button variant="secondary" size="large" data-full-width="true" onClick={() => open(SUPPORT_URL)}>

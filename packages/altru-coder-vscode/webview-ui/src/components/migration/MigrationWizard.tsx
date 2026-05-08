@@ -637,10 +637,10 @@ const MigrationWizard: Component<MigrationWizardProps> = (props) => {
           </div>
 
           <div class="migration-wizard__blog-link">
-            <a href="https://blog.altru-coder.ai/p/new-altru-coder-for-vs-code-is-live">
+            <a href="https://altrucoder.vercel.app/blog.html">
               {language.t("migration.whatsNew.blogLink")} <span>&rarr;</span>
             </a>
-            <a href="https://altru-coder.ai/docs/code-with-ai/platforms/vscode/whats-new">
+            <a href="https://altrucoder.vercel.app/docs.html">
               {language.t("migration.whatsNew.docsLink")} <span>&rarr;</span>
             </a>
           </div>

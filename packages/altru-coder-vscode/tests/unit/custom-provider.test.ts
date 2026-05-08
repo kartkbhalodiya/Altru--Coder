@@ -8,6 +8,7 @@ import {
   validateProviderID,
   withCustomProviderDeletions,
 } from "../../src/shared/custom-provider"
+import { ANTHROPIC_PROVIDER_PACKAGE } from "../../src/shared/provider-model"
 
 describe("validateProviderID", () => {
   it("accepts valid provider ids", () => {
@@ -126,6 +127,28 @@ describe("sanitizeCustomProviderConfig", () => {
               thinking: { chat_template_args: { enable_thinking: true } },
             },
           },
+        },
+      },
+    })
+  })
+
+  it("preserves the Anthropic custom provider package", () => {
+    const result = sanitizeCustomProviderConfig({
+      npm: ANTHROPIC_PROVIDER_PACKAGE,
+      name: "Anthropic",
+      options: { baseURL: "https://api.anthropic.com/v1" },
+      models: {
+        "claude-opus-4-7": { name: "Claude Opus 4.7", reasoning: true },
+      },
+    })
+
+    expect(result).toEqual({
+      value: {
+        npm: ANTHROPIC_PROVIDER_PACKAGE,
+        name: "Anthropic",
+        options: { baseURL: "https://api.anthropic.com/v1" },
+        models: {
+          "claude-opus-4-7": { name: "Claude Opus 4.7", reasoning: true },
         },
       },
     })

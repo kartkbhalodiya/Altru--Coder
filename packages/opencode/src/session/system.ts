@@ -23,6 +23,7 @@ import { Skill } from "@/skill"
 import SOUL from "../altrucoder/soul.txt"
 import { staticEnvLines, type EditorContext } from "../altrucoder/editor-context"
 import { isLing } from "../altrucoder/model-match"
+import { AltruCoderPromptFragments } from "../altrucoder/session/fragments"
 // altrucoder_change end
 
 // altrucoder_change start
@@ -99,6 +100,7 @@ export const layer = Layer.effect(
       ) {
         // altrucoder_change end
         const ctx = yield* InstanceState.context
+        const memory = yield* Effect.promise(() => AltruCoderPromptFragments.memory(ctx.project.id))
         return [
           [
             `You are powered by the model named ${model.api.id}. The exact model ID is ${model.providerID}/${model.api.id}`,
@@ -114,6 +116,8 @@ export const layer = Layer.effect(
             ...staticEnvLines(editorContext), // altrucoder_change
             `</env>`,
           ].join("\n"),
+          memory,
+          AltruCoderPromptFragments.policy(),
         ]
       }),
 

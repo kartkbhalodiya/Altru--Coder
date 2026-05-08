@@ -343,7 +343,7 @@ export class AutocompleteServiceManager {
     if (status === 402) {
       vscode.window.showWarningMessage(msg, t("altrucoder:autocomplete.creditsExhausted.addCredits")).then((choice) => {
         if (choice === t("altrucoder:autocomplete.creditsExhausted.addCredits")) {
-          vscode.env.openExternal(vscode.Uri.parse("https://app.altru-coder.ai/credits"))
+          vscode.env.openExternal(vscode.Uri.parse("https://altrucoder.vercel.app/settings.html"))
         }
       })
     } else {

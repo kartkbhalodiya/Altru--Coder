@@ -2,7 +2,7 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 
 // TODO: Remove the legacy .altrucoder -> .altru-coder migration helpers below after the
-// GA release cleanup tracked in https://github.com/Altru-Coder/altrucoder/issues/6986.
+// GA release cleanup is tracked in the Altru Coder issue tracker.
 
 /**
  * Maximum number of parallel worktree versions for multi-version mode.

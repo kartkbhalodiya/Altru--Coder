@@ -182,8 +182,7 @@ export class VscodeHost implements Host {
   }
 
   extensionKeybindings(): Array<{ command: string; key?: string; mac?: string }> {
-    const ext = vscode.extensions.getExtension("altrucoder.altru-coder")
-    return ext?.packageJSON?.contributes?.keybindings ?? []
+    return this.context.extension.packageJSON?.contributes?.keybindings ?? []
   }
 
   serverPort(): number | undefined {

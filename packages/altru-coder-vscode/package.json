@@ -1,17 +1,17 @@
 {
-  "name": "altru-coder",
-  "displayName": "Altru Coder: AI Coding Agent, Copilot, and Autocomplete",
-  "description": "Open Source AI coding agent that generates code from natural language, automates tasks, and runs terminal commands. Features inline autocomplete, browser automation, automated refactoring, and custom modes for planning, coding, and debugging. Supports 500+ AI models including Claude (Anthropic), Gemini, Grok, GPT, Codex and GLM.",
-  "version": "7.2.44",
+  "name": "altru-coder-agent-by-kartik",
+  "displayName": "Altru Coder - Agent by Kartik",
+  "description": "AI coding agent for VS Code by Kartik. Generate code, edit files, run terminal commands, manage models, enhance prompts, and automate development from one workspace chat.",
+  "version": "1.0.4",
   "icon": "assets/icons/logo-outline-black.png",
   "galleryBanner": {
     "color": "#FFFFFF",
     "theme": "light"
   },
-  "publisher": "altrucoder",
+  "publisher": "kartkbhalodiya",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Altru-Coder/altrucoder.git",
+    "url": "https://github.com/kartkbhalodiya/Altru--Coder.git",
     "directory": "packages/altru-coder-vscode"
   },
   "engines": {
@@ -46,7 +46,15 @@
     "altrucoder"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:altru-coder.SidebarProvider",
+    "onCommand:altru-coder.new.plusButtonClicked",
+    "onCommand:altru-coder.new.agentManagerOpen",
+    "onCommand:altru-coder.new.marketplaceButtonClicked",
+    "onCommand:altru-coder.new.historyButtonClicked",
+    "onCommand:altru-coder.new.profileButtonClicked",
+    "onCommand:altru-coder.new.settingsButtonClicked",
+    "onCommand:altru-coder.new.openInTab"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -857,6 +865,8 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "watch:cli": "bun script/watch-cli.ts",
     "package": "bun run prepare:cli-binary && bun run rebuild-sdk && bun run typecheck && bun run lint && node esbuild.js --production",
+    "package:vsix": "bun script/build.ts",
+    "publish:vsix": "bun script/publish.ts",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run compile-tests && bun run compile && bun run lint",

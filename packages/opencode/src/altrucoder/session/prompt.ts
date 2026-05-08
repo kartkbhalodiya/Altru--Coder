@@ -17,7 +17,7 @@ import { Identifier } from "@/id/id"
 import { Filesystem } from "@/util/filesystem"
 import PROMPT_PLAN from "@/session/prompt/plan.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
-import CODE_MODE from "@/altrucoder/session/code-mode.txt"
+import { AltruCoderPromptFragments } from "@/altrucoder/session/fragments" // altrucoder_change
 
 export namespace AltruCoderSessionPrompt {
   const modes = ["ask", "plan"]
@@ -120,7 +120,7 @@ export namespace AltruCoderSessionPrompt {
   }
 
   export function modeInstructions(input: { agent: { name: string } }) {
-    if (input.agent.name === "code") return CODE_MODE
+    return AltruCoderPromptFragments.mode(input)
   }
 
   /**
