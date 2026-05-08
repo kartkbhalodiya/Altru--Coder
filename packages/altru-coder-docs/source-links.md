@@ -24,7 +24,7 @@
   <!-- packages/altru-coder-vscode/webview-ui/src/components/settings/AboutAltruCoderTab.tsx -->
 - <https://altrucoder.vercel.app/blog.html>
   <!-- packages/altru-coder-vscode/webview-ui/src/components/migration/MigrationWizard.tsx -->
-- <https://altrucoder.vercel.app/chat.html>
+- <https://altrucoder.vercel.app/login.html>
   <!-- packages/altru-coder-vscode/webview-ui/altru-coder-claw/components/SetupView.tsx -->
   <!-- packages/altru-coder-vscode/webview-ui/altru-coder-claw/components/UpgradeView.tsx -->
 - <https://altrucoder.vercel.app/config.json>

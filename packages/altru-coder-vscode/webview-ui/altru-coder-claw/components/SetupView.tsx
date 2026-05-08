@@ -22,7 +22,7 @@ export function SetupView() {
           <Button variant="ghost" onClick={() => claw.openExternal("https://altrucoder.vercel.app/docs.html")}>
             {t("altruClaw.setup.learnMore")}
           </Button>
-          <Button variant="primary" onClick={() => claw.openExternal("https://altrucoder.vercel.app/chat.html")}>
+          <Button variant="primary" onClick={() => claw.openExternal("https://altrucoder.vercel.app/login.html")}>
             {t("altruClaw.setup.tryAltruCoderClaw")}
           </Button>
         </CardActions>
