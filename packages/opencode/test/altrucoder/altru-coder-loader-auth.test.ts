@@ -29,6 +29,13 @@ mock.module("@altru-coder/altru-coder-gateway", () => ({
       cost: { input: 1.0, output: 2.0 },
       limit: { context: 128000, output: 4096 },
     },
+    "openai/gpt-oss-120b": {
+      id: "openai/gpt-oss-120b",
+      name: "Stale GPT OSS 120B",
+      status: "deprecated",
+      cost: { input: 1.0, output: 2.0 },
+      limit: { context: 128000, output: 4096 },
+    },
   }),
 }))
 
@@ -164,4 +171,50 @@ test("altru-coder loader keeps paid models without auth and when auth exists", a
       } catch {}
     }
   }
+})
+
+test("altru-coder bundled models override stale fetched metadata", async () => {
+  await Auth.remove("altru-coder")
+  ModelCache.clear("altru-coder")
+
+  await using base = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "altru-coder.json"),
+        JSON.stringify({
+          $schema: "https://app.altru-coder.ai/config.json",
+        }),
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: base.path,
+    fn: async () => {
+      const providers = await Provider.list()
+      const model = providers[ProviderID["altru-coder"]]?.models["openai/gpt-oss-120b"]
+      const free = providers[ProviderID["altru-coder"]]?.models["altru-coder-auto/free"]
+      const pickle = providers[ProviderID["altru-coder"]]?.models["altru-coder/big-pickle-free"]
+      const hy3 = providers[ProviderID["altru-coder"]]?.models["altru-coder/hy3-preview-free"]
+      const mini = providers[ProviderID["altru-coder"]]?.models["altru-coder/minimax-m2.5-free"]
+      const nemo = providers[ProviderID["altru-coder"]]?.models["altru-coder/nemotron-3-super-free"]
+
+      expect(model).toBeDefined()
+      expect(model?.status).toBe("active")
+      expect(model?.name).toBe("OpenAI: gpt-oss-120b")
+      expect(model?.prompt).toBe("gpt55")
+      expect(model?.options.reasoning).toEqual({ effort: "high" })
+      expect(model?.options.verbosity).toBe("high")
+      expect(free?.prompt).toBe("gpt55")
+      expect(free?.options.reasoning).toEqual({ effort: "high" })
+      expect(free?.options.verbosity).toBe("high")
+      expect(free?.limit.context).toBe(1_000_000)
+      expect(pickle?.cost.input).toBe(0)
+      expect(pickle?.name).toBe("Altru Coder Big Pickle Free")
+      expect(hy3?.cost.input).toBe(0)
+      expect(mini?.cost.input).toBe(0)
+      expect(nemo?.cost.input).toBe(0)
+      expect(nemo?.limit.context).toBe(1_000_000)
+    },
+  })
 })

@@ -26,7 +26,7 @@ describe("parseModelString", () => {
   })
 
   it("keeps slashes inside altru-coder model ids", () => {
-    expect(parseModelString("altru-coder/altru-auto/free")).toEqual({
+    expect(parseModelString("altru-coder/altru-coder-auto/free")).toEqual({
       providerID: "altru-coder",
       modelID: "altru-coder-auto/free",
     })

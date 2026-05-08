@@ -6,7 +6,15 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 import type { AltruCoderProvider, AltruCoderProviderOptions } from "./types.js"
 import { getApiKey } from "./auth/token.js"
 import { buildAltruCoderHeaders, getDefaultHeaders } from "./headers.js"
-import { ANONYMOUS_API_KEY } from "./api/constants.js"
+import {
+  ANONYMOUS_API_KEY,
+  ENV_NVIDIA_API_KEY,
+  NVIDIA_NIM_BASE,
+  NVIDIA_NIM_GPT_OSS_120B_MODEL,
+  OPENCODE_ZEN_PUBLIC_API_KEY,
+  OPENCODE_ZEN_PUBLIC_BASE,
+  OPENCODE_ZEN_PUBLIC_MODEL_MAP,
+} from "./api/constants.js"
 import { resolveAltruCoderOpenRouterBaseUrl } from "./api/url.js"
 
 /**
@@ -74,9 +82,25 @@ export function createAltruCoder(options: AltruCoderProviderOptions = {}): Altru
   const anthropic = createAnthropic(sdkOptions)
   const openai = createOpenAI(sdkOptions)
   const openaiCompatible = createOpenAICompatible({ ...sdkOptions, name: "openaiCompatible" })
+  const nvidiaKey = options.nvidiaApiKey ?? process.env[ENV_NVIDIA_API_KEY]
+  const nvidia = createOpenAICompatible({
+    baseURL: NVIDIA_NIM_BASE,
+    apiKey: nvidiaKey,
+    name: "openaiCompatible",
+    fetch: originalFetch as typeof fetch,
+  })
+  const opencode = createOpenAICompatible({
+    baseURL: OPENCODE_ZEN_PUBLIC_BASE,
+    apiKey: OPENCODE_ZEN_PUBLIC_API_KEY,
+    name: "openaiCompatible",
+    fetch: originalFetch as typeof fetch,
+  })
 
   return {
     languageModel(modelId) {
+      const publicId = OPENCODE_ZEN_PUBLIC_MODEL_MAP[modelId as keyof typeof OPENCODE_ZEN_PUBLIC_MODEL_MAP]
+      if (publicId) return opencode(publicId)
+      if (modelId === NVIDIA_NIM_GPT_OSS_120B_MODEL) return nvidia(modelId)
       return openrouter(modelId)
     },
     embeddingModel(modelId: string) {

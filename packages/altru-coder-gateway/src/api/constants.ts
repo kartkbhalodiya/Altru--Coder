@@ -33,6 +33,39 @@ export const ALTRU_CODER_EVENT_SERVICE_URL = process.env[ALTRU_CODER_EVENT_SERVI
 /** Default base URL for OpenRouter-compatible endpoint */
 export const ALTRU_CODER_OPENROUTER_BASE = `${ALTRU_CODER_API_BASE}/api/openrouter`
 
+/** Environment variable for NVIDIA NIM API key */
+export const ENV_NVIDIA_API_KEY = "NVIDIA_API_KEY"
+
+/** Official NVIDIA NIM OpenAI-compatible endpoint */
+export const NVIDIA_NIM_BASE = "https://integrate.api.nvidia.com/v1"
+
+/** Altru built-in GPT OSS model routed through NVIDIA NIM */
+export const NVIDIA_NIM_GPT_OSS_120B_MODEL = "openai/gpt-oss-120b"
+
+/** OpenCode Zen public OpenAI-compatible endpoint for free Altru built-ins */
+export const OPENCODE_ZEN_PUBLIC_BASE = "https://opencode.ai/zen/v1"
+
+/** Public token used by OpenCode for zero-cost Zen models */
+export const OPENCODE_ZEN_PUBLIC_API_KEY = "public"
+
+/** Altru-branded model IDs routed through OpenCode Zen public free models */
+export const OPENCODE_ZEN_PUBLIC_MODEL_MAP = {
+  "altru-coder-auto/free": "nemotron-3-super-free",
+  "altru-coder/big-pickle-free": "big-pickle",
+  "altru-coder/hy3-preview-free": "hy3-preview-free",
+  "altru-coder/minimax-m2.5-free": "minimax-m2.5-free",
+  "altru-coder/nemotron-3-super-free": "nemotron-3-super-free",
+} as const
+
+/** Free tier usage window before quota reset */
+export const ALTRU_CODER_FREE_RESET_MS = 48 * 60 * 60 * 1000
+
+/** Free tier token budget per reset window */
+export const ALTRU_CODER_FREE_TOKEN_LIMIT = 200_000
+
+/** Target context window for the default free auto model */
+export const ALTRU_CODER_FREE_CONTEXT_WINDOW = 1_000_000
+
 /** Device auth polling interval in milliseconds */
 export const POLL_INTERVAL_MS = 3000
 

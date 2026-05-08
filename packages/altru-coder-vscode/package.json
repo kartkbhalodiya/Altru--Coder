@@ -2,7 +2,7 @@
   "name": "altru-coder-agent-by-kartik",
   "displayName": "Altru Coder - Agent by Kartik",
   "description": "AI coding agent for VS Code by Kartik. Generate code, edit files, run terminal commands, manage models, enhance prompts, and automate development from one workspace chat.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "icon": "assets/icons/logo-outline-black.png",
   "galleryBanner": {
     "color": "#FFFFFF",

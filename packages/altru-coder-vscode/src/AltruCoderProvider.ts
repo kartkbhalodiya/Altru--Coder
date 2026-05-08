@@ -849,31 +849,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
         case "requestMcpStatus":
           this.fetchAndSendMcpStatus().catch((e) => console.error("[Altru Coder New] fetchAndSendMcpStatus failed:", e))
           break
-        case "connectMcp": {
-          const c1 = this.client
-          if (c1) {
-            void McpOAuth.connectMcpServer(c1, message.name, this.getWorkspaceDirectory(), () =>
-              this.fetchAndSendMcpStatus(),
-            ).catch((e) => console.error("[Altru Coder New] connectMcpServer failed:", e))
-          }
-          break
-        }
-        case "disconnectMcp": {
-          const c2 = this.client
-          if (c2) {
-            void McpOAuth.disconnectMcpServer(c2, message.name, this.getWorkspaceDirectory(), () =>
-              this.fetchAndSendMcpStatus(),
-            ).catch((e) => console.error("[Altru Coder New] disconnectMcpServer failed:", e))
-          }
-          break
-        }
+        case "connectMcp":
+        case "disconnectMcp":
         case "authenticateMcp": {
-          const c = this.client
-          if (c) {
-            void McpOAuth.authenticateMcpServer(c, message.name, this.getWorkspaceDirectory(), () =>
-              this.fetchAndSendMcpStatus(),
-            ).catch((e) => console.error("[Altru Coder New] authenticateMcpServer failed:", e))
-          }
+          this.handleMcpMessage(message.type, message.name)
           break
         }
 
@@ -1156,6 +1135,32 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       }
     })
     this.webviewMessageDisposable = watchFontSizeConfig((msg) => this.postMessage(msg), this.webviewMessageDisposable)
+  }
+
+  private handleMcpMessage(type: "connectMcp" | "disconnectMcp" | "authenticateMcp", name: string): void {
+    const c = this.client
+    if (!c) return
+
+    const dir = this.getWorkspaceDirectory()
+    const done = () => this.fetchAndSendMcpStatus()
+
+    if (type === "connectMcp") {
+      void McpOAuth.connectMcpServer(c, name, dir, done).catch((e) =>
+        console.error("[Altru Coder New] connectMcpServer failed:", e),
+      )
+      return
+    }
+
+    if (type === "disconnectMcp") {
+      void McpOAuth.disconnectMcpServer(c, name, dir, done).catch((e) =>
+        console.error("[Altru Coder New] disconnectMcpServer failed:", e),
+      )
+      return
+    }
+
+    void McpOAuth.authenticateMcpServer(c, name, dir, done).catch((e) =>
+      console.error("[Altru Coder New] authenticateMcpServer failed:", e),
+    )
   }
 
   private openExternal(url: unknown): void {

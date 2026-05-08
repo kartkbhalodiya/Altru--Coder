@@ -16,12 +16,17 @@ function def(id: string, description: string): Tool.Def<typeof Params> {
 }
 
 describe("Altru Coder built-in skills", () => {
-  test("includes review and skill-management skills", () => {
+  test("includes review, workflow, and skill-management skills", () => {
     const names = new Set(BUILTIN_SKILLS.map((skill) => skill.name))
 
     expect(names.has("code-review")).toBe(true)
     expect(names.has("code-review-testing")).toBe(true)
     expect(names.has("code-review-breaking-changes")).toBe(true)
+    expect(names.has("feature-dev")).toBe(true)
+    expect(names.has("frontend-design")).toBe(true)
+    expect(names.has("pr-review-toolkit")).toBe(true)
+    expect(names.has("plugin-dev")).toBe(true)
+    expect(names.has("security-guidance")).toBe(true)
     expect(names.has("skill-creator")).toBe(true)
     expect(names.has("skill-installer")).toBe(true)
   })

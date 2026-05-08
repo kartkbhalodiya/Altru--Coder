@@ -7,8 +7,14 @@ import ALTRU_CODER_CONFIG from "./altru-coder-config.md"
 import CODE_REVIEW from "./code-review.md"
 import CODE_REVIEW_TESTING from "./code-review-testing.md"
 import CODE_REVIEW_BREAKING_CHANGES from "./code-review-breaking-changes.md"
+import FEATURE_DEV from "./feature-dev.md"
+import FRONTEND_DESIGN from "./frontend-design.md"
+import PR_REVIEW_TOOLKIT from "./pr-review-toolkit.md"
+import PLUGIN_DEV from "./plugin-dev.md"
+import SECURITY_GUIDANCE from "./security-guidance.md"
 import SKILL_CREATOR from "./skill-creator.md"
 import SKILL_INSTALLER from "./skill-installer.md"
+import UI_UX_PRO_MAX from "./ui-ux-pro-max.md"
 
 export interface BuiltinSkill {
   name: string
@@ -63,6 +69,66 @@ export const BUILTIN_SKILLS: BuiltinSkill[] = [
       "Breaking-change review guidance for APIs, configs, commands, schemas, persisted state, and user workflows.",
     defaultPrompt: "Check the current change for hidden breaking changes.",
     content: CODE_REVIEW_BREAKING_CHANGES,
+  },
+  {
+    name: "feature-dev",
+    displayName: "Feature Dev",
+    shortDescription: "Build features with discovery, scoped edits, and verification.",
+    brandColor: "#0EA5E9",
+    description:
+      "End-to-end feature development workflow for Altru Coder. Use when the user asks to build, add, implement, wire, ship, refactor, or fix a feature that may touch multiple files, needs codebase discovery, requires tests, or benefits from a plan before implementation.",
+    defaultPrompt: "Implement the requested feature with a focused plan and verification.",
+    content: FEATURE_DEV,
+  },
+  {
+    name: "frontend-design",
+    displayName: "Frontend Design",
+    shortDescription: "Build polished, responsive Altru UI without layout regressions.",
+    brandColor: "#A855F7",
+    description:
+      "Frontend design and implementation guidance for Altru Coder. Use when building or changing UI screens, VS Code webviews, dashboards, app layouts, design-system components, responsive behavior, visual polish, accessibility, or interaction states.",
+    defaultPrompt: "Design and implement the requested UI using existing Altru patterns.",
+    content: FRONTEND_DESIGN,
+  },
+  {
+    name: "ui-ux-pro-max",
+    displayName: "UI/UX Pro Max",
+    shortDescription: "Deep UI/UX guidance for polished product interfaces.",
+    brandColor: "#EC4899",
+    description:
+      "Advanced UI/UX design intelligence for Altru Coder. Use when planning, building, reviewing, fixing, or polishing websites, landing pages, dashboards, admin panels, SaaS screens, mobile views, forms, tables, charts, navigation, design systems, color palettes, typography, accessibility, responsive layouts, animation, and interaction states.",
+    defaultPrompt: "Design, implement, or review this UI with strong UX, accessibility, and visual quality.",
+    content: UI_UX_PRO_MAX,
+  },
+  {
+    name: "pr-review-toolkit",
+    displayName: "PR Review Toolkit",
+    shortDescription: "Review PRs across correctness, tests, security, UX, and compatibility.",
+    brandColor: "#F59E0B",
+    description:
+      "Comprehensive pull request review workflow for Altru Coder. Use when the user asks to review a PR, inspect a branch, compare changes, find regressions, assess test coverage, or produce release/blocker feedback before merging.",
+    defaultPrompt: "Review the current branch as a PR and lead with merge-blocking findings.",
+    content: PR_REVIEW_TOOLKIT,
+  },
+  {
+    name: "plugin-dev",
+    displayName: "Plugin Dev",
+    shortDescription: "Build Altru skills, commands, agents, and plugins safely.",
+    brandColor: "#10B981",
+    description:
+      "Development workflow for Altru Coder skills, commands, agents, and plugins. Use when creating or modifying SKILL.md files, built-in skills, project skills, CLI commands, TUI plugins, Agent Manager integrations, or Altru extension workflows.",
+    defaultPrompt: "Create or update the requested Altru Coder extension point.",
+    content: PLUGIN_DEV,
+  },
+  {
+    name: "security-guidance",
+    displayName: "Security Guidance",
+    shortDescription: "Review trust boundaries, secrets, permissions, and abuse paths.",
+    brandColor: "#DC2626",
+    description:
+      "Security review and implementation guidance for Altru Coder. Use when code touches authentication, authorization, API keys, provider routing, model gateways, shell execution, filesystem access, network calls, extensions, plugins, MCPs, telemetry, or user-supplied input.",
+    defaultPrompt: "Review or implement this change with security and abuse resistance first.",
+    content: SECURITY_GUIDANCE,
   },
   {
     name: "skill-creator",

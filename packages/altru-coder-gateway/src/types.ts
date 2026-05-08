@@ -91,6 +91,11 @@ export interface AltruCoderProviderOptions {
   apiKey?: string
 
   /**
+   * NVIDIA NIM API key for bundled GPT OSS routing.
+   */
+  nvidiaApiKey?: string
+
+  /**
    * Provider name for identification
    */
   name?: string

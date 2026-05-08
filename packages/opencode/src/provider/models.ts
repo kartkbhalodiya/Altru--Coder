@@ -230,7 +230,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | HttpClie
           env: ["ALTRU_CODER_API_KEY"],
           api: ALTRU_CODER_OPENROUTER_BASE.endsWith("/") ? ALTRU_CODER_OPENROUTER_BASE : `${ALTRU_CODER_OPENROUTER_BASE}/`,
           npm: "@altru-coder/altru-coder-gateway",
-          models: { ...ALTRU_CODER_BUILTIN_MODELS, ...altru },
+          models: { ...altru, ...ALTRU_CODER_BUILTIN_MODELS },
         }
         if (Object.keys(altru).length === 0) {
           yield* Effect.sync(() => void ModelCache.refresh("altru-coder", fetch).catch(() => {}))
