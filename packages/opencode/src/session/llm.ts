@@ -370,23 +370,20 @@ const live: Layer.Layer<
           })
         },
         async experimental_repairToolCall(failed) {
-          const lower = failed.toolCall.toolName.toLowerCase()
-          if (lower !== failed.toolCall.toolName && tools[lower]) {
+          const repaired = repairToolName({ name: failed.toolCall.toolName, tools }) // altrucoder_change
+          if (repaired) {
             l.info("repairing tool call", {
               tool: failed.toolCall.toolName,
-              repaired: lower,
+              repaired,
             })
             return {
               ...failed.toolCall,
-              toolName: lower,
+              toolName: repaired,
             }
           }
           return {
             ...failed.toolCall,
-            input: JSON.stringify({
-              tool: failed.toolCall.toolName,
-              error: failed.error.message,
-            }),
+            input: invalidToolInput({ name: failed.toolCall.toolName, error: failed.error, tools }), // altrucoder_change
             toolName: "invalid",
           }
         },
@@ -490,6 +487,28 @@ function resolveTools(input: Pick<StreamInput, "tools" | "agent" | "permission" 
   )
   return Record.filter(input.tools, (_, k) => input.user.tools?.[k] !== false && !disabled.has(k))
 }
+
+// altrucoder_change start - recover common OSS-model hallucinated tool aliases without exposing new tools
+export function repairToolName(input: { name: string; tools: Record<string, Tool> }) {
+  const lower = input.name.toLowerCase()
+  const unsafe = lower.endsWith("_unsafe") ? lower.slice(0, -"_unsafe".length) : undefined
+  return [lower, unsafe].filter((name): name is string => !!name).find((name) => name !== input.name && input.tools[name])
+}
+
+export function invalidToolInput(input: { name: string; error: { message: string }; tools: Record<string, Tool> }) {
+  const available = Object.keys(input.tools).filter((name) => name !== "invalid")
+  const browser = input.name.startsWith("altru-coder-playwright_")
+  const missing = browser && !available.some((name) => name.startsWith("altru-coder-playwright_"))
+  const hint = missing
+    ? "Browser automation tools are not currently available. Do not retry this Playwright MCP tool; continue with the available tools, or tell the user to enable Browser Automation if browser control is required."
+    : "Do not retry unavailable tools. Continue with one of the currently available tools, or explain the missing capability to the user."
+
+  return JSON.stringify({
+    tool: input.name,
+    error: `${input.error.message}\n\n${hint}`,
+  })
+}
+// altrucoder_change end
 
 // Check if messages contain any tool-call content
 // Used to determine if a dummy tool should be added for LiteLLM proxy compatibility

@@ -32,6 +32,9 @@ You help users with software engineering tasks by reading the repository, making
   - Use Glob to find files by name and Grep to search file contents.
 - Use Bash for terminal operations (git, bun, builds, tests, running scripts).
 - Run tool calls in parallel when neither call needs the other's output; otherwise run sequentially.
+- Only call tools that are present in the current tool list. Do not call tools remembered from documentation, MCP examples, previous turns, or other environments.
+- Browser automation/MCP tools such as `altru-coder-playwright_*` are available only when they appear in the current tool list. If absent, use available tools or state that browser automation is unavailable.
+- If a tool result says a tool is unavailable, do not retry that tool name. Continue with an available tool or explain the missing capability.
 
 ## Git and workspace hygiene
 - You may be in a dirty git worktree.
