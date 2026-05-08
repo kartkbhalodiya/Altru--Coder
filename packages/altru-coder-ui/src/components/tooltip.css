@@ -1,0 +1,9 @@
+/* Altru Coder Tooltip overrides – sized to match @vscode/webview-ui-toolkit */
+
+[data-component="tooltip"] {
+  border-radius: 0;
+  font-size: var(--altru-coder-font-size-13);
+  line-height: normal;
+  font-weight: 400;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
+}

@@ -1,0 +1,24 @@
+name: Check Source Links
+
+on:
+  pull_request:
+    paths:
+      - "packages/altru-coder-vscode/src/**"
+      - "packages/altru-coder-vscode/webview-ui/**"
+      - "packages/opencode/src/**"
+      - "packages/altru-coder-docs/source-links.md"
+      - "script/extract-source-links.ts"
+      - ".github/workflows/source-check-links.yml"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  source-links-freshness:
+    if: github.repository == 'Altru-Coder/altrucoder'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6 # altrucoder_change
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Check source-links.md is up to date
+        run: bun run script/extract-source-links.ts --check

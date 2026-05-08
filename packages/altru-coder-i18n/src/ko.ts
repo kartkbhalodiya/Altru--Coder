@@ -1,0 +1,98 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gateway는 코딩 에이전트를 위한 신뢰할 수 있는 최적화된 모델 세트를 제공합니다.",
+  "provider.connect.altruCoderGateway.line2": "하나의 API 키로 Claude, GPT, Gemini, GLM 등의 모델을 사용할 수 있습니다.",
+  "provider.connect.altruCoderGateway.visit.prefix": "",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": "를 방문하여 API 키를 받으세요.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "추천",
+  "dialog.provider.altru-coder.note": "500개 이상의 AI 모델 이용 가능",
+
+  // Reasoning block label
+  "ui.permission.run": "실행",
+  "ui.reasoning.label": "추론",
+
+  // Marketplace
+  "marketplace.tab.skills": "스킬",
+  "marketplace.tab.mcpServers": "MCP 서버",
+  "marketplace.tab.modes": "모드",
+  "marketplace.category.all": "전체",
+  "marketplace.placeholder": "구현 예정",
+  "marketplace.card.installed": "설치됨",
+  "marketplace.card.install": "설치",
+  "marketplace.card.remove": "제거",
+  "marketplace.card.removeScope": "제거 ({{scope}})",
+  "marketplace.card.showMore": "더 보기",
+  "marketplace.card.showLess": "접기",
+  "marketplace.install.title": "{{name}} 설치",
+  "marketplace.install.scope": "범위",
+  "marketplace.install.scope.project": "프로젝트",
+  "marketplace.install.scope.global": "글로벌",
+  "marketplace.install.prerequisites": "사전 요구 사항",
+  "marketplace.install.installing": "설치 중...",
+  "marketplace.install.cancel": "취소",
+  "marketplace.install.success": "성공적으로 설치되었습니다!",
+  "marketplace.install.failed": "설치 실패",
+  "marketplace.install.done": "완료",
+  "marketplace.install.close": "닫기",
+  "marketplace.remove.title": "{{name}}을(를) 제거하시겠습니까?",
+  "marketplace.remove.confirm": "이 {{type}}을(를) 제거하시겠습니까? {{scope}} 구성에서 제거됩니다.",
+  "marketplace.remove.cancel": "취소",
+  "marketplace.remove.confirm.button": "제거",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "검색...",
+  "marketplace.filter.all": "모든 항목",
+  "marketplace.filter.notInstalled": "설치되지 않음",
+  "marketplace.empty": "항목을 찾을 수 없음",
+  "marketplace.badge.mcpServer": "MCP 서버",
+  "marketplace.badge.mode": "모드",
+  "marketplace.card.by": "제작: {{author}}",
+  "marketplace.install.method": "설치 방법",
+  "marketplace.install.parameters": "매개변수",
+  "marketplace.install.optional": "(선택 사항)",
+  "marketplace.install.required": "{{name}}이(가) 필요합니다",
+  "marketplace.scope.project": "프로젝트",
+  "marketplace.scope.global": "글로벌",
+  "marketplace.remove.type.mcp": "MCP 서버",
+  "marketplace.remove.type.skill": "스킬",
+  "marketplace.remove.type.mode": "모드",
+  "marketplace.remove.failed": "{{name}} 제거 실패",
+  "marketplace.install": "설치",
+  "marketplace.filter.installed": "설치됨",
+  "marketplace.error.dismiss": "닫기",
+  "marketplace.warning.busyOne": "하나의 세션이 실행 중이며 중단됩니다",
+  "marketplace.warning.busyMany": "여러 세션이 실행 중이며 중단됩니다",
+  "marketplace.warning.installAnyway": "그래도 설치",
+  "marketplace.warning.cancel": "취소",
+  "marketplace.contribute.prompt": "스킬, 모드 또는 MCP 서버가 없나요?",
+  "marketplace.contribute.cta": "GitHub에서 기여하기",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "구현",
+  "plan.followup.question": "구현할 준비가 되셨나요?",
+  "plan.followup.answer.newSession": "새 세션 시작",
+  "plan.followup.answer.newSession.description": "깨끗한 컨텍스트의 새 세션에서 구현",
+  "plan.followup.answer.continue": "여기서 계속하기",
+  "plan.followup.answer.continue.description": "이 세션에서 계획 구현",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "스냅샷이 느립니다",
+  "snapshot.slowRepo.question":
+    "리포지토리 크기 때문인지 스냅샷 시스템 초기화에 시간이 오래 걸리고 있습니다.\n\n이 리포지토리에서 스냅샷을 비활성화하시겠습니까?",
+  "snapshot.slowRepo.answer.continue": "스냅샷 계속 사용",
+  "snapshot.slowRepo.answer.continue.description":
+    "스냅샷이 완료될 때까지 기다리세요. 초기 스냅샷이 만들어지면 이후 턴은 빠릅니다.",
+  "snapshot.slowRepo.answer.disable": "이 프로젝트에서 비활성화",
+  "snapshot.slowRepo.answer.disable.description":
+    "이 프로젝트의 Altru Coder 스냅샷을 끕니다. Altru Coder 변경에 대한 실행 취소/다시 실행은 사용할 수 없지만 git은 여전히 모든 것을 추적합니다.",
+
+  "ui.messagePart.openInDiffViewer": "Diff 뷰어에서 열기",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "도움이 됐어요",
+  "ui.message.feedback.notHelpful": "도움이 안 됐어요",
+  "ui.message.feedback.clearRating": "평가 지우기",
+}

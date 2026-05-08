@@ -1,0 +1,9 @@
+/* Altru Coder Accordion overrides */
+
+[data-component="accordion"] {
+  font-size: var(--altru-coder-font-size-13);
+
+  [data-slot="accordion-trigger"] {
+    cursor: pointer;
+  }
+}

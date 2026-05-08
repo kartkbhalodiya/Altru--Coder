@@ -1,0 +1,138 @@
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=altrucoder.Altru-Coder"><img src="https://raster.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace" height="20"></a>
+  <a href="https://x.com/altrucoder"><img src="https://raster.shields.io/badge/altrucoder-000000?style=flat&logo=x&logoColor=white" alt="X (Twitter)" height="20"></a>
+  <a href="https://blog.altru-coder.ai"><img src="https://raster.shields.io/badge/Blog-555?style=flat&logo=substack&logoColor=white" alt="Substack Blog" height="20"></a>
+  <a href="https://altru-coder.ai/discord"><img src="https://raster.shields.io/badge/Join%20Discord-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord" height="20"></a>
+  <a href="https://www.reddit.com/r/altrucoder/"><img src="https://raster.shields.io/badge/Join%20r%2Faltrucoder-D84315?style=flat&logo=reddit&logoColor=white" alt="Reddit" height="20"></a>
+</p>
+
+# 🚀 Altru Coder
+
+> Altru Coder is the all-in-one agentic engineering platform. Build, ship, and iterate faster with the most popular open source coding agent.
+
+- ✨ Generate code from natural language
+- ✅ Checks its own work
+- 🧪 Run terminal commands
+- 🌐 Automate the browser
+- ⚡ Inline autocomplete suggestions
+- 🤖 Latest AI models
+- 🎁 API keys optional
+
+## Quick Links
+
+- [VS Code Marketplace](https://altru-coder.ai/vscode-marketplace?utm_source=Readme) (download)
+- [Official Altru Coder Home page](https://altru-coder.ai) (learn more)
+
+## Key Features
+
+- **Code Generation:** Altru Coder can generate code using natural language.
+- **Inline Autocomplete:** Get intelligent code completions as you type, powered by AI.
+- **Task Automation:** Altru Coder can automate repetitive coding tasks to save time..
+- **Automated Refactoring:** Altru Coder can refactor and improve existing code efficiently.
+- **MCP Server Marketplace**: Altru Coder can easily find, and use MCP servers to extend the agent capabilities.
+- **Multi Mode**: Plan with Architect, Code with Coder, and Debug with Debugger, and make your own custom modes.
+
+## Get Started
+
+1. Install the Altru Coder extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=altrucoder.Altru-Coder).
+2. Create your account to access 500+ cutting-edge AI models including GPT-5.5, Claude Opus 4.7, Claude Sonnet 4.6, and Gemini 3.1 Pro Preview, with transparent pricing that matches provider rates exactly.
+3. Start coding with AI that adapts to your workflow. Watch our quick-start guide to see Altru Coder in action:
+
+<a href="https://youtu.be/pqGfYXgrhig"><img src="https://img.youtube.com/vi/pqGfYXgrhig/maxresdefault.jpg" alt="Watch the video" width="640" height="360"></a>
+
+## Developer Setup
+
+If you want to contribute or modify the extension locally, see the [DEVELOPMENT.md](/DEVELOPMENT.md) file for build and setup instructions.
+
+### Snapshot Builds
+
+To build and share a development snapshot of the extension:
+
+```bash
+# Run from packages/altru-coder-vscode/
+
+# Build only (outputs VSIX to system temp dir)
+bun run snapshot:build
+
+# Build and install directly into VS Code
+bun run snapshot:install
+```
+
+The snapshot version embeds the current commit SHA and your git username (from `git config user.name`), e.g. `7.0.47-snapshot+8ff7f2d02.kirillk`.
+
+## Contributing
+
+We welcome contributions from developers, writers, and enthusiasts!
+To get started, please read our [Contributing Guide](/CONTRIBUTING.md). It includes details on setting up your environment, coding standards, types of contribution and how to submit pull requests.
+
+## Code of Conduct
+
+Our community is built on respect, inclusivity, and collaboration. Please review our [Code of Conduct](/CODE_OF_CONDUCT.md) to understand the expectations for all contributors and community members.
+
+## License
+
+This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+You’re free to use, modify, and distribute this code, including for commercial purposes as long as you include proper attribution and license notices. See [License](/LICENSE).
+
+## Contributing
+
+Contributions are welcome, and they are greatly appreciated! Get started by reading our [Contributing Guide](CONTRIBUTING.md). Or join our [Discord](https://altru-coder.ai/discord) to chat with the team and community.
+
+Thanks to all the contributors who help make Altru Coder better!
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/mcowger">
+        <img src="https://avatars.githubusercontent.com/u/1929548?size=100" width="100" height="100" alt="mcowger" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/bhaktatejas922">
+        <img src="https://avatars.githubusercontent.com/u/26863466?size=100" width="100" height="100" alt="bhaktatejas922" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/NyxJae">
+        <img src="https://avatars.githubusercontent.com/u/52313587?size=100" width="100" height="100" alt="NyxJae" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Aikiboy123">
+        <img src="https://avatars.githubusercontent.com/u/161741275?size=100" width="100" height="100" alt="Aikiboy123" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/cobra91">
+        <img src="https://avatars.githubusercontent.com/u/1060585?size=100" width="100" height="100" alt="cobra91" style="border-radius: 50%;" />
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/ivanarifin">
+        <img src="https://avatars.githubusercontent.com/u/111653938?size=100" width="100" height="100" alt="ivanarifin" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/PeterDaveHello">
+        <img src="https://avatars.githubusercontent.com/u/3691490?size=100" width="100" height="100" alt="PeterDaveHello" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/possible055">
+        <img src="https://avatars.githubusercontent.com/u/38576169?size=100" width="100" height="100" alt="possible055" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/seuros">
+        <img src="https://avatars.githubusercontent.com/u/2394703?size=100" width="100" height="100" alt="seuros" style="border-radius: 50%;" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Altru-Coder/altrucoder/graphs/contributors">
+        <b>more ...</b>
+      </a>
+    </td>
+  </tr>
+</table>

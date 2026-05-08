@@ -1,0 +1,13 @@
+# altrucoder_change - new file
+name: "Setup Altru Coder"
+description: "Install Altru Coder CLI globally"
+runs:
+  using: "composite"
+  steps:
+    - name: Install Altru Coder CLI
+      run: curl -fsSL https://altru-coder.ai/cli/install | bash
+      shell: bash
+
+    - name: Add Altru Coder to PATH
+      run: echo "$HOME/.altru-coder/bin" >> $GITHUB_PATH
+      shell: bash

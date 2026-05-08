@@ -1,0 +1,102 @@
+// Altru Coder-specific translations and overrides
+// Keys here will override any matching keys from upstream translations
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gateway geeft je toegang tot een gecureerde set van betrouwbare, geoptimaliseerde modellen voor coding agents.",
+  "provider.connect.altruCoderGateway.line2":
+    "Met één enkele API key krijg je toegang tot modellen zoals Claude, GPT, Gemini, GLM en meer.",
+  "provider.connect.altruCoderGateway.visit.prefix": "Bezoek ",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": " om je API key op te halen.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "Aanbevolen",
+  "dialog.provider.altru-coder.note": "Toegang tot 500+ AI modellen",
+
+  // Reasoning block label
+  "ui.permission.run": "Uitvoeren",
+  "ui.reasoning.label": "Redenering",
+
+  // Marketplace
+  "marketplace.tab.skills": "Skills",
+  "marketplace.tab.mcpServers": "MCP Servers",
+  "marketplace.tab.modes": "Modi",
+  "marketplace.category.all": "Alle",
+  "marketplace.placeholder": "Nog te implementeren",
+  "marketplace.card.installed": "Geïnstalleerd",
+  "marketplace.card.install": "Installeren",
+  "marketplace.card.remove": "Verwijderen",
+  "marketplace.card.removeScope": "Verwijderen ({{scope}})",
+  "marketplace.card.showMore": "Toon meer",
+  "marketplace.card.showLess": "Toon minder",
+  "marketplace.install.title": "Installeer {{name}}",
+  "marketplace.install.scope": "Scope",
+  "marketplace.install.scope.project": "Project",
+  "marketplace.install.scope.global": "Globaal",
+  "marketplace.install.prerequisites": "Vereisten",
+  "marketplace.install.installing": "Installeren...",
+  "marketplace.install.cancel": "Annuleren",
+  "marketplace.install.success": "Succesvol geïnstalleerd!",
+  "marketplace.install.failed": "Installatie mislukt",
+  "marketplace.install.done": "Klaar",
+  "marketplace.install.close": "Sluiten",
+  "marketplace.remove.title": "{{name}} verwijderen?",
+  "marketplace.remove.confirm":
+    "Weet je zeker dat je deze {{type}} wilt verwijderen? Dit verwijdert het uit je {{scope}} configuratie.",
+  "marketplace.remove.cancel": "Annuleren",
+  "marketplace.remove.confirm.button": "Verwijderen",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "Zoeken...",
+  "marketplace.filter.all": "Alle items",
+  "marketplace.filter.notInstalled": "Niet geïnstalleerd",
+  "marketplace.empty": "Geen items gevonden",
+  "marketplace.badge.mcpServer": "MCP Server",
+  "marketplace.badge.mode": "Modus",
+  "marketplace.card.by": "door {{author}}",
+  "marketplace.install.method": "Installatiemethode",
+  "marketplace.install.parameters": "Parameters",
+  "marketplace.install.optional": "(optioneel)",
+  "marketplace.install.required": "{{name}} is vereist",
+  "marketplace.scope.project": "project",
+  "marketplace.scope.global": "globaal",
+  "marketplace.remove.type.mcp": "MCP server",
+  "marketplace.remove.type.skill": "skill",
+  "marketplace.remove.type.mode": "modus",
+  "marketplace.remove.failed": "Verwijderen van {{name}} mislukt",
+  "marketplace.install": "Installeren",
+  "marketplace.filter.installed": "Geïnstalleerd",
+  "marketplace.error.dismiss": "Sluiten",
+  "marketplace.warning.busyOne": "Er is één sessie actief en deze zal worden onderbroken",
+  "marketplace.warning.busyMany": "Er zijn meerdere sessies actief en deze zullen worden onderbroken",
+  "marketplace.warning.installAnyway": "Toch installeren",
+  "marketplace.warning.cancel": "Annuleren",
+  "marketplace.contribute.prompt": "Mist er een skill, modus of MCP-server?",
+  "marketplace.contribute.cta": "Bijdragen op GitHub",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "Implementeren",
+  "plan.followup.question": "Klaar om te implementeren?",
+  "plan.followup.answer.newSession": "Nieuwe sessie starten",
+  "plan.followup.answer.newSession.description": "Implementeren in een nieuwe sessie met een lege context",
+  "plan.followup.answer.continue": "Hier doorgaan",
+  "plan.followup.answer.continue.description": "Het plan in deze sessie implementeren",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "Snapshot is traag",
+  "snapshot.slowRepo.question":
+    "Het initialiseren van het snapshot-systeem duurt lang, waarschijnlijk vanwege de grootte van de repository.\n\nWil je snapshots voor deze repository uitschakelen?",
+  "snapshot.slowRepo.answer.continue": "Doorgaan met snapshots",
+  "snapshot.slowRepo.answer.continue.description":
+    "Wacht tot de snapshot klaar is. Volgende beurten zijn snel zodra de eerste snapshot is gemaakt.",
+  "snapshot.slowRepo.answer.disable": "Uitschakelen voor dit project",
+  "snapshot.slowRepo.answer.disable.description":
+    "Zet Altru Coder snapshots uit voor dit project. Je verliest ongedaan maken/opnieuw doen van Altru Coder-wijzigingen, maar git blijft alles volgen.",
+
+  "ui.messagePart.openInDiffViewer": "Openen in diff-viewer",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "Dit was nuttig",
+  "ui.message.feedback.notHelpful": "Dit was niet nuttig",
+  "ui.message.feedback.clearRating": "Beoordeling wissen",
+}

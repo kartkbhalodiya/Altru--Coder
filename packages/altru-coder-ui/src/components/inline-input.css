@@ -1,0 +1,5 @@
+/* Altru Coder Inline Input overrides */
+
+[data-component="inline-input"] {
+  font-size: var(--altru-coder-font-size-13);
+}

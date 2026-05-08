@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@altru-coder/altru-coder-telemetry",
+  "version": "7.2.44",
+  "type": "module",
+  "license": "MIT",
+  "description": "Telemetry for Altru Coder CLI - PostHog analytics integration",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "build": "tsc",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "posthog-node": "4.4.0",
+    "@altru-coder/altru-coder-gateway": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

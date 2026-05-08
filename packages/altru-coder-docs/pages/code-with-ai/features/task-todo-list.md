@@ -1,0 +1,119 @@
+---
+title: "Task Todo List"
+description: "Track and manage tasks with AI-generated todo lists"
+---
+
+# Task Todo List
+
+**The big picture**: Never lose track of complex development tasks again. Task Todo Lists create interactive, persistent checklists that live right in your chat interface.
+
+**Why it matters**: Complex workflows have lots of moving parts. Without structure, it's easy to miss steps, duplicate work, or forget what comes next.
+
+{% image src="/docs/img/screenshot-tests/altru-coder-vscode/visual-regression/composite-webview/todo-write-docs-overview-chromium-linux.png" alt="Task Todo List overview showing interactive checklist in Altru Coder" width="420" /%}
+
+## How to trigger todo lists
+
+**Automatic triggers**:
+
+- Complex tasks with multiple steps
+- Working in Architect mode
+- Multi-phase workflows with dependencies
+
+**Manual triggers**:
+
+- Ask Altru Coder to "use the [update_todo_list tool](/docs/automate/tools/update-todo-list)"
+- Say "create a todo list"
+
+**The bottom line**: Altru Coder decides what goes in the list, but you can provide feedback during approval dialogs.
+
+---
+
+## How todo lists are updated
+
+Todo lists are managed with the [`update_todo_list` tool](/docs/automate/tools/update-todo-list). Each time Altru Coder updates the list, it replaces the entire checklist with the latest view of the task.
+
+Altru Coder updates the list when:
+
+- New steps are discovered
+- Items are completed or reprioritized
+- You explicitly ask for a todo list
+
+---
+
+## The old way vs. the new way
+
+**Before**: You juggled task steps in your head or scattered notes, constantly wondering "what's next?"
+
+**Now**: Altru Coder creates structured checklists that update automatically as work progresses. You see exactly where you are and what's coming up.
+
+---
+
+## Where todo lists appear
+
+**1. Task Header Summary**
+Quick progress overview with your next important item
+
+{% image src="/docs/img/screenshot-tests/altru-coder-vscode/visual-regression/chat/task-header-with-todos-chromium-linux.png" alt="Task header summary showing todo list progress" width="420" /%}
+
+Click the task header summary to expand the full list inline and jump to the current item.
+
+**2. Interactive Tool Block**
+Full todo interface in chat where you can:
+
+- See all items and their status
+- Edit descriptions when Altru Coder asks for approval
+- Stage changes using the "Edit" button
+
+**3. Environment Details**
+Background "REMINDERS" table that keeps Altru Coder informed about current progress
+
+## Task status decoded
+
+**Pending** -> Empty checkbox (not started)
+
+{% image src="/docs/img/task-todo-list/not-started.png" alt="Pending todo item with empty checkbox" width="300" /%}
+
+---
+
+**In Progress** -> Yellow dot (currently working)
+
+{% image src="/docs/img/task-todo-list/in-progress.png" alt="In progress todo item with yellow dot indicator" width="300" /%}
+
+---
+
+**Completed** -> Green checkmark (finished)
+
+{% image src="/docs/img/task-todo-list/complete.png" alt="Completed todo item with green checkmark" width="300" /%}
+
+---
+
+## Editing todo lists
+
+When Altru Coder proposes a todo list update, you can edit the list before approving. Use the "Edit" button in the tool block to update item text, add or remove steps, or adjust status. Once approved, Altru Coder continues with the updated list.
+
+## Common questions
+
+**"Can I create my own todo lists?"**
+Yes, just ask Altru Coder to use the update_todo_list tool. But Altru Coder stays in control of the content and workflow.
+
+**"What about simple tasks?"**
+Altru Coder typically skips todo lists for simple tasks. The overhead isn't worth it.
+
+**"Why can't I directly edit the list?"**
+Design choice. Altru Coder maintains authority over task management to ensure consistent progress tracking. You provide input, Altru Coder executes.
+
+---
+
+## Settings
+
+You can disable todo lists in Settings -> Advanced -> **Enable todo list tool**. When disabled, Altru Coder won't create or update todo lists, and the REMINDERS table won't appear in Environment Details.
+
+{% callout type="tip" title="Pro tip: Auto-approval" %}
+**What it does**: Automatically approves todo list updates without confirmation prompts.
+
+**When to use it**: Long workflows where constant interruptions slow you down.
+
+**How to enable it**: Check the [Update Todo List auto-approval settings](/docs/getting-started/settings/auto-approving-actions#update-todo-list).
+
+**The catch**: Less control, but faster execution.
+{% /callout %}

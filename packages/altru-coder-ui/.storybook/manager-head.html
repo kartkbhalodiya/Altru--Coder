@@ -1,0 +1,11 @@
+<style>
+  /* Hide Color Scheme toolbar when altru-coder-vscode theme is active */
+  html[data-altru-coder-theme="altru-coder-vscode"] [aria-label^="Color Scheme"] {
+    display: none !important;
+  }
+
+  /* Hide VS Code Theme toolbar by default and when altru-coder theme is active */
+  html:not([data-altru-coder-theme="altru-coder-vscode"]) [aria-label^="VSCode Theme"] {
+    display: none !important;
+  }
+</style>

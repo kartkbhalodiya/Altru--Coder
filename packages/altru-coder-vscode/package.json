@@ -1,0 +1,940 @@
+{
+  "name": "altru-coder",
+  "displayName": "Altru Coder: AI Coding Agent, Copilot, and Autocomplete",
+  "description": "Open Source AI coding agent that generates code from natural language, automates tasks, and runs terminal commands. Features inline autocomplete, browser automation, automated refactoring, and custom modes for planning, coding, and debugging. Supports 500+ AI models including Claude (Anthropic), Gemini, Grok, GPT, Codex and GLM.",
+  "version": "7.2.44",
+  "icon": "assets/icons/logo-outline-black.png",
+  "galleryBanner": {
+    "color": "#FFFFFF",
+    "theme": "light"
+  },
+  "publisher": "altrucoder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Altru-Coder/altrucoder.git",
+    "directory": "packages/altru-coder-vscode"
+  },
+  "engines": {
+    "vscode": "^1.105.1"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Altru Coder"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
+    "Education",
+    "Snippets",
+    "Testing"
+  ],
+  "keywords": [
+    "altru-coder",
+    "claude",
+    "dev",
+    "mcp",
+    "openrouter",
+    "coding",
+    "agent",
+    "autonomous",
+    "chatgpt",
+    "sonnet",
+    "ai",
+    "llama",
+    "Altru Coder",
+    "altrucoder"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "altru-coder-worktree-setup",
+        "properties": {
+          "script": {
+            "type": "string",
+            "description": "The setup script command to execute"
+          }
+        }
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "altru-coder-ActivityBar",
+          "title": "Altru Coder",
+          "icon": "assets/icons/altru-logo.png",
+          "darkIcon": "assets/icons/altru-logo.png"
+        }
+      ]
+    },
+    "views": {
+      "altru-coder-ActivityBar": [
+        {
+          "type": "webview",
+          "id": "altru-coder.SidebarProvider",
+          "name": "Altru Coder"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "altru-coder.new.plusButtonClicked",
+        "title": "New Task",
+        "icon": "$(add)"
+      },
+      {
+        "command": "altru-coder.new.agentManagerOpen",
+        "title": "Agent Manager",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "altru-coder.new.marketplaceButtonClicked",
+        "title": "Marketplace",
+        "icon": "$(extensions)"
+      },
+      {
+        "command": "altru-coder.new.historyButtonClicked",
+        "title": "History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "altru-coder.new.profileButtonClicked",
+        "title": "Profile",
+        "icon": "$(account)"
+      },
+      {
+        "command": "altru-coder.new.settingsButtonClicked",
+        "title": "Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "altru-coder.new.openInTab",
+        "title": "Altru Coder",
+        "icon": {
+          "light": "assets/icons/altru-logo.png",
+          "dark": "assets/icons/altru-logo.png"
+        }
+      },
+      {
+        "command": "altru-coder.new.showChanges",
+        "title": "Show Changes",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.openMigrationWizard",
+        "title": "Migrate Settings from Legacy Version",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.autocomplete.generateSuggestions",
+        "title": "Generate Suggested Edits",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.autocomplete.cancelSuggestions",
+        "title": "Cancel Suggested Edits",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.previousSession",
+        "title": "Agent Manager: Previous Session",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.nextSession",
+        "title": "Agent Manager: Next Session",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.previousTab",
+        "title": "Agent Manager: Previous Tab",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.nextTab",
+        "title": "Agent Manager: Next Tab",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.showTerminal",
+        "title": "Agent Manager: Focus Terminal",
+        "category": "Altru Coder",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "altru-coder.new.agentManager.runScript",
+        "title": "Agent Manager: Run Script",
+        "category": "Altru Coder",
+        "icon": "$(play)"
+      },
+      {
+        "command": "altru-coder.new.agentManager.toggleDiff",
+        "title": "Agent Manager: Toggle Diff Panel",
+        "category": "Altru Coder",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "altru-coder.new.agentManager.showShortcuts",
+        "title": "Agent Manager: Show Keyboard Shortcuts",
+        "category": "Altru Coder",
+        "icon": "$(keyboard)"
+      },
+      {
+        "command": "altru-coder.new.agentManager.newTab",
+        "title": "Agent Manager: New Tab",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.newTerminal",
+        "title": "Agent Manager: New Terminal Tab (Experimental)",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.closeTab",
+        "title": "Agent Manager: Close Tab",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.newWorktree",
+        "title": "Agent Manager: New Worktree",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.openWorktree",
+        "title": "Agent Manager: Open Worktree",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.closeWorktree",
+        "title": "Agent Manager: Close Worktree",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.advancedWorktree",
+        "title": "Agent Manager: Advanced New Worktree",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo1",
+        "title": "Agent Manager: Jump to Item 1",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo2",
+        "title": "Agent Manager: Jump to Item 2",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo3",
+        "title": "Agent Manager: Jump to Item 3",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo4",
+        "title": "Agent Manager: Jump to Item 4",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo5",
+        "title": "Agent Manager: Jump to Item 5",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo6",
+        "title": "Agent Manager: Jump to Item 6",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo7",
+        "title": "Agent Manager: Jump to Item 7",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo8",
+        "title": "Agent Manager: Jump to Item 8",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo9",
+        "title": "Agent Manager: Jump to Item 9",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.generateCommitMessage",
+        "title": "Generate Commit Message",
+        "category": "Altru Coder",
+        "icon": {
+          "light": "assets/icons/altru-logo.png",
+          "dark": "assets/icons/altru-logo.png"
+        }
+      },
+      {
+        "command": "altru-coder.new.explainCode",
+        "title": "Explain Code",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.fixCode",
+        "title": "Fix Code",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.improveCode",
+        "title": "Improve Code",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.addToContext",
+        "title": "Add to Context",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.terminalAddToContext",
+        "title": "Add Terminal Content to Context",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.terminalFixCommand",
+        "title": "Fix This Command",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.terminalExplainCommand",
+        "title": "Explain This Command",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.focusChatInput",
+        "title": "Focus Chat Input",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.cycleAgentMode",
+        "title": "Cycle Agent Mode",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.cyclePreviousAgentMode",
+        "title": "Cycle Previous Agent Mode",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.toggleAutoApprove",
+        "title": "Toggle Auto-Approve",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.generateTerminalCommand",
+        "title": "Generate Terminal Command",
+        "category": "Altru Coder"
+      },
+      {
+        "command": "altru-coder.new.takeHeapSnapshot",
+        "title": "Take Heap Snapshot",
+        "category": "Altru Coder"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "altru-coder.new.editorContextMenu",
+        "label": "Altru Coder"
+      },
+      {
+        "id": "altru-coder.new.terminalContextMenu",
+        "label": "Altru Coder"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "altru-coder.new.plusButtonClicked",
+          "group": "navigation@0",
+          "when": "view == altru-coder.SidebarProvider"
+        },
+        {
+          "command": "altru-coder.new.historyButtonClicked",
+          "group": "navigation@1",
+          "when": "view == altru-coder.SidebarProvider"
+        },
+        {
+          "command": "altru-coder.new.agentManagerOpen",
+          "group": "navigation@2",
+          "when": "view == altru-coder.SidebarProvider"
+        },
+        {
+          "command": "altru-coder.new.marketplaceButtonClicked",
+          "group": "navigation@3",
+          "when": "view == altru-coder.SidebarProvider"
+        },
+        {
+          "command": "altru-coder.new.profileButtonClicked",
+          "group": "navigation@4",
+          "when": "view == altru-coder.SidebarProvider"
+        },
+        {
+          "command": "altru-coder.new.settingsButtonClicked",
+          "group": "navigation@5",
+          "when": "view == altru-coder.SidebarProvider"
+        }
+      ],
+      "scm/title": [
+        {
+          "command": "altru-coder.new.generateCommitMessage",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ],
+      "scm/input": [
+        {
+          "command": "altru-coder.new.generateCommitMessage",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "altru-coder.new.openInTab",
+          "group": "navigation",
+          "when": "true"
+        },
+        {
+          "command": "altru-coder.new.plusButtonClicked",
+          "group": "navigation@0",
+          "when": "activeWebviewPanelId == altru-coder.new.TabPanel"
+        },
+        {
+          "command": "altru-coder.new.historyButtonClicked",
+          "group": "navigation@1",
+          "when": "activeWebviewPanelId == altru-coder.new.TabPanel"
+        },
+        {
+          "command": "altru-coder.new.profileButtonClicked",
+          "group": "navigation@2",
+          "when": "activeWebviewPanelId == altru-coder.new.TabPanel"
+        },
+        {
+          "command": "altru-coder.new.settingsButtonClicked",
+          "group": "navigation@3",
+          "when": "activeWebviewPanelId == altru-coder.new.TabPanel"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "altru-coder.new.editorContextMenu",
+          "group": "1_altrucoder"
+        }
+      ],
+      "altru-coder.new.editorContextMenu": [
+        {
+          "command": "altru-coder.new.explainCode",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "altru-coder.new.fixCode",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "altru-coder.new.improveCode",
+          "group": "1_actions@3"
+        },
+        {
+          "command": "altru-coder.new.addToContext",
+          "group": "1_actions@4"
+        }
+      ],
+      "terminal/context": [
+        {
+          "submenu": "altru-coder.new.terminalContextMenu",
+          "group": "2_altrucoder"
+        }
+      ],
+      "altru-coder.new.terminalContextMenu": [
+        {
+          "command": "altru-coder.new.terminalAddToContext",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "altru-coder.new.terminalFixCommand",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "altru-coder.new.terminalExplainCommand",
+          "group": "1_actions@3"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "altru-coder.new.focusChatInput",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      },
+      {
+        "command": "altru-coder.new.toggleAutoApprove",
+        "key": "ctrl+alt+a",
+        "mac": "cmd+alt+a"
+      },
+      {
+        "command": "altru-coder.new.generateTerminalCommand",
+        "key": "ctrl+shift+g",
+        "mac": "cmd+shift+g"
+      },
+      {
+        "command": "altru-coder.new.agentManagerOpen",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m"
+      },
+      {
+        "command": "altru-coder.new.addToContext",
+        "key": "ctrl+k ctrl+a",
+        "mac": "cmd+k cmd+a",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "altru-coder.new.agentManager.previousSession",
+        "key": "ctrl+alt+up",
+        "mac": "cmd+alt+up",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.nextSession",
+        "key": "ctrl+alt+down",
+        "mac": "cmd+alt+down",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.previousTab",
+        "key": "ctrl+alt+left",
+        "mac": "cmd+alt+left",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.nextTab",
+        "key": "ctrl+alt+right",
+        "mac": "cmd+alt+right",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.showTerminal",
+        "key": "ctrl+/",
+        "mac": "cmd+/",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.runScript",
+        "key": "ctrl+e",
+        "mac": "cmd+e",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel' && (isMac || !terminalFocus)"
+      },
+      {
+        "command": "altru-coder.new.agentManager.toggleDiff",
+        "key": "ctrl+d",
+        "mac": "cmd+d",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.showShortcuts",
+        "key": "ctrl+shift+/",
+        "mac": "cmd+shift+/",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.newTab",
+        "key": "ctrl+t",
+        "mac": "cmd+t",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.newTerminal",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.closeTab",
+        "key": "ctrl+w",
+        "mac": "cmd+w",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.newWorktree",
+        "key": "ctrl+n",
+        "mac": "cmd+n",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.openWorktree",
+        "key": "ctrl+shift+o",
+        "mac": "cmd+shift+o",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.closeWorktree",
+        "key": "ctrl+shift+w",
+        "mac": "cmd+shift+w",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.advancedWorktree",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo1",
+        "key": "ctrl+1",
+        "mac": "cmd+1",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo2",
+        "key": "ctrl+2",
+        "mac": "cmd+2",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo3",
+        "key": "ctrl+3",
+        "mac": "cmd+3",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo4",
+        "key": "ctrl+4",
+        "mac": "cmd+4",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo5",
+        "key": "ctrl+5",
+        "mac": "cmd+5",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo6",
+        "key": "ctrl+6",
+        "mac": "cmd+6",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo7",
+        "key": "ctrl+7",
+        "mac": "cmd+7",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo8",
+        "key": "ctrl+8",
+        "mac": "cmd+8",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.agentManager.jumpTo9",
+        "key": "ctrl+9",
+        "mac": "cmd+9",
+        "when": "activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel'"
+      },
+      {
+        "command": "altru-coder.new.cycleAgentMode",
+        "key": "ctrl+.",
+        "mac": "cmd+.",
+        "when": "sideBarFocus && altru-coder.new.sidebarVisible || activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel' || activeWebviewPanelId == 'altru-coder.new.TabPanel'"
+      },
+      {
+        "command": "altru-coder.new.cyclePreviousAgentMode",
+        "key": "ctrl+shift+.",
+        "mac": "cmd+shift+.",
+        "when": "sideBarFocus && altru-coder.new.sidebarVisible || activeWebviewPanelId == 'altru-coder.new.AgentManagerPanel' || activeWebviewPanelId == 'altru-coder.new.TabPanel'"
+      },
+      {
+        "command": "altru-coder.new.autocomplete.cancelSuggestions",
+        "key": "escape",
+        "when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && altru-coder.new.autocomplete.hasSuggestions"
+      },
+      {
+        "command": "altru-coder.new.autocomplete.generateSuggestions",
+        "key": "ctrl+l",
+        "mac": "cmd+l",
+        "when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && altrucoder.autocomplete.enableSmartInlineTaskKeybinding && !github.copilot.completions.enabled"
+      },
+      {
+        "command": "altru-coder.new.autocomplete.showIncompatibilityExtensionPopup",
+        "key": "ctrl+l",
+        "mac": "cmd+l",
+        "when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && altrucoder.autocomplete.enableSmartInlineTaskKeybinding && github.copilot.completions.enabled"
+      }
+    ],
+    "configuration": {
+      "title": "Altru Coder",
+      "properties": {
+        "altru-coder.new.language": {
+          "type": "string",
+          "default": "",
+          "description": "Override the UI language for Altru Coder (e.g. en, de, ja). Empty means use VS Code's display language.",
+          "enum": [
+            "",
+            "en",
+            "zh",
+            "zht",
+            "ko",
+            "de",
+            "es",
+            "fr",
+            "da",
+            "ja",
+            "pl",
+            "ru",
+            "ar",
+            "no",
+            "br",
+            "th",
+            "bs",
+            "tr",
+            "nl",
+            "uk"
+          ],
+          "enumDescriptions": [
+            "Auto (VS Code language)",
+            "English",
+            "简体中文",
+            "繁體中文",
+            "한국어",
+            "Deutsch",
+            "Español",
+            "Français",
+            "Dansk",
+            "日本語",
+            "Polski",
+            "Русский",
+            "العربية",
+            "Norsk",
+            "Português (Brasil)",
+            "ภาษาไทย",
+            "Bosanski",
+            "Türkçe",
+            "Nederlands",
+            "Українська"
+          ]
+        },
+        "altru-coder.new.model.providerID": {
+          "type": "string",
+          "default": "altru-coder",
+          "description": "Default model provider ID for new sessions"
+        },
+        "altru-coder.new.model.modelID": {
+          "type": "string",
+          "default": "altru-coder-auto/free",
+          "description": "Default model ID for new sessions"
+        },
+        "altru-coder.new.autocomplete.model": {
+          "type": "string",
+          "enum": [
+            "mistralai/codestral-2508",
+            "inception/mercury-edit"
+          ],
+          "enumDescriptions": [
+            "Codestral by Mistral AI (default)",
+            "Mercury Edit by Inception"
+          ],
+          "description": "Model to use for inline autocomplete suggestions"
+        },
+        "altru-coder.new.autocomplete.enableAutoTrigger": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic inline completion suggestions"
+        },
+        "altru-coder.new.autocomplete.enableSmartInlineTaskKeybinding": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable smart inline task keybinding"
+        },
+        "altru-coder.new.autocomplete.enableChatAutocomplete": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable chat textarea autocomplete"
+        },
+        "altru-coder.new.claudeCodeCompat": {
+          "type": "boolean",
+          "default": false,
+          "description": "Load CLAUDE.md instructions and skills from your Claude Code configuration directory into Altru Coder sessions. Enable this if you want Altru Coder to use your Claude Code instructions and skills."
+        },
+        "altru-coder.new.extraCaCerts": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to a PEM file containing extra CA certificates to trust when the Altru Coder backend makes HTTPS requests (sets NODE_EXTRA_CA_CERTS on the CLI process). Use this if you're behind a corporate proxy that performs SSL inspection. Leave empty to rely on the OS trust store."
+        },
+        "altru-coder.new.autoApprove.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Start Altru Coder with the main auto-approve toggle enabled. When enabled, permission prompts are approved automatically."
+        },
+        "altru-coder.new.fontSize": {
+          "type": "number",
+          "default": 13,
+          "minimum": 10,
+          "maximum": 24,
+          "description": "Font size in pixels for the Altru Coder webview UI."
+        },
+        "altru-coder.new.browserAutomation.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable browser automation powered by Playwright. When enabled, the AI agent can interact with web pages in a visible Chrome window."
+        },
+        "altru-coder.new.browserAutomation.useSystemChrome": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use your system's installed Chrome browser instead of downloading a separate Chromium instance."
+        },
+        "altru-coder.new.browserAutomation.headless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run browser automation in headless mode (no visible window). When disabled, you can watch the agent interact with the browser."
+        },
+        "altru-coder.new.notifications.agent": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notification when agent completes a task"
+        },
+        "altru-coder.new.notifications.permissions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notification on permission requests"
+        },
+        "altru-coder.new.notifications.errors": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notification on errors"
+        },
+        "altru-coder.new.sounds.agent": {
+          "type": "string",
+          "default": "default",
+          "enum": [
+            "default",
+            "none"
+          ],
+          "description": "Sound to play when agent completes"
+        },
+        "altru-coder.new.sounds.permissions": {
+          "type": "string",
+          "default": "default",
+          "enum": [
+            "default",
+            "none"
+          ],
+          "description": "Sound to play on permission requests"
+        },
+        "altru-coder.new.sounds.errors": {
+          "type": "string",
+          "default": "default",
+          "enum": [
+            "default",
+            "none"
+          ],
+          "description": "Sound to play on errors"
+        },
+        "altru-coder.new.showTaskTimeline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show the task timeline graph in the chat header"
+        },
+        "altru-coder.new.diff.renderMarkdown": {
+          "type": "boolean",
+          "default": false,
+          "description": "Render Markdown files in Altru Coder diff viewers by default. Toggle this from a Markdown file header in the diff viewer."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "prepare:cli-binary": "bun script/local-bin.ts",
+    "compile": "bun run prepare:cli-binary -- --force && bun run rebuild-sdk && bun run typecheck && bun run lint && node esbuild.js",
+    "watch": "bun run rebuild-sdk && bun run --parallel watch:esbuild watch:tsc",
+    "watch:esbuild": "bun run prepare:cli-binary && node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "watch:cli": "bun script/watch-cli.ts",
+    "package": "bun run prepare:cli-binary && bun run rebuild-sdk && bun run typecheck && bun run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run compile-tests && bun run compile && bun run lint",
+    "check-types": "tsc --noEmit",
+    "check-types:webview": "bun script/typecheck.ts --project webview-ui/tsconfig.json",
+    "typecheck": "bun run check-types:extension && bun run check-types:webview",
+    "check-types:extension": "bun script/typecheck.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "knip",
+    "check-altrucoder-change": "! grep -rn 'altrucoder_change' . ../altru-coder-ui/ --exclude='package.json' --exclude='*.md' --exclude-dir='node_modules' --exclude-dir='dist' | grep -v '`altrucoder_change`'",
+    "lint": "eslint src webview-ui",
+    "test": "vscode-test",
+    "test:unit": "bun test tests/unit/",
+    "rebuild-sdk": "bun run --cwd ../sdk/js build",
+    "storybook": "storybook dev -p 6007",
+    "build-storybook": "storybook build -o storybook-static",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "snapshot:build": "bun script/dev-snapshot.ts build",
+    "snapshot:install": "bun script/dev-snapshot.ts install",
+    "extension": "bun script/launch.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.57.0",
+    "@storybook/addon-docs": "10.2.10",
+    "@types/diff": "^6.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/qrcode": "^1.5.6",
+    "@types/vscode": "^1.105.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "esbuild": "^0.27.2",
+    "esbuild-plugin-solid": "^0.6.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "knip": "5.85.0",
+    "prettier": "3.6.2",
+    "qrcode": "^1.5.4",
+    "storybook": "10.2.10",
+    "storybook-solidjs-vite": "10.0.9",
+    "ts-morph": "27.0.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
+    "vite": "7.3.2",
+    "vite-plugin-solid": "2.11.10"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@altru-coder/altru-coder-gateway": "workspace:*",
+    "@altru-coder/altru-coder-i18n": "workspace:*",
+    "@altru-coder/altru-coder-indexing": "workspace:*",
+    "@altru-coder/altru-coder-ui": "workspace:*",
+    "@altru-coder/sdk": "workspace:*",
+    "@opencode-ai/ui": "workspace:*",
+    "@thisbeyond/solid-dnd": "0.7.5",
+    "@xterm/addon-clipboard": "0.2.0",
+    "@xterm/addon-fit": "0.11.0",
+    "@xterm/addon-unicode-graphemes": "0.4.0",
+    "@xterm/addon-web-links": "0.12.0",
+    "@xterm/xterm": "6.0.0",
+    "diff": "8.0.4",
+    "dotenv": "^16.4.7",
+    "fastest-levenshtein": "^1.0.16",
+    "friendly-words": "1.3.1",
+    "ignore": "^7.0.3",
+    "js-tiktoken": "^1.0.18",
+    "lru-cache": "^11.0.2",
+    "openai": "^4.85.4",
+    "quick-lru": "^7.0.0",
+    "simple-git": "3.35.2",
+    "solid-js": "^1.9.11",
+    "uri-js": "^4.4.1",
+    "virtua": "catalog:",
+    "web-tree-sitter": "^0.24.7",
+    "yaml": "2.8.3",
+    "zod": "^3.24.2"
+  }
+}

@@ -1,0 +1,280 @@
+---
+title: "Architecture Overview"
+description: "Overview of the Altru Coder platform architecture"
+---
+
+# Architecture Overview
+
+This document provides a high-level overview of the Altru Coder platform architecture to help contributors understand how the different components fit together.
+
+## System Architecture
+
+Altru Coder is an AI coding platform built around a central CLI engine that powers every client surface — the terminal, VS Code, and the cloud. The architecture follows a layered approach where all clients communicate with the CLI over HTTP + SSE, and the CLI connects to AI providers either directly or through Altru Coder Cloud.
+
+```mermaid
+graph LR
+  tui["Altru Coder CLI (TUI)"]
+  vscode["VS Code Extension"]
+
+  subgraph cli ["Altru Coder CLI Engine"]
+    provider["Provider Router"]
+  end
+
+  subgraph cloud ["Altru Coder Cloud"]
+    gateway["Altru Coder Gateway"]
+    cloudagent["Cloud Agent"]
+    bot["Altru Coder Bot"]
+    claw["AltruCoderClaw"]
+    gastown["Gas Town"]
+    review["Code Review"]
+    triage["Auto Triage"]
+    appbuilder["App Builder"]
+  end
+
+  providers["Inference Providers: Anthropic, OpenAI, Google, OpenRouter + 500 more"]
+
+  tui -->|SDK| cli
+  vscode -->|SDK| cli
+  cloudagent -->|Sandbox| cli
+
+  provider -- Direct --> providers
+  provider -- Gateway --> gateway
+  gateway --> providers
+  claw --> gateway
+  gastown -->|Container| cli
+  gastown --> gateway
+
+  bot --> cloudagent
+  review --> cloudagent
+  triage --> cloudagent
+  appbuilder --> cloudagent
+```
+
+## Altru Coder CLI — The Foundation
+
+The CLI (`packages/opencode/`) is the core engine that all products are built on. It contains the AI agent runtime, tool execution, session management, provider integrations, and an HTTP server. Each client spawns or connects to a `altru-coder serve` process and communicates via HTTP + SSE using the `@altru-coder/sdk`.
+
+The CLI can run in several modes:
+
+- **`altru-coder`** — Interactive TUI for terminal-based coding
+- **`altru-coder run`** — Headless single-prompt execution
+- **`altru-coder serve`** — HTTP server mode for client integrations
+
+Key subsystems inside the CLI:
+
+| Subsystem | Purpose |
+|---|---|
+| Agent Runtime | Orchestrates AI conversations, tool calls, and multi-step task execution |
+| Tools Service | Built-in tools for file editing, shell execution, search, and more |
+| MCP Servers | Model Context Protocol support for extending with external tools |
+| LSP Client | Language Server Protocol integration for code intelligence |
+| Session Manager | Persistent session state, conversation history, and checkpoints |
+| Provider Router | Connects to 500+ AI models via direct APIs or Altru Coder Gateway |
+| HTTP Server | REST API + SSE streaming for client communication |
+| Config System | Project and global configuration, modes, and permissions |
+
+## Client Layer
+
+All clients are thin wrappers over the CLI engine.
+
+### VS Code Extension
+
+The VS Code extension (`packages/altru-coder-vscode/`) bundles the CLI binary and spawns `altru-coder serve` as a child process. It includes:
+
+- **Sidebar Chat** — Primary coding assistant interface
+- **Agent Manager** — Multi-session orchestration panel with git worktree isolation for running parallel tasks
+
+### TUI
+
+The built-in terminal UI ships with the CLI itself — a SolidJS interface rendered in the terminal via OpenTUI.
+
+## Altru Coder Cloud
+
+Altru Coder Cloud is the hosted platform layer that provides authentication, provider routing, and autonomous agent services. The cloud infrastructure lives in a separate repository.
+
+### Altru Coder Gateway
+
+The gateway (`packages/altru-coder-gateway/` in this repo, plus API routes in the cloud) handles:
+
+- **Authentication** — Device flow auth, token management, and account linking
+- **Provider Routing** — Routes AI requests through Altru Coder's managed API keys or the user's own keys
+- **Model Catalog** — Serves the available model list and provider configuration
+- **Usage & Billing** — Tracks token consumption and manages credits
+
+### Cloud Agent
+
+A Cloudflare Worker within Altru Coder Cloud that runs the Altru Coder CLI in isolated sandbox environments. It powers cloud-based AI coding tasks triggered via the web dashboard, webhooks, or automation workflows. It provides a secure API for:
+
+- Creating and managing coding sessions with full GitHub/GitLab integration
+- Running AI tasks in Docker containers with the CLI pre-installed
+- Streaming results back via WebSocket
+
+### Altru Coder Bot
+
+The GitHub/GitLab bot that responds to issue comments and PR mentions. It dispatches work to the Cloud Agent, enabling users to trigger AI coding tasks directly from their repositories.
+
+### AltruCoderClaw
+
+A multi-tenant compute platform running on Fly.io, orchestrated by a Cloudflare Worker. Each user gets a dedicated persistent machine running an OpenClaw gateway, coordinated via Durable Objects for state management and self-healing reconciliation.
+
+{% image src="/docs/img/altru-coder-claw/altru-coder-claw-architecture.png" alt="AltruCoderClaw infrastructure architecture diagram" width="800" caption="AltruCoderClaw infrastructure architecture" /%}
+
+### Code Review
+
+An automated code review service that subscribes to GitHub webhooks, dispatches reviews through the Cloud Agent, and posts feedback directly on pull requests. Supports per-organization concurrency limits and automatic queuing.
+
+### Auto Triage
+
+An automated issue triage service that classifies GitHub issues (bug, feature, question), detects duplicates via vector similarity search, and optionally creates fix PRs for high-confidence actionable issues.
+
+### App Builder
+
+A service that builds and deploys user applications via the Cloud Agent. Users can generate full applications from prompts, with the App Builder orchestrating the Cloud Agent to scaffold, iterate, and deploy the result.
+
+### Gas Town
+
+A multi-agent orchestration platform that coordinates autonomous AI coding agents working on real Git repositories. Gas Town runs entirely on Cloudflare — a central Durable Object manages all state, while Docker containers on Cloudflare Containers run agent processes via the Altru Coder CLI.
+
+Key concepts:
+
+- **Town** — A workspace/project that contains one or more rigs (repositories)
+- **Rig** — A Git repository attached to a town where agents perform work
+- **Bead** — A unit of work (issue, task, merge request, or message)
+- **Convoy** — A batch of related beads with dependency tracking, dispatched together
+
+Agents operate in a hierarchy:
+
+| Agent | Role |
+|---|---|
+| Mayor | Persistent conversational coordinator — decomposes tasks and delegates to worker agents |
+| Polecat | Worker agent — clones repo worktrees, writes code, commits, pushes, and creates PRs |
+| Refinery | Code review agent — reviews polecat branches, runs quality gates, merges or requests rework |
+| Triage | Ephemeral agent that resolves ambiguous situations detected by automated patrol checks |
+
+A reconciler loop running every 5 seconds drives all state transitions: dispatching agents, transitioning beads, polling PR status, managing convoys, and recovering from failures.
+
+### Supporting Services
+
+| Service | Purpose |
+|---|---|
+| Webhook Agent Ingest | Named webhook endpoints that capture HTTP requests and queue delivery to Cloud Agent |
+| AI Attribution | Tracks line-level AI-generated code attribution when users accept or reject edits |
+| Session Ingest | Ingests and stores CLI session data for analytics |
+| Observability | Telemetry pipelines for monitoring cloud services |
+
+## Key Concepts
+
+### Modes
+
+Modes are configurable presets that customize the agent's behavior:
+
+- Define which tools are available
+- Set custom system prompts
+- Configure file restrictions
+- Examples: Code, Architect, Debug, Ask
+
+### Model Context Protocol (MCP)
+
+MCP enables extending the agent with external tools:
+
+- Servers provide additional capabilities
+- Standardized protocol for tool communication
+- Configured via `mcp.json`
+
+### Checkpoints
+
+Git-based state management for safe exploration:
+
+- Creates commits to track changes
+- Enables rolling back to previous states
+- Shadow repository for isolation
+
+### Worktrees
+
+Git worktree isolation for parallel task execution:
+
+- Each agent session can operate in its own worktree
+- Prevents conflicts between concurrent tasks
+- Used by the Agent Manager in VS Code for multi-session workflows
+
+## Development Patterns
+
+### Client-Server Communication
+
+All clients communicate with the CLI via its HTTP + SSE API. The `@altru-coder/sdk` package provides a TypeScript client:
+
+```typescript
+import { AltruCoderClient } from "@altru-coder/sdk"
+
+const client = new AltruCoderClient({ baseUrl: "http://localhost:3000" })
+const session = await client.session.create({ ... })
+```
+
+### Module Export Pattern
+
+The CLI uses flat ESM exports inside each module, then re-exports the module as a namespace from an index file when callers need grouped access. Avoid adding new `export namespace` declarations; top-level exports are easier to tree-shake and work better with Node's type-stripping runtime.
+
+```typescript
+// packages/opencode/src/session/session.ts
+export const create = fn(CreateSchema, async (input) => {
+  // ...
+})
+
+export const list = fn(ListSchema, async (input) => {
+  // ...
+})
+
+// packages/opencode/src/session/index.ts
+export * as Session from "./session"
+```
+
+Prefer importing the specific export when possible. Use the namespace re-export (`Session.create`, `Session.list`) when a caller benefits from grouped module access or when preserving the existing public shape.
+
+### CLI Server API
+
+The CLI server is Hono-based and publishes an OpenAPI-compatible HTTP + SSE API consumed by `@altru-coder/sdk`. Some route groups are being migrated behind the experimental Effect `HttpApi` bridge while preserving the generated SDK shape.
+
+- Keep the SDK output stable when moving routes between Hono and Effect `HttpApi`.
+- Use `ALTRU_CODER_EXPERIMENTAL_HTTPAPI` only for migration testing; public clients should not depend on the bridge detail.
+- Regenerate `packages/sdk/js/` after server endpoint changes.
+- Keep request handling observable with route spans and stable attributes where possible.
+
+### Tool Implementation
+
+Tools follow a consistent pattern with Zod schema validation:
+
+```typescript
+export const ReadTool = Tool.define({
+  name: "read",
+  description: "Read a file",
+  parameters: z.object({
+    path: z.string(),
+  }),
+  async execute(params) {
+    // ...
+  },
+})
+```
+
+## Build System
+
+The project uses:
+
+- **Bun** — Package management (monorepo workspaces) and runtime
+- **Turborepo** — Monorepo task orchestration
+- **esbuild** — Bundling for the CLI and VS Code extension
+- **TypeScript** — Type checking via `tsgo` across all packages
+- **Vitest / Bun test** — Test runner
+
+## Repositories
+
+| Repository | Contents |
+|---|---|
+| [Altru-Coder/altrucoder](https://github.com/Altru-Coder/altrucoder) | CLI engine, VS Code extension, SDK, gateway client, telemetry, docs, UI components |
+| Cloud (private) | Web dashboard, Cloud Agent, Altru Coder Bot, AltruCoderClaw, Gas Town, code review, auto triage, billing, and supporting Cloudflare Workers |
+
+## Further Reading
+
+- [Development Environment](/docs/contributing/development-environment) — Setup guide
+- [Architecture Features](/docs/contributing/architecture/features) — Detailed feature specs
+- [Ecosystem](/docs/contributing/ecosystem) — Related projects and integrations

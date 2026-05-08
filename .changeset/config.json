@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.4/schema.json",
+  "changelog": ["../script/changelog-github.cjs", { "repo": "Altru-Coder/altrucoder" }],
+  "commit": false,
+  "fixed": [["altru-coder", "@altru-coder/cli"]],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}

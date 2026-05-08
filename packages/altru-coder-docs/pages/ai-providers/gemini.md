@@ -1,0 +1,74 @@
+---
+title: "Using Google Gemini with Altru Coder"
+description: "Connect Google Gemini models to Altru Coder. Guide to getting an API key from Google AI Studio and configuring Gemini in VS Code and the CLI."
+sidebar_label: Google Gemini
+---
+
+# Using Google Gemini With Altru Coder
+
+Altru Coder supports Google's Gemini family of models through the Google AI Gemini API.
+
+**Website:** [https://ai.google.dev/](https://ai.google.dev/)
+
+## Getting an API Key
+
+1.  **Go to Google AI Studio:** Navigate to [https://ai.google.dev/](https://ai.google.dev/).
+2.  **Sign In:** Sign in with your Google account.
+3.  **Create API Key:** Click on "Create API key" in the left-hand menu.
+4.  **Copy API Key:** Copy the generated API key.
+
+## Configuration in Altru Coder
+
+{% tabs %}
+{% tab label="VSCode (Legacy)" %}
+
+1.  **Open Altru Coder Settings:** Click the gear icon ({% codicon name="gear" /%}) in the Altru Coder panel.
+2.  **Select Provider:** Choose "Google Gemini" from the "API Provider" dropdown.
+3.  **Enter API Key:** Paste your Gemini API key into the "Gemini API Key" field.
+4.  **Select Model:** Choose your desired Gemini model from the "Model" dropdown.
+
+{% /tab %}
+{% tab label="VSCode" %}
+
+Open **Settings** (gear icon) and go to the **Providers** tab to add Google Gemini and enter your API key.
+
+The extension stores this in your `altru-coder.json` config file. You can also edit the config file directly — see the **CLI** tab for the file format.
+
+{% /tab %}
+{% tab label="CLI" %}
+
+Set the API key as an environment variable or configure it in your `altru-coder.json` config file:
+
+**Environment variable:**
+
+```bash
+export GOOGLE_GENERATIVE_AI_API_KEY="your-api-key"
+```
+
+**Config file** (`~/.config/altru-coder/altru-coder.json` or `./altru-coder.json`):
+
+```jsonc
+{
+  "provider": {
+    "google": {
+      "env": ["GOOGLE_GENERATIVE_AI_API_KEY"],
+    },
+  },
+}
+```
+
+Then set your default model:
+
+```jsonc
+{
+  "model": "google/gemini-2.5-pro",
+}
+```
+
+{% /tab %}
+{% /tabs %}
+
+## Tips and Notes
+
+- **Pricing:** Gemini API usage is priced based on input and output tokens. Refer to the [Gemini pricing page](https://ai.google.dev/pricing) for detailed information.
+- **Codebase Indexing:** The `gemini-embedding-001` model is specifically supported for [codebase indexing](/docs/customize/context/codebase-indexing), providing high-quality embeddings for semantic code search.

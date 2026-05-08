@@ -1,0 +1,271 @@
+name: publish
+run-name: "${{ format('{0} {1}', inputs.pre_release && 'pre-release' || 'release', inputs.bump) }}"
+
+on:
+  # push:
+  #   branches:
+  #     - ci
+  #     - dev
+  #     - beta
+  #     - snapshot-*
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Bump major, minor, or patch"
+        required: false
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      version:
+        description: "Override version (optional)"
+        required: false
+        type: string
+      # altrucoder_change start
+      pre_release:
+        description: "Publish as pre-release (VS Code marketplace + npm rc channel)"
+        required: false
+        type: boolean
+        default: true
+      # altrucoder_change end
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.version || inputs.bump }}
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  version:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: github.repository == 'Altru-Coder/altrucoder'
+    steps:
+      - uses: actions/checkout@v6 # altrucoder_change
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-bun
+
+      # altrucoder_change start - install deps for version script workspace resolution
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Altru Coder
+        if: inputs.bump || inputs.version
+        run: bun i -g @altru-coder/cli
+      # altrucoder_change end
+
+      - id: version
+        run: |
+          ./script/version.ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ALTRU_CODER_BUMP: ${{ inputs.bump }}
+          ALTRU_CODER_VERSION: ${{ inputs.version }}
+          ALTRU_CODER_PRE_RELEASE: ${{ inputs.pre_release }}
+          ALTRU_CODER_API_KEY: ${{ secrets.ALTRU_CODER_API_KEY }}
+          ALTRU_CODER_ORG_ID: ${{ secrets.ALTRU_CODER_ORG_ID }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+      tag: ${{ steps.version.outputs.tag }}
+
+  build-cli:
+    needs: version
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: github.repository == 'Altru-Coder/altrucoder'
+    steps:
+      - uses: actions/checkout@v6 # altrucoder_change
+        with:
+          fetch-tags: true
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Build
+        id: build
+        run: |
+          ./packages/opencode/script/build.ts
+        env:
+          ALTRU_CODER_VERSION: ${{ needs.version.outputs.version }}
+          ALTRU_CODER_RELEASE: ${{ needs.version.outputs.release }}
+          ALTRU_CODER_PRE_RELEASE: ${{ inputs.pre_release }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+
+      # altrucoder_change start - pack dist tree into a single zstd-compressed tar before upload.
+      # download-artifact@v4's streaming unzip is CPU-bound and processes entries one by one;
+      # collapsing ~480 files into one tar cuts build-vscode download from >30m to seconds.
+      # zstd compresses the wasms (~4x) and leaves the already-compact binaries alone, for
+      # ~1 GB artifact. upload-artifact@v7's `archive: false` skips the zip wrapper entirely
+      # so the tarball travels as-is (download-artifact@v8 auto-detects via Content-Type).
+      # With `archive: false` the `name:` input is ignored; the artifact is named after the
+      # file (altru-coder-cli.tar.zst). zstd + GNU tar are preinstalled on both github-hosted and
+      # blacksmith ubuntu-2404. See actions/upload-artifact#36, actions/toolkit#1533.
+      - name: Pack CLI dist into tar.zst
+        run: |
+          find packages/opencode/dist -name '*.map' -delete
+          tar --zstd -cf /tmp/altru-cli.tar.zst -C packages/opencode/dist .
+
+      - uses: actions/upload-artifact@v7
+        with:
+          path: /tmp/altru-cli.tar.zst
+          archive: false
+      # altrucoder_change end
+
+    outputs:
+      version: ${{ needs.version.outputs.version }}
+
+  build-vscode:
+    needs: build-cli
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: github.repository == 'Altru-Coder/altrucoder'
+    steps:
+      - uses: actions/checkout@v6 # altrucoder_change
+
+      - uses: ./.github/actions/setup-bun
+
+      - uses: actions/setup-node@v6 # altrucoder_change
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install @vscode/vsce
+        run: bun install -g @vscode/vsce
+
+      # altrucoder_change start - download into /tmp and extract the tar.zst packed by build-cli
+      - uses: actions/download-artifact@v8
+        with:
+          name: altru-coder-cli.tar.zst
+          path: /tmp
+          skip-decompress: true
+
+      - name: Unpack CLI dist
+        run: |
+          mkdir -p packages/opencode/dist
+          tar --zstd -xf /tmp/altru-cli.tar.zst -C packages/opencode/dist
+      # altrucoder_change end
+      - name: Build VSIX packages
+        run: bun script/build.ts
+        working-directory: ./packages/altru-coder-vscode
+        env:
+          CLI_DIST_DIR: ../../packages/opencode/dist
+          ALTRU_CODER_VERSION: ${{ needs.build-cli.outputs.version }}
+          ALTRU_CODER_PRE_RELEASE: ${{ inputs.pre_release }}
+          GH_REPO: ${{ github.repository }}
+
+      - uses: actions/upload-artifact@v7 # altrucoder_change
+        with:
+          name: altru-coder-vscode
+          path: packages/altru-coder-vscode/out
+
+  # altrucoder_change start
+  # Run smoke tests against CLI assets uploaded to the draft GitHub release
+  # before publishing the release and package artifacts.
+  smoke-test:
+    name: Smoke Test (pre-publish gate)
+    needs:
+      - version
+      - build-cli
+    if: github.repository == 'Altru-Coder/altrucoder'
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      cli_version: ${{ needs.version.outputs.version }}
+    secrets: inherit
+  # altrucoder_change end
+  publish:
+    needs:
+      - version
+      - build-cli
+      - build-vscode
+      - smoke-test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6 # altrucoder_change
+        # altrucoder_change start
+        with:
+          persist-credentials: false
+        # altrucoder_change end
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - uses: actions/setup-node@v6 # altrucoder_change
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install @vscode/vsce
+        run: bun install -g @vscode/vsce
+
+      - name: Setup Git Committer
+        id: committer
+        uses: ./.github/actions/setup-git-committer
+        with:
+          # altrucoder_change start
+          altru-coder-maintainer-app-id: ${{ secrets.ALTRU_CODER_MAINTAINER_APP_ID }}
+          altru-coder-maintainer-app-secret: ${{ secrets.ALTRU_CODER_MAINTAINER_APP_SECRET }}
+          # altrucoder_change end
+
+      # altrucoder_change start - download into /tmp and extract the tar.zst packed by build-cli
+      - uses: actions/download-artifact@v8
+        with:
+          name: altru-coder-cli.tar.zst
+          path: /tmp
+          skip-decompress: true
+
+      - name: Unpack CLI dist
+        run: |
+          mkdir -p packages/opencode/dist
+          tar --zstd -xf /tmp/altru-cli.tar.zst -C packages/opencode/dist
+      # altrucoder_change end
+      - uses: actions/download-artifact@v8
+        with:
+          name: altru-coder-vscode
+          path: packages/altru-coder-vscode/out
+
+      - name: Cache apt packages (AUR)
+        uses: actions/cache@v5 # altrucoder_change
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-aur-${{ hashFiles('.github/workflows/publish.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-aur-
+
+      - name: Setup SSH for AUR
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pacman-package-manager
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          git config --global user.email "altru-coder-maintainer[bot]@users.noreply.github.com"
+          git config --global user.name "altru-coder-maintainer[bot]"
+          ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts || true
+
+      - run: ./script/publish.ts
+        env:
+          ALTRU_CODER_VERSION: ${{ needs.version.outputs.version }}
+          ALTRU_CODER_RELEASE: ${{ needs.version.outputs.release }}
+          ALTRU_CODER_PRE_RELEASE: ${{ inputs.pre_release }}
+          GH_REPO: ${{ github.repository }}
+          AUR_KEY: ${{ secrets.AUR_KEY }}
+          GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+          OPENVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}

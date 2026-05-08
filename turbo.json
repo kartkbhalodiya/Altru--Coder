@@ -1,0 +1,33 @@
+{
+  "$schema": "https://v2-8-13.turborepo.dev/schema.json",
+  "globalEnv": ["CI", "ALTRU_CODER_DISABLE_SHARE"],
+  "globalPassThroughEnv": ["CI", "ALTRU_CODER_DISABLE_SHARE"],
+  "tasks": {
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "build": {
+      "dependsOn": [],
+      "outputs": ["dist/**"]
+    },
+    "@altru-coder/cli#test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "passThroughEnv": ["*"]
+    },
+    "@altru-coder/cli#test:ci": {
+      "dependsOn": ["^build"],
+      "outputs": [".artifacts/unit/junit.xml"],
+      "passThroughEnv": ["*"]
+    },
+    "@altru-coder/altru-coder-docs#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**"],
+      "env": ["POSTHOG_API_KEY", "FREE_TIER_AMOUNT", "NEXT_PUBLIC_POSTHOG_KEY", "NEXT_PUBLIC_POSTHOG_HOST"]
+    },
+    "@altru-coder/altru-coder-jetbrains#build": {
+      "dependsOn": ["@altru-coder/cli#build"],
+      "outputs": ["build/distributions/**"]
+    }
+  }
+}

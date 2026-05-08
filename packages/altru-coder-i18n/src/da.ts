@@ -1,0 +1,100 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gateway giver dig adgang til et udvalgt sæt pålidelige, optimerede modeller til kodningsagenter.",
+  "provider.connect.altruCoderGateway.line2":
+    "Med en enkelt API-nøgle får du adgang til modeller som Claude, GPT, Gemini, GLM og flere.",
+  "provider.connect.altruCoderGateway.visit.prefix": "Besøg ",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": " for at hente din API-nøgle.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "Anbefalede",
+  "dialog.provider.altru-coder.note": "Adgang til 500+ AI-modeller",
+
+  // Reasoning block label
+  "ui.permission.run": "Kør",
+  "ui.reasoning.label": "Ræsonnement",
+
+  // Marketplace
+  "marketplace.tab.skills": "Skills",
+  "marketplace.tab.mcpServers": "MCP-servere",
+  "marketplace.tab.modes": "Tilstande",
+  "marketplace.category.all": "Alle",
+  "marketplace.placeholder": "Skal implementeres",
+  "marketplace.card.installed": "Installeret",
+  "marketplace.card.install": "Installer",
+  "marketplace.card.remove": "Fjern",
+  "marketplace.card.removeScope": "Fjern ({{scope}})",
+  "marketplace.card.showMore": "Vis mere",
+  "marketplace.card.showLess": "Vis mindre",
+  "marketplace.install.title": "Installer {{name}}",
+  "marketplace.install.scope": "Omfang",
+  "marketplace.install.scope.project": "Projekt",
+  "marketplace.install.scope.global": "Global",
+  "marketplace.install.prerequisites": "Forudsætninger",
+  "marketplace.install.installing": "Installerer...",
+  "marketplace.install.cancel": "Annuller",
+  "marketplace.install.success": "Installeret med succes!",
+  "marketplace.install.failed": "Installation mislykkedes",
+  "marketplace.install.done": "Færdig",
+  "marketplace.install.close": "Luk",
+  "marketplace.remove.title": "Fjern {{name}}?",
+  "marketplace.remove.confirm":
+    "Er du sikker på, at du vil fjerne denne {{type}}? Dette vil fjerne den fra din {{scope}} konfiguration.",
+  "marketplace.remove.cancel": "Annuller",
+  "marketplace.remove.confirm.button": "Fjern",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "Søg...",
+  "marketplace.filter.all": "Alle elementer",
+  "marketplace.filter.notInstalled": "Ikke installeret",
+  "marketplace.empty": "Ingen elementer fundet",
+  "marketplace.badge.mcpServer": "MCP-server",
+  "marketplace.badge.mode": "Tilstand",
+  "marketplace.card.by": "af {{author}}",
+  "marketplace.install.method": "Installationsmetode",
+  "marketplace.install.parameters": "Parametre",
+  "marketplace.install.optional": "(valgfrit)",
+  "marketplace.install.required": "{{name}} er påkrævet",
+  "marketplace.scope.project": "projekt",
+  "marketplace.scope.global": "global",
+  "marketplace.remove.type.mcp": "MCP-server",
+  "marketplace.remove.type.skill": "færdighed",
+  "marketplace.remove.type.mode": "tilstand",
+  "marketplace.remove.failed": "Kunne ikke fjerne {{name}}",
+  "marketplace.install": "Installer",
+  "marketplace.filter.installed": "Installeret",
+  "marketplace.error.dismiss": "Afvis",
+  "marketplace.warning.busyOne": "En session kører og vil blive afbrudt",
+  "marketplace.warning.busyMany": "Flere sessioner kører og vil blive afbrudt",
+  "marketplace.warning.installAnyway": "Installer alligevel",
+  "marketplace.warning.cancel": "Annuller",
+  "marketplace.contribute.prompt": "Mangler du en skill, tilstand eller MCP-server?",
+  "marketplace.contribute.cta": "Bidrag på GitHub",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "Implementér",
+  "plan.followup.question": "Klar til at implementere?",
+  "plan.followup.answer.newSession": "Start ny session",
+  "plan.followup.answer.newSession.description": "Implementér i en ny session med ren kontekst",
+  "plan.followup.answer.continue": "Fortsæt her",
+  "plan.followup.answer.continue.description": "Implementér planen i denne session",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "Snapshot er langsomt",
+  "snapshot.slowRepo.question":
+    "Det tager lang tid at initialisere snapshot-systemet, sandsynligvis på grund af størrelsen på repositoryet.\n\nVil du deaktivere snapshots for dette repository?",
+  "snapshot.slowRepo.answer.continue": "Fortsæt med snapshots",
+  "snapshot.slowRepo.answer.continue.description":
+    "Vent, indtil snapshot'et er færdigt. Efterfølgende ture er hurtige, når det indledende snapshot er bygget.",
+  "snapshot.slowRepo.answer.disable": "Deaktivér for dette projekt",
+  "snapshot.slowRepo.answer.disable.description":
+    "Slå Altru Coder snapshots fra for dette projekt. Du mister fortryd/gentag for Altru Coder-ændringer, men git sporer stadig alt.",
+
+  "ui.messagePart.openInDiffViewer": "Åbn i diff-viser",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "Dette var nyttigt",
+  "ui.message.feedback.notHelpful": "Dette var ikke nyttigt",
+  "ui.message.feedback.clearRating": "Ryd bedømmelse",
+}

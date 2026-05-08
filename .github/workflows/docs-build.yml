@@ -1,0 +1,30 @@
+name: docs-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/altru-coder-docs/**"
+  pull_request:
+    paths:
+      - "packages/altru-coder-docs/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build docs site
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6 # altrucoder_change
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Build site
+        run: bun run --filter @altru-coder/altru-coder-docs build
+        env:
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.POSTHOG_API_KEY }}
+
+      - name: Run tests
+        run: bun run --filter @altru-coder/altru-coder-docs test

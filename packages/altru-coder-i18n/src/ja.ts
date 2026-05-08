@@ -1,0 +1,98 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gatewayは、コーディングエージェント向けに厳選された信頼性の高い最適化モデルへのアクセスを提供します。",
+  "provider.connect.altruCoderGateway.line2": "1つのAPIキーで、Claude、GPT、Gemini、GLMなどのモデルにアクセスできます。",
+  "provider.connect.altruCoderGateway.visit.prefix": "",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": " にアクセスしてAPIキーを取得してください。",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "おすすめ",
+  "dialog.provider.altru-coder.note": "500以上のAIモデルにアクセス",
+
+  // Reasoning block label
+  "ui.permission.run": "実行",
+  "ui.reasoning.label": "推論",
+
+  // Marketplace
+  "marketplace.tab.skills": "スキル",
+  "marketplace.tab.mcpServers": "MCPサーバー",
+  "marketplace.tab.modes": "モード",
+  "marketplace.category.all": "すべて",
+  "marketplace.placeholder": "未実装",
+  "marketplace.card.installed": "インストール済み",
+  "marketplace.card.install": "インストール",
+  "marketplace.card.remove": "削除",
+  "marketplace.card.removeScope": "削除 ({{scope}})",
+  "marketplace.card.showMore": "もっと見る",
+  "marketplace.card.showLess": "折りたたむ",
+  "marketplace.install.title": "{{name}} のインストール",
+  "marketplace.install.scope": "スコープ",
+  "marketplace.install.scope.project": "プロジェクト",
+  "marketplace.install.scope.global": "グローバル",
+  "marketplace.install.prerequisites": "前提条件",
+  "marketplace.install.installing": "インストール中...",
+  "marketplace.install.cancel": "キャンセル",
+  "marketplace.install.success": "インストールが完了しました！",
+  "marketplace.install.failed": "インストールに失敗しました",
+  "marketplace.install.done": "完了",
+  "marketplace.install.close": "閉じる",
+  "marketplace.remove.title": "{{name}} を削除しますか？",
+  "marketplace.remove.confirm": "この{{type}}を削除してもよろしいですか？ これにより、{{scope}}設定から削除されます。",
+  "marketplace.remove.cancel": "キャンセル",
+  "marketplace.remove.confirm.button": "削除",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "検索...",
+  "marketplace.filter.all": "すべてのアイテム",
+  "marketplace.filter.notInstalled": "未インストール",
+  "marketplace.empty": "アイテムが見つかりません",
+  "marketplace.badge.mcpServer": "MCPサーバー",
+  "marketplace.badge.mode": "モード",
+  "marketplace.card.by": "作成者: {{author}}",
+  "marketplace.install.method": "インストール方法",
+  "marketplace.install.parameters": "パラメーター",
+  "marketplace.install.optional": "(任意)",
+  "marketplace.install.required": "{{name}} は必須です",
+  "marketplace.scope.project": "プロジェクト",
+  "marketplace.scope.global": "グローバル",
+  "marketplace.remove.type.mcp": "MCPサーバー",
+  "marketplace.remove.type.skill": "スキル",
+  "marketplace.remove.type.mode": "モード",
+  "marketplace.remove.failed": "{{name}} の削除に失敗しました",
+  "marketplace.install": "インストール",
+  "marketplace.filter.installed": "インストール済み",
+  "marketplace.error.dismiss": "閉じる",
+  "marketplace.warning.busyOne": "1つのセッションが実行中で中断されます",
+  "marketplace.warning.busyMany": "複数のセッションが実行中で中断されます",
+  "marketplace.warning.installAnyway": "それでもインストール",
+  "marketplace.warning.cancel": "キャンセル",
+  "marketplace.contribute.prompt": "スキル、モード、MCP サーバーが見つかりませんか？",
+  "marketplace.contribute.cta": "GitHub で貢献する",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "実装",
+  "plan.followup.question": "実装する準備はできましたか？",
+  "plan.followup.answer.newSession": "新しいセッションを開始",
+  "plan.followup.answer.newSession.description": "クリーンなコンテキストの新しいセッションで実装する",
+  "plan.followup.answer.continue": "ここで続行",
+  "plan.followup.answer.continue.description": "このセッションで計画を実装する",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "スナップショットが遅い",
+  "snapshot.slowRepo.question":
+    "リポジトリのサイズのためか、スナップショットシステムの初期化に時間がかかっています。\n\nこのリポジトリのスナップショットを無効にしますか？",
+  "snapshot.slowRepo.answer.continue": "スナップショットを続行",
+  "snapshot.slowRepo.answer.continue.description":
+    "スナップショットが完了するまで待機します。初回のスナップショットが作成された後は、以降のターンは高速になります。",
+  "snapshot.slowRepo.answer.disable": "このプロジェクトで無効化",
+  "snapshot.slowRepo.answer.disable.description":
+    "このプロジェクトでは Altru Coder のスナップショットを無効にします。Altru Coder による変更の取り消し/やり直しはできなくなりますが、git は引き続きすべてを追跡します。",
+
+  "ui.messagePart.openInDiffViewer": "差分ビューアで開く",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "役に立ちました",
+  "ui.message.feedback.notHelpful": "役に立ちませんでした",
+  "ui.message.feedback.clearRating": "評価をクリア",
+}

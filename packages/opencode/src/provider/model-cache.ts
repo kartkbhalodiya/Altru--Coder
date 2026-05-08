@@ -1,0 +1,317 @@
+// altrucoder_change new file
+import { fetchAltruCoderModels } from "@altru-coder/altru-coder-gateway"
+import { Config } from "../config/config"
+import { Auth } from "../auth"
+import * as Log from "@opencode-ai/core/util/log"
+
+export namespace ModelCache {
+  const log = Log.create({ service: "model-cache" })
+
+  // Cache structure
+  const cache = new Map<
+    string,
+    {
+      models: Record<string, any>
+      timestamp: number
+    }
+  >()
+
+  const TTL = 5 * 60 * 1000 // 5 minutes
+  const inFlightRefresh = new Map<string, Promise<Record<string, any>>>()
+
+  /**
+   * Get cached models if available and not expired
+   * @param providerID - Provider identifier (e.g., "altru-coder")
+   * @returns Cached models or undefined if cache miss or expired
+   */
+  export function get(providerID: string): Record<string, any> | undefined {
+    const cached = cache.get(providerID)
+
+    if (!cached) {
+      log.debug("cache miss", { providerID })
+      return undefined
+    }
+
+    const now = Date.now()
+    const age = now - cached.timestamp
+
+    if (age > TTL) {
+      log.debug("cache expired", { providerID, age })
+      cache.delete(providerID)
+      return undefined
+    }
+
+    log.debug("cache hit", { providerID, age })
+    return cached.models
+  }
+
+  /**
+   * Fetch models with cache-first approach
+   * @param providerID - Provider identifier
+   * @param options - Provider options
+   * @returns Models from cache or freshly fetched
+   */
+  export async function fetch(providerID: string, options?: any): Promise<Record<string, any>> {
+    // Check cache first
+    const cached = get(providerID)
+    if (cached) {
+      return cached
+    }
+
+    // Cache miss - fetch models
+    log.info("fetching models", { providerID })
+
+    try {
+      const authOptions = await getAuthOptions(providerID)
+      const mergedOptions = { ...authOptions, ...options }
+
+      const models = await fetchModels(providerID, mergedOptions)
+
+      // Store in cache
+      cache.set(providerID, {
+        models,
+        timestamp: Date.now(),
+      })
+
+      log.info("models fetched and cached", { providerID, count: Object.keys(models).length })
+      return models
+    } catch (error) {
+      log.error("failed to fetch models", { providerID, error })
+      return {}
+    }
+  }
+
+  /**
+   * Force refresh models (bypass cache)
+   * Uses atomic refresh pattern to prevent race conditions
+   * @param providerID - Provider identifier
+   * @param options - Provider options
+   * @returns Freshly fetched models
+   */
+  export async function refresh(providerID: string, options?: any): Promise<Record<string, any>> {
+    // Check if refresh already in progress
+    const existing = inFlightRefresh.get(providerID)
+    if (existing) {
+      log.debug("refresh already in progress, returning existing promise", { providerID })
+      return existing
+    }
+
+    // Create new refresh promise
+    const refreshPromise = (async () => {
+      log.info("refreshing models", { providerID })
+
+      try {
+        const authOptions = await getAuthOptions(providerID)
+        const mergedOptions = { ...authOptions, ...options }
+
+        const models = await fetchModels(providerID, mergedOptions)
+
+        // Update cache with new models
+        cache.set(providerID, {
+          models,
+          timestamp: Date.now(),
+        })
+
+        log.info("models refreshed", { providerID, count: Object.keys(models).length })
+        return models
+      } catch (error) {
+        log.error("failed to refresh models", { providerID, error })
+
+        // Return existing cache or empty object
+        const cached = cache.get(providerID)
+        if (cached) {
+          log.debug("returning stale cache after refresh failure", { providerID })
+          return cached.models
+        }
+
+        return {}
+      }
+    })()
+
+    // Track in-flight refresh
+    inFlightRefresh.set(providerID, refreshPromise)
+
+    try {
+      return await refreshPromise
+    } finally {
+      // Clean up in-flight tracking
+      inFlightRefresh.delete(providerID)
+    }
+  }
+
+  /**
+   * Clear cached models for a provider
+   * @param providerID - Provider identifier
+   */
+  export function clear(providerID: string): void {
+    const deleted = cache.delete(providerID)
+    if (deleted) {
+      log.info("cache cleared", { providerID })
+    } else {
+      log.debug("no cache to clear", { providerID })
+    }
+  }
+
+  /**
+   * Fetch models based on provider type
+   * @param providerID - Provider identifier
+   * @param options - Provider options
+   * @returns Fetched models
+   */
+  async function fetchModels(providerID: string, options: any): Promise<Record<string, any>> {
+    if (providerID === "altru-coder") {
+      return fetchAltruCoderModels(options)
+    }
+
+    // altrucoder_change start
+    if (providerID === "apertis") {
+      return fetchApertisModels(options)
+    }
+    // altrucoder_change end
+
+    // Other providers not implemented yet
+    log.debug("provider not implemented", { providerID })
+    return {}
+  }
+
+  // altrucoder_change start
+  const APERTIS_BASE_URL = "https://api.apertis.ai/v1"
+
+  async function fetchApertisModels(options: any): Promise<Record<string, any>> {
+    const baseURL = options.baseURL ?? APERTIS_BASE_URL
+    const apiKey = options.apiKey
+
+    if (!apiKey) {
+      log.debug("no API key for apertis, skipping model fetch")
+      return {}
+    }
+
+    const url = `${baseURL.replace(/\/+$/, "")}/models`
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: AbortSignal.timeout(10_000),
+    })
+
+    if (!response.ok) {
+      log.error("apertis model fetch failed", { status: response.status })
+      return {}
+    }
+
+    const json = (await response.json()) as { data?: Array<{ id: string; owned_by?: string }> }
+    const models: Record<string, any> = {}
+
+    for (const model of json.data ?? []) {
+      models[model.id] = {
+        id: model.id,
+        name: model.id,
+        family: model.owned_by ?? "",
+        release_date: "",
+        attachment: true,
+        reasoning: false,
+        temperature: true,
+        tool_call: true,
+        cost: { input: 0, output: 0 },
+        limit: { context: 128000, output: 4096 },
+        options: {},
+        modalities: {
+          input: ["text", "image"],
+          output: ["text"],
+        },
+      }
+    }
+
+    return models
+  }
+  // altrucoder_change end
+
+  /**
+   * Get authentication options from multiple sources
+   * Priority: Config > Auth > Env
+   * @param providerID - Provider identifier
+   * @returns Options object with authentication credentials
+   */
+  async function getAuthOptions(providerID: string): Promise<any> {
+    const options: any = {}
+
+    if (providerID === "altru-coder") {
+      // Get from Config
+      const config = await Config.get()
+      const providerConfig = config.provider?.[providerID]
+      if (providerConfig?.options?.apiKey) {
+        options.altrucoderToken = providerConfig.options.apiKey
+      }
+
+      // altrucoder_change start
+      if (providerConfig?.options?.altrucoderOrganizationId) {
+        options.altrucoderOrganizationId = providerConfig.options.altrucoderOrganizationId
+      }
+      // altrucoder_change end
+
+      // Get from Auth
+      const auth = await Auth.get(providerID)
+      if (auth) {
+        if (auth.type === "api") {
+          options.altrucoderToken = auth.key
+        } else if (auth.type === "oauth") {
+          options.altrucoderToken = auth.access
+          // altrucoder_change start - read org ID from OAuth accountId for enterprise model filtering
+          if (auth.accountId) {
+            options.altrucoderOrganizationId = auth.accountId
+          }
+          // altrucoder_change end
+        }
+      }
+
+      // Get from Env (process.env — matches upstream's pattern for sync async helpers)
+      const env = process.env
+      if (env.ALTRU_CODER_API_KEY) {
+        options.altrucoderToken = env.ALTRU_CODER_API_KEY
+      }
+      if (env.ALTRU_CODER_ORG_ID) {
+        options.altrucoderOrganizationId = env.ALTRU_CODER_ORG_ID
+      }
+
+      log.debug("auth options resolved", {
+        providerID,
+        hasToken: !!options.altrucoderToken,
+        hasOrganizationId: !!options.altrucoderOrganizationId,
+      })
+    }
+
+    // altrucoder_change start
+    if (providerID === "apertis") {
+      const config = await Config.get()
+      const providerConfig = config.provider?.[providerID]
+      if (providerConfig?.options?.apiKey) {
+        options.apiKey = providerConfig.options.apiKey
+      }
+      if (providerConfig?.options?.baseURL) {
+        options.baseURL = providerConfig.options.baseURL
+      }
+
+      const auth = await Auth.get(providerID)
+      if (auth && auth.type === "api") {
+        options.apiKey = auth.key
+      }
+
+      const env = process.env
+      if (env.APERTIS_API_KEY) {
+        options.apiKey = env.APERTIS_API_KEY
+      }
+      if (env.APERTIS_BASE_URL) {
+        options.baseURL = env.APERTIS_BASE_URL
+      }
+
+      log.debug("apertis auth options resolved", {
+        providerID,
+        hasKey: !!options.apiKey,
+        hasBaseURL: !!options.baseURL,
+      })
+    }
+    // altrucoder_change end
+
+    return options
+  }
+}

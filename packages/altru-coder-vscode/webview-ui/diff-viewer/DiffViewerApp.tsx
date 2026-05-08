@@ -1,0 +1,250 @@
+import { createEffect, createSignal, on, onCleanup, Show } from "solid-js"
+import type { Component } from "solid-js"
+import { DialogProvider } from "@altru-coder/altru-coder-ui/context/dialog"
+import { CodeComponentProvider } from "@altru-coder/altru-coder-ui/context/code"
+import { DiffComponentProvider } from "@altru-coder/altru-coder-ui/context/diff"
+import { FileComponentProvider } from "@altru-coder/altru-coder-ui/context/file"
+import { MarkedProvider } from "@altru-coder/altru-coder-ui/context/marked"
+import { Code } from "@altru-coder/altru-coder-ui/code"
+import { Diff } from "@altru-coder/altru-coder-ui/diff"
+import { File } from "@altru-coder/altru-coder-ui/file"
+import { Icon } from "@altru-coder/altru-coder-ui/icon"
+import { ThemeProvider } from "@altru-coder/altru-coder-ui/theme"
+import { Toast } from "@altru-coder/altru-coder-ui/toast"
+import { FullScreenDiffView } from "../agent-manager/FullScreenDiffView"
+import { mergeWorktreeDiffs } from "../agent-manager/diff-state"
+import { LanguageProvider, useLanguage } from "../src/context/language"
+import { ServerProvider, useServer } from "../src/context/server"
+import { getVSCodeAPI, VSCodeProvider, useVSCode } from "../src/context/vscode"
+import type { ReviewComment, WebviewMessage, WorktreeFileDiff } from "../src/types/messages"
+import type { DiffSourceCapabilities, DiffSourceDescriptor } from "../../src/diff/sources/types"
+import type { DiffViewerNotice } from "../src/types/messages/extension-messages"
+import { DiffPickerHeader } from "./DiffPickerHeader"
+
+const NOTICE_KEYS: Record<DiffViewerNotice, string> = {
+  "snapshots-disabled": "diffViewer.notice.snapshotsDisabled",
+}
+
+type DiffStyle = "unified" | "split"
+
+const post = (message: WebviewMessage) => getVSCodeAPI().postMessage(message)
+
+const DiffViewerContent: Component = () => {
+  const vscode = useVSCode()
+  const { t } = useLanguage()
+  const [diffs, setDiffs] = createSignal<WorktreeFileDiff[]>([])
+  const [loading, setLoading] = createSignal(true)
+  const [comments, setComments] = createSignal<ReviewComment[]>([])
+  const [diffStyle, setDiffStyle] = createSignal<DiffStyle>("unified")
+  const [markdown, setMarkdown] = createSignal(false)
+  const [reverting, setReverting] = createSignal<Set<string>>(new Set())
+  const [loadingFiles, setLoadingFiles] = createSignal<Set<string>>(new Set())
+  const [availableSources, setAvailableSources] = createSignal<DiffSourceDescriptor[]>([])
+  const [currentSourceId, setCurrentSourceId] = createSignal<string | undefined>(undefined)
+  const [capabilities, setCapabilities] = createSignal<DiffSourceCapabilities | undefined>(undefined)
+  const [notice, setNotice] = createSignal<DiffViewerNotice | undefined>(undefined)
+
+  const noticeText = () => {
+    const n = notice()
+    if (!n) return ""
+    return t(NOTICE_KEYS[n])
+  }
+
+  const markReverting = (file: string, active: boolean) => {
+    setReverting((prev) => {
+      const next = new Set(prev)
+      if (active) next.add(file)
+      else next.delete(file)
+      return next
+    })
+  }
+
+  const markLoadingFile = (file: string, active: boolean) => {
+    setLoadingFiles((prev) => {
+      if (active && prev.has(file)) return prev
+      if (!active && !prev.has(file)) return prev
+      const next = new Set(prev)
+      if (active) next.add(file)
+      else next.delete(file)
+      return next
+    })
+  }
+
+  const requestDiffFile = (file: string) => {
+    if (loadingFiles().has(file)) return
+    markLoadingFile(file, true)
+    post({ type: "diffViewer.requestFile", file })
+  }
+
+  const refreshStaleDiffs = (files: Set<string>) => {
+    for (const file of files) {
+      if (loadingFiles().has(file)) continue
+      markLoadingFile(file, true)
+      post({ type: "diffViewer.requestFile", file })
+    }
+  }
+
+  const unsubscribe = vscode.onMessage((msg) => {
+    if (msg.type === "diffViewer.diffs") {
+      // Preserve cached `before`/`after` across polls so summarized polling
+      // updates don't clobber loaded detail. Mirrors the agent manager's
+      // worktree diff merge — see worktree-diff-controller.ts.
+      const merged = mergeWorktreeDiffs(diffs(), msg.diffs)
+      setDiffs(merged.diffs)
+      if (merged.stale.size > 0) refreshStaleDiffs(merged.stale)
+      return
+    }
+
+    if (msg.type === "diffViewer.diffFile") {
+      markLoadingFile(msg.file, false)
+      const fresh = msg.diff
+      if (!fresh) return
+      setDiffs((prev) => prev.map((entry) => (entry.file === fresh.file ? fresh : entry)))
+      return
+    }
+
+    if (msg.type === "diffViewer.loading") {
+      setLoading(msg.loading)
+      return
+    }
+
+    if (msg.type === "diffViewer.revertFileResult") {
+      markReverting(msg.file, false)
+      return
+    }
+
+    if (msg.type === "diffViewer.markdownRender") {
+      setMarkdown(msg.render)
+      return
+    }
+    if (msg.type === "setAvailableSources") {
+      setAvailableSources(msg.descriptors)
+      setCurrentSourceId(msg.currentId)
+      return
+    }
+
+    if (msg.type === "diffViewer.capabilities") {
+      setCapabilities(msg.capabilities)
+      return
+    }
+
+    if (msg.type === "diffViewer.notice") {
+      setNotice(msg.notice)
+      return
+    }
+  })
+
+  const selectSource = (id: string) => {
+    if (id === currentSourceId()) return
+    post({ type: "selectSource", id })
+  }
+
+  // Reset transient UI state when the active source changes. Comments are
+  // discarded without confirmation; diff style goes back to
+  // unified; in-flight revert indicators are cleared. The diffs list itself
+  // is reset by the extension sending `diffs: []` before the new fetch.
+  createEffect(
+    on(currentSourceId, (id, prev) => {
+      if (prev === undefined || id === prev) return
+      setComments([])
+      setDiffStyle("unified")
+      setReverting(new Set<string>())
+      setLoadingFiles(new Set<string>())
+      setNotice(undefined)
+    }),
+  )
+
+  const handler = (event: MessageEvent) => {
+    const msg = event.data
+    if (msg?.type !== "appendReviewComments" || !Array.isArray(msg.comments)) return
+    post({ type: "diffViewer.sendComments", comments: msg.comments, autoSend: !!msg.autoSend })
+  }
+
+  window.addEventListener("message", handler)
+  onCleanup(() => {
+    unsubscribe()
+    window.removeEventListener("message", handler)
+  })
+
+  return (
+    <>
+      <Show when={availableSources().length > 0}>
+        <DiffPickerHeader descriptors={availableSources()} currentId={currentSourceId()} onSelect={selectSource} />
+      </Show>
+      <Show when={noticeText()}>
+        <div class="diff-viewer-notice" role="status">
+          <span class="diff-viewer-notice-icon">
+            <Icon name="warning" size="small" />
+          </span>
+          <span class="diff-viewer-notice-text">{noticeText()}</span>
+        </div>
+      </Show>
+      <FullScreenDiffView
+        diffs={diffs()}
+        loading={loading()}
+        loadingFiles={loadingFiles()}
+        onRequestDiff={requestDiffFile}
+        sessionKey={currentSourceId() ?? "local"}
+        comments={comments()}
+        onCommentsChange={setComments}
+        onSendAll={() => {}}
+        diffStyle={diffStyle()}
+        onDiffStyleChange={(style) => {
+          setDiffStyle(style)
+          post({ type: "diffViewer.setDiffStyle", style })
+        }}
+        markdownRender={markdown()}
+        onMarkdownRenderChange={(render) => {
+          setMarkdown(render)
+          post({ type: "diffViewer.setMarkdownRender", render })
+        }}
+        onOpenFile={(relativePath) => {
+          post({ type: "openFile", filePath: relativePath })
+        }}
+        onRevertFile={(file) => {
+          markReverting(file, true)
+          post({ type: "diffViewer.revertFile", file })
+        }}
+        revertingFiles={reverting()}
+        canRevert={capabilities()?.revert ?? true}
+        canComment={capabilities()?.comments ?? true}
+        onClose={() => {
+          post({ type: "diffViewer.close" })
+        }}
+      />
+    </>
+  )
+}
+
+const DiffViewerShell: Component = () => {
+  const server = useServer()
+
+  return (
+    <LanguageProvider vscodeLanguage={server.vscodeLanguage} languageOverride={server.languageOverride}>
+      <DiffComponentProvider component={Diff}>
+        <CodeComponentProvider component={Code}>
+          <FileComponentProvider component={File}>
+            <MarkedProvider>
+              <DiffViewerContent />
+            </MarkedProvider>
+          </FileComponentProvider>
+        </CodeComponentProvider>
+      </DiffComponentProvider>
+    </LanguageProvider>
+  )
+}
+
+export const DiffViewerApp: Component = () => {
+  return (
+    <ThemeProvider defaultTheme="altru-coder-vscode">
+      <DialogProvider>
+        <VSCodeProvider>
+          <ServerProvider>
+            <DiffViewerShell />
+          </ServerProvider>
+        </VSCodeProvider>
+      </DialogProvider>
+      <Toast.Region />
+    </ThemeProvider>
+  )
+}

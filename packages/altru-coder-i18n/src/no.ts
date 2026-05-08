@@ -1,0 +1,100 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gateway gir deg tilgang til et utvalgt sett med pålitelige, optimaliserte modeller for kodingsagenter.",
+  "provider.connect.altruCoderGateway.line2":
+    "Med én enkelt API-nøkkel får du tilgang til modeller som Claude, GPT, Gemini, GLM og flere.",
+  "provider.connect.altruCoderGateway.visit.prefix": "Besøk ",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": " for å hente API-nøkkelen din.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "Anbefalt",
+  "dialog.provider.altru-coder.note": "Tilgang til 500+ AI-modeller",
+
+  // Reasoning block label
+  "ui.permission.run": "Kjør",
+  "ui.reasoning.label": "Resonnement",
+
+  // Marketplace
+  "marketplace.tab.skills": "Skills",
+  "marketplace.tab.mcpServers": "MCP-servere",
+  "marketplace.tab.modes": "Moduser",
+  "marketplace.category.all": "Alle",
+  "marketplace.placeholder": "Skal implementeres",
+  "marketplace.card.installed": "Installert",
+  "marketplace.card.install": "Installer",
+  "marketplace.card.remove": "Fjern",
+  "marketplace.card.removeScope": "Fjern ({{scope}})",
+  "marketplace.card.showMore": "Vis mer",
+  "marketplace.card.showLess": "Vis mindre",
+  "marketplace.install.title": "Installer {{name}}",
+  "marketplace.install.scope": "Omfang",
+  "marketplace.install.scope.project": "Prosjekt",
+  "marketplace.install.scope.global": "Globalt",
+  "marketplace.install.prerequisites": "Forutsetninger",
+  "marketplace.install.installing": "Installerer...",
+  "marketplace.install.cancel": "Avbryt",
+  "marketplace.install.success": "Installert!",
+  "marketplace.install.failed": "Installasjonen mislyktes",
+  "marketplace.install.done": "Ferdig",
+  "marketplace.install.close": "Lukk",
+  "marketplace.remove.title": "Fjern {{name}}?",
+  "marketplace.remove.confirm":
+    "Er du sikker på at du vil fjerne denne {{type}}? Dette vil fjerne den fra din {{scope}}-konfigurasjon.",
+  "marketplace.remove.cancel": "Avbryt",
+  "marketplace.remove.confirm.button": "Fjern",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "Søk...",
+  "marketplace.filter.all": "Alle elementer",
+  "marketplace.filter.notInstalled": "Ikke installert",
+  "marketplace.empty": "Ingen elementer funnet",
+  "marketplace.badge.mcpServer": "MCP-server",
+  "marketplace.badge.mode": "Modus",
+  "marketplace.card.by": "av {{author}}",
+  "marketplace.install.method": "Installasjonsmetode",
+  "marketplace.install.parameters": "Parametere",
+  "marketplace.install.optional": "(valgfritt)",
+  "marketplace.install.required": "{{name}} er påkrevd",
+  "marketplace.scope.project": "prosjekt",
+  "marketplace.scope.global": "global",
+  "marketplace.remove.type.mcp": "MCP-server",
+  "marketplace.remove.type.skill": "ferdighet",
+  "marketplace.remove.type.mode": "modus",
+  "marketplace.remove.failed": "Kunne ikke fjerne {{name}}",
+  "marketplace.install": "Installer",
+  "marketplace.filter.installed": "Installert",
+  "marketplace.error.dismiss": "Avvis",
+  "marketplace.warning.busyOne": "En økt kjører og vil bli avbrutt",
+  "marketplace.warning.busyMany": "Flere økter kjører og vil bli avbrutt",
+  "marketplace.warning.installAnyway": "Installer uansett",
+  "marketplace.warning.cancel": "Avbryt",
+  "marketplace.contribute.prompt": "Mangler du en skill, modus eller MCP-server?",
+  "marketplace.contribute.cta": "Bidra på GitHub",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "Implementer",
+  "plan.followup.question": "Klar til å implementere?",
+  "plan.followup.answer.newSession": "Start ny økt",
+  "plan.followup.answer.newSession.description": "Implementer i en ny økt med ren kontekst",
+  "plan.followup.answer.continue": "Fortsett her",
+  "plan.followup.answer.continue.description": "Implementer planen i denne økten",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "Snapshot er tregt",
+  "snapshot.slowRepo.question":
+    "Det tar lang tid å initialisere snapshot-systemet, sannsynligvis på grunn av størrelsen på depotet.\n\nVil du deaktivere snapshots for dette depotet?",
+  "snapshot.slowRepo.answer.continue": "Fortsett med snapshots",
+  "snapshot.slowRepo.answer.continue.description":
+    "Vent til snapshotet er ferdig. Påfølgende runder er raske når det første snapshotet er bygget.",
+  "snapshot.slowRepo.answer.disable": "Deaktiver for dette prosjektet",
+  "snapshot.slowRepo.answer.disable.description":
+    "Slå av Altru Coder snapshots for dette prosjektet. Du mister angre/gjør om for Altru Coder-endringer, men git fortsetter å spore alt.",
+
+  "ui.messagePart.openInDiffViewer": "Åpne i diff-viser",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "Dette var nyttig",
+  "ui.message.feedback.notHelpful": "Dette var ikke nyttig",
+  "ui.message.feedback.clearRating": "Fjern vurdering",
+}

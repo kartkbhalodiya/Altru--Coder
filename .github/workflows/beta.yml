@@ -1,0 +1,37 @@
+name: beta
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  sync:
+    if: github.repository == 'Altru-Coder/altrucoder'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6 # altrucoder_change
+        with:
+          persist-credentials: false # altrucoder_change
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Setup Git Committer
+        id: committer
+        uses: ./.github/actions/setup-git-committer
+        with:
+          # altrucoder_change start
+          altru-coder-maintainer-app-id: ${{ secrets.ALTRU_CODER_MAINTAINER_APP_ID }}
+          altru-coder-maintainer-app-secret: ${{ secrets.ALTRU_CODER_MAINTAINER_APP_SECRET }}
+          # altrucoder_change end
+
+      - name: Sync beta branch
+        env:
+          GH_TOKEN: ${{ steps.committer.outputs.token }}
+        run: bun script/beta.ts

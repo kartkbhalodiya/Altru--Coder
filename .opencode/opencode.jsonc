@@ -1,0 +1,22 @@
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  // "enterprise": {
+  //   "url": "https://enterprise.dev.opencode.ai",
+  // },
+  "provider": {
+    "altru-coder": {
+      "options": {},
+    },
+  },
+  "permission": {
+    "edit": {
+      "packages/opencode/migration/*": "deny",
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+  "snapshot": false,
+}

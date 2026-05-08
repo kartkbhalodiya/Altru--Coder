@@ -1,0 +1,7 @@
+/* Altru Coder Radio Group overrides */
+
+[data-component="radio-group"] {
+  [data-slot="radio-group-item-label"] {
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,29 @@
+name: Check Links
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "packages/altru-coder-docs/**"
+      - ".github/workflows/docs-check-links.yml"
+  schedule:
+    # Run daily at 9am UTC
+    - cron: "0 9 * * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  link-checker:
+    if: github.repository == 'Altru-Coder/altrucoder'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6 # altrucoder_change
+
+      - name: Link Checker
+        uses: Altru-Coder/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
+        with:
+          args: "**/*.md"
+          workingDirectory: packages/altru-coder-docs
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

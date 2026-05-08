@@ -1,0 +1,100 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gateway zapewnia dostęp do wyselekcjonowanego zestawu niezawodnych, zoptymalizowanych modeli dla agentów kodowania.",
+  "provider.connect.altruCoderGateway.line2":
+    "Za pomocą jednego klucza API uzyskasz dostęp do modeli takich jak Claude, GPT, Gemini, GLM i innych.",
+  "provider.connect.altruCoderGateway.visit.prefix": "Odwiedź ",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": ", aby otrzymać swój klucz API.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "Polecane",
+  "dialog.provider.altru-coder.note": "Dostęp do ponad 500 modeli AI",
+
+  // Reasoning block label
+  "ui.permission.run": "Uruchom",
+  "ui.reasoning.label": "Rozumowanie",
+
+  // Marketplace
+  "marketplace.tab.skills": "Skills",
+  "marketplace.tab.mcpServers": "Serwery MCP",
+  "marketplace.tab.modes": "Tryby",
+  "marketplace.category.all": "Wszystkie",
+  "marketplace.placeholder": "Do zaimplementowania",
+  "marketplace.card.installed": "Zainstalowano",
+  "marketplace.card.install": "Zainstaluj",
+  "marketplace.card.remove": "Usuń",
+  "marketplace.card.removeScope": "Usuń ({{scope}})",
+  "marketplace.card.showMore": "Pokaż więcej",
+  "marketplace.card.showLess": "Pokaż mniej",
+  "marketplace.install.title": "Instalacja: {{name}}",
+  "marketplace.install.scope": "Zakres",
+  "marketplace.install.scope.project": "Projekt",
+  "marketplace.install.scope.global": "Globalny",
+  "marketplace.install.prerequisites": "Wymagania wstępne",
+  "marketplace.install.installing": "Instalowanie...",
+  "marketplace.install.cancel": "Anuluj",
+  "marketplace.install.success": "Zainstalowano pomyślnie!",
+  "marketplace.install.failed": "Instalacja nie powiodła się",
+  "marketplace.install.done": "Gotowe",
+  "marketplace.install.close": "Zamknij",
+  "marketplace.remove.title": "Usunąć {{name}}?",
+  "marketplace.remove.confirm":
+    "Czy na pewno chcesz usunąć ten {{type}}? Spowoduje to usunięcie z konfiguracji: {{scope}}.",
+  "marketplace.remove.cancel": "Anuluj",
+  "marketplace.remove.confirm.button": "Usuń",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "Szukaj...",
+  "marketplace.filter.all": "Wszystkie elementy",
+  "marketplace.filter.notInstalled": "Nie zainstalowano",
+  "marketplace.empty": "Nie znaleziono elementów",
+  "marketplace.badge.mcpServer": "Serwer MCP",
+  "marketplace.badge.mode": "Tryb",
+  "marketplace.card.by": "autor: {{author}}",
+  "marketplace.install.method": "Metoda instalacji",
+  "marketplace.install.parameters": "Parametry",
+  "marketplace.install.optional": "(opcjonalne)",
+  "marketplace.install.required": "{{name}} jest wymagane",
+  "marketplace.scope.project": "projekt",
+  "marketplace.scope.global": "globalny",
+  "marketplace.remove.type.mcp": "serwer MCP",
+  "marketplace.remove.type.skill": "umiejętność",
+  "marketplace.remove.type.mode": "tryb",
+  "marketplace.remove.failed": "Nie udało się usunąć {{name}}",
+  "marketplace.install": "Zainstaluj",
+  "marketplace.filter.installed": "Zainstalowano",
+  "marketplace.error.dismiss": "Odrzuć",
+  "marketplace.warning.busyOne": "Jedna sesja jest uruchomiona i zostanie przerwana",
+  "marketplace.warning.busyMany": "Kilka sesji jest uruchomionych i zostanie przerwanych",
+  "marketplace.warning.installAnyway": "Zainstaluj mimo to",
+  "marketplace.warning.cancel": "Anuluj",
+  "marketplace.contribute.prompt": "Brakuje skilla, trybu lub serwera MCP?",
+  "marketplace.contribute.cta": "Wnieś wkład na GitHubie",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "Wdróż",
+  "plan.followup.question": "Gotowy do wdrożenia?",
+  "plan.followup.answer.newSession": "Rozpocznij nową sesję",
+  "plan.followup.answer.newSession.description": "Wdróż w nowej sesji z czystym kontekstem",
+  "plan.followup.answer.continue": "Kontynuuj tutaj",
+  "plan.followup.answer.continue.description": "Wdróż plan w tej sesji",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "Snapshot jest wolny",
+  "snapshot.slowRepo.question":
+    "Inicjalizacja systemu snapshotów trwa długo, prawdopodobnie ze względu na rozmiar repozytorium.\n\nCzy chcesz wyłączyć snapshoty dla tego repozytorium?",
+  "snapshot.slowRepo.answer.continue": "Kontynuuj ze snapshotami",
+  "snapshot.slowRepo.answer.continue.description":
+    "Poczekaj, aż snapshot się zakończy. Kolejne tury są szybkie, gdy początkowy snapshot jest już zbudowany.",
+  "snapshot.slowRepo.answer.disable": "Wyłącz dla tego projektu",
+  "snapshot.slowRepo.answer.disable.description":
+    "Wyłącz snapshoty Altru Coder dla tego projektu. Stracisz cofanie/przywracanie zmian Altru Coder, ale git nadal śledzi wszystko.",
+
+  "ui.messagePart.openInDiffViewer": "Otwórz w podglądzie różnic",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "To było pomocne",
+  "ui.message.feedback.notHelpful": "To nie było pomocne",
+  "ui.message.feedback.clearRating": "Wyczyść ocenę",
+}

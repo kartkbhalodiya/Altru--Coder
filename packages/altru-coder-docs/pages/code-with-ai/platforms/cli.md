@@ -1,0 +1,553 @@
+---
+title: "Altru Coder CLI"
+description: "Using Altru Coder from the command line"
+platform: new
+---
+
+{% callout type="warning" title="Version Notice" %}
+This documentation applies only to Altru Coder version 1.0 and later. Users running versions below 1.0 should upgrade before proceeding.
+{% /callout %}
+
+# Altru Coder CLI
+
+Orchestrate agents from your terminal. Plan, debug, and code fast with keyboard-first navigation on the command line.
+
+The Altru Coder CLI uses the same underlying technology that powers the IDE extensions, so you can expect the same workflow to handle agentic coding tasks from start to finish.
+
+**Source code & issues (Altru Coder CLI 1.0):** [Altru-Coder/altrucoder](https://github.com/Altru-Coder/altrucoder) · [Report an issue](https://github.com/Altru-Coder/altrucoder/issues)
+
+## Getting Started
+
+### Install
+
+{% partial file="install-cli.md" /%}
+
+Change directory to where you want to work and run altru-coder:
+
+```bash
+# Start the TUI
+altru-coder
+
+# Check the version
+altru-coder --version
+
+# Get help
+altru-coder --help
+```
+
+### First-Time Setup with `/connect`
+
+After installation, run `altru-coder` and use the `/connect` command to add your first provider credentials. This is the interactive way to configure API keys for model providers.
+
+## Update
+
+Upgrade the Altru Coder CLI:
+
+`altru-coder upgrade`
+
+Or use npm:
+
+`npm update -g @altru-coder/cli`
+
+## What you can do with Altru Coder CLI
+
+- **Plan and execute code changes without leaving your terminal.** Use your command line to make edits to your project without opening your IDE.
+- **Switch between hundreds of LLMs without constraints.** Other CLI tools only work with one model or curate opinionated lists. With Altru Coder, you can switch models without booting up another tool.
+- **Choose the right mode for the task in your workflow.** Select between Architect, Ask, Debug, Orchestrator, or custom agent modes.
+- **Automate tasks.** Get AI assistance writing shell scripts for tasks like renaming all of the files in a folder or transforming sizes for a set of images.
+- **Extend capabilities with skills.** Add domain expertise and repeatable workflows through [Agent Skills](#skills).
+
+## CLI Reference
+
+### Top-Level CLI Commands
+
+{% partial file="cli-commands-table.md" /%}
+
+For detailed help on every command and subcommand, see the [CLI Command Reference](/docs/code-with-ai/platforms/cli-reference).
+
+### Global Options
+
+| Flag | Description |
+|---|---|
+| `--help`, `-h` | Show help |
+| `--version`, `-v` | Show version number |
+| `--print-logs` | Print logs to stderr |
+| `--log-level` | Log level: DEBUG, INFO, WARN, ERROR |
+
+### Interactive Slash Commands
+
+#### Session Commands
+
+| Command | Aliases | Description |
+|---|---|---|
+| `/sessions` | `/resume`, `/continue` | Switch session |
+| `/new` | `/clear` | New session |
+| `/share` | - | Share session |
+| `/unshare` | - | Unshare session |
+| `/rename` | - | Rename session |
+| `/timeline` | - | Jump to message |
+| `/fork` | - | Fork from message |
+| `/compact` | `/summarize` | Compact/summarize session |
+| `/undo` | - | Undo previous message |
+| `/redo` | - | Redo message |
+| `/copy` | - | Copy session transcript |
+| `/export` | - | Export session transcript |
+| `/timestamps` | `/toggle-timestamps` | Show/hide timestamps |
+| `/thinking` | `/toggle-thinking` | Show/hide thinking blocks |
+
+#### Agent & Model Commands
+
+| Command | Description |
+|---|---|
+| `/models` | Switch model |
+| `/agents` | Switch agent |
+| `/mcps` | Toggle MCPs |
+
+#### Provider Commands
+
+| Command | Description |
+|---|---|
+| `/connect` | Connect/add a provider - entry point for new users to add API credentials |
+
+#### System Commands
+
+| Command | Aliases | Description |
+|---|---|---|
+| `/status` | - | View status |
+| `/themes` | - | Switch theme |
+| `/help` | - | Show help |
+| `/editor` | - | Open external editor |
+| `/exit` | `/quit`, `/q` | Exit the app |
+
+#### Altru Coder Gateway Commands (when connected)
+
+| Command | Aliases | Description |
+|---|---|---|
+| `/profile` | `/me`, `/whoami` | View your Altru Coder Gateway profile |
+| `/teams` | `/team`, `/org`, `/orgs` | Switch between Altru Coder Gateway teams |
+| `/remote` | - | Toggle remote mode for Cloud Agent access |
+
+#### Built-in Commands
+
+| Command | Description |
+|---|---|
+| `/init` | Create/update AGENTS.md file for the project |
+| `/local-review` | Review code changes |
+| `/local-review-uncommitted` | Review uncommitted changes |
+
+## Local Code Reviews
+
+Review your code locally before pushing — catch issues early without waiting for PR reviews. Local code reviews give you AI-powered feedback on your changes without creating a public pull request.
+
+### Commands
+
+| Command | Description |
+|---|---|
+| `/local-review` | Review current branch changes vs base branch |
+| `/local-review-uncommitted` | Review uncommitted changes (staged + unstaged) |
+
+## Config Reference
+
+Configuration is managed through:
+
+- `/connect` command for provider setup (interactive)
+- Config files in **`~/.config/altru-coder/`**: use **`altru-coder.jsonc`** for provider, model, permission, and **MCP** settings. Restart the CLI after editing. See [Using MCP in Altru Coder](/docs/automate/mcp/using-in-altru-coder) for MCP config format.
+- `altru-coder auth` for credential management
+
+## Slash Commands
+
+The CLI's interactive mode supports slash commands for common operations. The main commands are documented above in the [Interactive Slash Commands](#interactive-slash-commands) section.
+
+{% callout type="tip" %}
+**Confused about /newtask vs /smol in the IDE?** See the [Using Agents](/docs/code-with-ai/agents/using-agents#understanding-newtask-vs-smol) documentation for details.
+{% /callout %}
+
+## Permissions
+
+Altru Coder uses the permission config to decide whether a given action should run automatically, prompt you, or be blocked.
+
+### Actions
+
+Each permission rule resolves to one of:
+
+- `"allow"` — run without approval
+- `"ask"` — prompt for approval
+- `"deny"` — block the action
+
+### Configuration
+
+You can set permissions globally (with `*`), and override specific tools.
+
+```json
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  "permission": {
+    "*": "ask",
+    "bash": "allow",
+    "edit": "deny"
+  }
+}
+```
+
+You can also set all permissions at once:
+
+```json
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  "permission": "allow"
+}
+```
+
+### Granular Rules (Object Syntax)
+
+For most permissions, you can use an object to apply different actions based on the tool input.
+
+```json
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git *": "allow",
+      "npm *": "allow",
+      "rm *": "deny",
+      "grep *": "allow"
+    },
+    "edit": {
+      "*": "deny",
+      "packages/web/src/content/docs/*.mdx": "allow"
+    }
+  }
+}
+```
+
+Rules are evaluated by pattern match, with the last matching rule winning. A common pattern is to put the catch-all `"*"` rule first, and more specific rules after it.
+
+### Wildcards
+
+Permission patterns use simple wildcard matching:
+
+- `*` matches zero or more of any character
+- `?` matches exactly one character
+- All other characters match literally
+
+### Home Directory Expansion
+
+You can use `~` or `$HOME` at the start of a pattern to reference your home directory. This is particularly useful for `external_directory` rules.
+
+- `~/projects/*` → `/Users/username/projects/*`
+- `$HOME/projects/*` → `/Users/username/projects/*`
+- `~` → `/Users/username`
+
+### External Directories
+
+Use `external_directory` to allow tool calls that touch paths outside the working directory where Altru Coder was started. This applies to any tool that takes a path as input (for example `read`, `edit`, `glob`, `grep`, and many bash commands).
+
+```json
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  "permission": {
+    "external_directory": {
+      "~/projects/personal/**": "allow"
+    }
+  }
+}
+```
+
+Any directory allowed here inherits the same defaults as the current workspace. Since `read` defaults to `"allow"`, reads are also allowed for entries under `external_directory` unless overridden. Add explicit rules when a tool should be restricted in these paths, such as blocking edits while keeping reads:
+
+```json
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  "permission": {
+    "external_directory": {
+      "~/projects/personal/**": "allow"
+    },
+    "edit": {
+      "~/projects/personal/**": "deny"
+    }
+  }
+}
+```
+
+In Ask and Plan modes, `external_directory` allow rules can still permit reads outside the workspace. They do not enable writes or mutating commands that those modes deny, and explicit `external_directory` deny rules still win.
+
+**Aliases:** `/t` and `/history` can be used as shorthand for `/tasks`
+
+## Configuration
+
+The Altru Coder CLI is a fork of [OpenCode](https://opencode.ai) and supports the same configuration options. The CLI you install with `npm install -g @altru-coder/cli` (Altru Coder CLI 1.0) is built from [Altru-Coder/altrucoder](https://github.com/Altru-Coder/altrucoder). For comprehensive configuration documentation, see the [OpenCode Config documentation](https://opencode.ai/docs/config).
+
+### Config File Location (Altru Coder CLI 1.0)
+
+| Scope | Path |
+|---|---|
+| **Global** | `~/.config/altru-coder/opencode.json` or `opencode.jsonc` (Windows: config dir may vary; same filenames) |
+| **Project** | `./opencode.json` or `./.opencode/` in project root |
+
+Project-level configuration takes precedence over global settings.
+
+### Key Configuration Options
+
+```json
+{
+  "$schema": "https://app.altru-coder.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-20250514",
+  "provider": {
+    "anthropic": {
+      "options": {
+        "apiKey": "{env:ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Common configuration options include:
+
+- **`model`** - Default model in `provider_id/model_id` format (e.g., `"anthropic/claude-sonnet-4-20250514"`)
+- **`provider`** - Provider-specific settings (API keys, base URLs, [custom models](/docs/code-with-ai/agents/custom-models))
+- **`mcp`** - MCP server configuration
+- **`permission`** - Tool permission settings (`allow` or `ask`)
+- **`instructions`** - Paths to instruction files (e.g., `["CONTRIBUTING.md", ".cursor/rules/*.md"]`)
+- **`formatter`** - Code formatter configuration (`true`, `false`, or formatter-specific entries)
+- **`lsp`** - Language server configuration (`true`, `false`, or server-specific entries)
+- **`disabled_providers`** / **`enabled_providers`** - Control which providers are available
+
+{% callout type="tip" %}
+**Using a model that's not in the built-in list?** You can register any model by adding it under `provider.<provider_id>.models` in your config file. See [Custom Models](/docs/code-with-ai/agents/custom-models) for full details and examples.
+{% /callout %}
+
+### Formatter and LSP Toggles
+
+Set `formatter` or `lsp` to `true` to use built-in defaults, or `false` to disable the feature completely:
+
+```jsonc
+{
+  "formatter": true,
+  "lsp": false,
+}
+```
+
+Both keys also accept object configuration for specific tools or language servers. Custom LSP server entries must include an `extensions` array unless the entry disables a built-in server:
+
+```jsonc
+{
+  "lsp": {
+    "my-language-server": {
+      "command": ["my-lsp", "--stdio"],
+      "extensions": [".foo"],
+    },
+  },
+}
+```
+
+### TUI Keybindings on Windows
+
+The TUI gives `Ctrl+Z` to input undo on Windows because native Windows terminals do not support POSIX terminal suspend. On Windows, `input_undo` defaults to `ctrl+z,ctrl+-,super+z` and `terminal_suspend` is disabled. On macOS and Linux, `terminal_suspend` defaults to `ctrl+z`.
+
+### OpenTelemetry Export
+
+Altru Coder telemetry is enabled by default and can be disabled with `experimental.openTelemetry = false`:
+
+```jsonc
+{
+  "experimental": {
+    "openTelemetry": false,
+  },
+}
+```
+
+If `OTEL_EXPORTER_OTLP_ENDPOINT` is set, the CLI exports OpenTelemetry traces and logs to that OTLP HTTP endpoint. You can also pass `OTEL_EXPORTER_OTLP_HEADERS` as comma-separated `key=value` pairs and `OTEL_RESOURCE_ATTRIBUTES` as comma-separated resource attributes. Request spans include `http.method`, `http.path`, route params such as `session.id` and `message.id`, and internal params under the `opencode.*` namespace.
+
+### Environment Variables
+
+Use `{env:VARIABLE_NAME}` syntax in config files to reference environment variables:
+
+```json
+{
+  "provider": {
+    "openai": {
+      "options": {
+        "apiKey": "{env:OPENAI_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+For full details on all configuration options including compaction, file watchers, plugins, and experimental features, see the [OpenCode Config documentation](https://opencode.ai/docs/config).
+
+## Interactive Mode
+
+Interactive mode is the default mode when running Altru Coder without the `--auto` flag, designed to work interactively with a user through the console.
+
+In interactive mode Altru Coder will request approval for operations which have not been auto-approved, allowing the user to review and approve operations before they are executed, and optionally add them to the auto-approval list.
+
+### Interactive Command Approval
+
+When running in interactive mode, command approval requests show hierarchical options:
+
+```
+[!] Action Required:
+> ✓ Run Command (y)
+  ✓ Always run git (1)
+  ✓ Always run git status (2)
+  ✓ Always run git status --short --branch (3)
+  ✗ Reject (n)
+```
+
+Selecting an "Always run" option will:
+
+1. Approve and execute the current command
+2. Save the selected pattern as an `allow` rule under `permission.bash` in your global config
+3. Auto-approve future matching commands, including matching approvals already waiting in other open sessions
+
+Altru Coder only saves the pattern you select. Approving a specific command does not approve redirected variants or broader command patterns unless that broader option is shown and selected.
+
+## Autonomous Mode (Non-Interactive)
+
+Autonomous mode allows Altru Coder to run in automated environments like CI/CD pipelines without requiring user interaction.
+
+```bash
+# Run in autonomous mode with a message
+altru-coder run --auto "Implement feature X"
+```
+
+### Autonomous Mode Behavior
+
+When running in autonomous mode:
+
+1. **No User Interaction**: All approval requests are handled automatically based on configuration
+2. **Auto-Approval/Rejection**: Operations are approved or rejected based on your auto-approval settings
+3. **Follow-up Questions**: Automatically responded with a message instructing the AI to make autonomous decisions
+4. **Automatic Exit**: The CLI exits automatically when the task completes or times out
+
+### Auto-Approval in Autonomous Mode
+
+Autonomous mode respects your [auto-approval configuration](#auto-approval-settings). Operations which are not auto-approved will not be allowed.
+
+### Autonomous Mode Follow-up Questions
+
+In autonomous mode, when the AI asks a follow-up question, it receives this response:
+
+> "This process is running in non-interactive autonomous mode. The user cannot make decisions, so you should make the decision autonomously."
+
+This instructs the AI to proceed without user input.
+
+### Exit Codes
+
+- `0`: Success (task completed)
+- `124`: Timeout (task exceeded time limit)
+- `1`: Error (initialization or execution failure)
+
+### Example CI/CD Integration
+
+```yaml
+# GitHub Actions example
+- name: Run Altru Coder
+  run: |
+    altru-coder run "Implement the new feature" --auto
+```
+
+## Session Continuation
+
+Resume your last conversation from the current workspace using the `--continue` (or `-c`) flag:
+
+```bash
+# Resume the most recent session from this workspace
+altru-coder --continue
+altru-coder -c
+```
+
+This feature:
+
+- Automatically finds the most recent session from the current workspace
+- Loads the full conversation history
+- Allows you to continue where you left off
+- Cannot be used with autonomous mode or with a prompt argument
+- Exits with an error if no previous sessions are found
+
+**Example workflow:**
+
+```bash
+# Start a session
+altru-coder
+# > "Create a REST API"
+# ... work on the task ...
+# Exit with /exit
+
+# Later, resume the same session
+altru-coder --continue
+# Conversation history is restored, ready to continue
+```
+
+**Limitations:**
+
+- Cannot be combined with autonomous mode
+- Cannot be used with a prompt argument
+- Only works when there's at least one previous session in the workspace
+
+## Remote Connections
+
+Remote Connections let you access your local CLI sessions from the Cloud Agents web interface. Requires [Altru Coder Gateway](/docs/gateway) connection.
+
+### Enabling Remote Mode
+
+**Toggle during a session:**
+
+```
+/remote
+```
+
+Requires connection to Altru Coder Gateway. The `/remote` command appears only when authenticated.
+
+**Enable by default:**
+
+Add to `~/.config/altru-coder/config.json`:
+
+```json
+{
+  "remote_control": true
+}
+```
+
+### Using Remote Mode
+
+Once enabled, start a CLI session and open [Cloud Agents](https://app.altru-coder.ai/cloud). Your local session appears in the dashboard. See [Cloud Agent Remote Connections](/docs/code-with-ai/platforms/cloud-agent#remote-connections) for details.
+
+### Requirements
+
+- Connection to Altru Coder Gateway
+- Same Altru Coder account on CLI and Cloud Agent
+- CLI must remain running with internet connection
+
+{% callout type="warning" title="Security Warning" %}
+Anyone with access to your Altru Coder account can send messages to your computer when remote mode is enabled.
+{% /callout %}
+
+## Environment Variable Overrides
+
+The CLI supports overriding config values with environment variables. The supported environment variables are:
+
+- `ALTRU_CODER_PROVIDER`: Override the active provider ID
+- For `altrucoder` provider: `ALTRUCODER_<FIELD_NAME>` (e.g., `ALTRUCODER_MODEL` → `altrucoderModel`)
+- For other providers: `ALTRU_CODER_<FIELD_NAME>` (e.g., `ALTRU_CODER_API_KEY` → `apiKey`)
+
+## Using the CLI in an Organization
+
+If you belong to a Altru Coder organization (Team or Enterprise), you can route CLI requests through that organization. The process differs slightly between interactive and non-interactive usage.
+
+### Interactive Usage
+
+In an interactive CLI session, use the `/teams` command to select an organization from your membership list.
+
+Your selection is persisted locally so it carries over to future sessions.
+
+### Non-Interactive Usage (`altru-coder run`)
+
+There is no `--org` or `--team` flag on `altru-coder run`. Instead, the organization is determined from the following sources, in order of priority (highest first):
+
+1. **`ALTRU_CODER_ORG_ID` environment variable** — Best for non-interactive and CI environments.
+
+2. **`Persisted selection from the last `/teams` pick`** — If you've run an interactive session and selected an organization via `/teams`, that selection is stored in the CLI auth file and reused automatically.

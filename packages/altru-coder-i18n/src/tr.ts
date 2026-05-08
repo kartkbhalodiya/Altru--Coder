@@ -1,0 +1,100 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "Altru Coder Gateway, kodlama ajanları için optimize edilmiş güvenilir modellere erişim sağlar.",
+  "provider.connect.altruCoderGateway.line2":
+    "Tek bir API anahtarıyla Claude, GPT, Gemini, GLM ve daha fazlası gibi modellere erişebilirsiniz.",
+  "provider.connect.altruCoderGateway.visit.prefix": "API anahtarınızı almak için ",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": " adresini ziyaret edin.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "Önerilen",
+  "dialog.provider.altru-coder.note": "500+ AI modeline erişim",
+
+  // Reasoning block label
+  "ui.permission.run": "Çalıştır",
+  "ui.reasoning.label": "Akıl Yürütme",
+
+  // Marketplace
+  "marketplace.tab.skills": "Yetenekler",
+  "marketplace.tab.mcpServers": "MCP Sunucuları",
+  "marketplace.tab.modes": "Modlar",
+  "marketplace.category.all": "Tümü",
+  "marketplace.placeholder": "Uygulanacak",
+  "marketplace.card.installed": "Yüklendi",
+  "marketplace.card.install": "Yükle",
+  "marketplace.card.remove": "Kaldır",
+  "marketplace.card.removeScope": "Kaldır ({{scope}})",
+  "marketplace.card.showMore": "Daha fazla göster",
+  "marketplace.card.showLess": "Daha az göster",
+  "marketplace.install.title": "{{name}} yükle",
+  "marketplace.install.scope": "Kapsam",
+  "marketplace.install.scope.project": "Proje",
+  "marketplace.install.scope.global": "Genel",
+  "marketplace.install.prerequisites": "Ön koşullar",
+  "marketplace.install.installing": "Yükleniyor...",
+  "marketplace.install.cancel": "İptal",
+  "marketplace.install.success": "Başarıyla yüklendi!",
+  "marketplace.install.failed": "Yükleme başarısız oldu",
+  "marketplace.install.done": "Bitti",
+  "marketplace.install.close": "Kapat",
+  "marketplace.remove.title": "{{name}} kaldırılsın mı?",
+  "marketplace.remove.confirm":
+    "Bu {{type}} öğesini kaldırmak istediğinizden emin misiniz? Bu, {{scope}} yapılandırmanızdan kaldırılacaktır.",
+  "marketplace.remove.cancel": "İptal",
+  "marketplace.remove.confirm.button": "Kaldır",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "Ara...",
+  "marketplace.filter.all": "Tüm Öğeler",
+  "marketplace.filter.notInstalled": "Yüklü Değil",
+  "marketplace.empty": "Öğe bulunamadı",
+  "marketplace.badge.mcpServer": "MCP Sunucusu",
+  "marketplace.badge.mode": "Mod",
+  "marketplace.card.by": "{{author}} tarafından",
+  "marketplace.install.method": "Yükleme Yöntemi",
+  "marketplace.install.parameters": "Parametreler",
+  "marketplace.install.optional": "(isteğe bağlı)",
+  "marketplace.install.required": "{{name}} gereklidir",
+  "marketplace.scope.project": "proje",
+  "marketplace.scope.global": "genel",
+  "marketplace.remove.type.mcp": "MCP sunucusu",
+  "marketplace.remove.type.skill": "yetenek",
+  "marketplace.remove.type.mode": "mod",
+  "marketplace.remove.failed": "{{name}} kaldırılamadı",
+  "marketplace.install": "Yükle",
+  "marketplace.filter.installed": "Yüklendi",
+  "marketplace.error.dismiss": "Kapat",
+  "marketplace.warning.busyOne": "Bir oturum çalışıyor ve kesintiye uğrayacak",
+  "marketplace.warning.busyMany": "Birden fazla oturum çalışıyor ve kesintiye uğrayacak",
+  "marketplace.warning.installAnyway": "Yine de yükle",
+  "marketplace.warning.cancel": "İptal",
+  "marketplace.contribute.prompt": "Bir yetenek, mod veya MCP sunucusu mu eksik?",
+  "marketplace.contribute.cta": "GitHub'da katkıda bulun",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "Uygula",
+  "plan.followup.question": "Uygulamaya hazır mısın?",
+  "plan.followup.answer.newSession": "Yeni oturum başlat",
+  "plan.followup.answer.newSession.description": "Temiz bir bağlamla yeni bir oturumda uygula",
+  "plan.followup.answer.continue": "Burada devam et",
+  "plan.followup.answer.continue.description": "Planı bu oturumda uygula",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "Anlık görüntü yavaş",
+  "snapshot.slowRepo.question":
+    "Anlık görüntü sisteminin başlatılması uzun sürüyor, muhtemelen deponun boyutu nedeniyle.\n\nBu depo için anlık görüntüleri devre dışı bırakmak istiyor musunuz?",
+  "snapshot.slowRepo.answer.continue": "Anlık görüntülerle devam et",
+  "snapshot.slowRepo.answer.continue.description":
+    "Anlık görüntü tamamlanana kadar bekleyin. İlk anlık görüntü oluşturulduktan sonra sonraki turlar hızlıdır.",
+  "snapshot.slowRepo.answer.disable": "Bu proje için devre dışı bırak",
+  "snapshot.slowRepo.answer.disable.description":
+    "Bu proje için Altru Coder anlık görüntülerini kapat. Altru Coder değişiklikleri için geri alma/yeniden yapmayı kaybedersiniz, ancak git her şeyi izlemeye devam eder.",
+
+  "ui.messagePart.openInDiffViewer": "Fark görüntüleyicide aç",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "Bu yardımcı oldu",
+  "ui.message.feedback.notHelpful": "Bu yardımcı olmadı",
+  "ui.message.feedback.clearRating": "Değerlendirmeyi temizle",
+}

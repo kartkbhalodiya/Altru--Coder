@@ -1,0 +1,296 @@
+{
+  description = "Altru Coder development flake";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  };
+
+  outputs =
+    { self, nixpkgs, ... }:
+    let
+      systems = [
+        "aarch64-linux"
+        "x86_64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
+      forEachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+      rev = self.shortRev or self.dirtyShortRev or "dirty";
+    in
+    {
+      devShells = forEachSystem (pkgs: {
+        default =
+          let
+            # Pin bun to the version declared in package.json (packageManager: "bun@1.3.13").
+            # nixpkgs-unstable currently ships 1.3.11, so we fetch the official release directly.
+            bun =
+              let
+                sources = {
+                  "aarch64-linux" = {
+                    name = "bun-linux-aarch64";
+                    hash = "sha256-cLrkGzkIsKEg4eWMXIrzDnSvrjuNEbDT/djnh937SyI=";
+                  };
+                  "x86_64-linux" = {
+                    name = "bun-linux-x64";
+                    hash = "sha256-ecB3H6i5LDOq5B4VoODTB+qZ0OLwAxfHHGxTI3p44lo=";
+                  };
+                  "aarch64-darwin" = {
+                    name = "bun-darwin-aarch64";
+                    hash = "sha256-VGfj9l26Umuf6pjwzOBO+vwMY+Fpcz7Ce4dqOtMtoZA=";
+                  };
+                  "x86_64-darwin" = {
+                    name = "bun-darwin-x64";
+                    hash = "sha256-5abItk9BmSUjLREeyxPiXwq/VeVPeSNB+YdiP9B3gAk=";
+                  };
+                };
+                source =
+                  sources.${pkgs.stdenv.hostPlatform.system}
+                    or (throw "Unsupported system for bun: ${pkgs.stdenv.hostPlatform.system}");
+              in
+              pkgs.stdenv.mkDerivation rec {
+                pname = "bun";
+                version = "1.3.13";
+                src = pkgs.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v${version}/${source.name}.zip";
+                  inherit (source) hash;
+                };
+                nativeBuildInputs = [
+                  pkgs.unzip
+                ] ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.autoPatchelfHook;
+                buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.stdenv.cc.cc.lib ];
+                dontConfigure = true;
+                dontBuild = true;
+                installPhase = ''
+                  runHook preInstall
+                  install -Dm755 bun $out/bin/bun
+                  ln -s $out/bin/bun $out/bin/bunx
+                  runHook postInstall
+                '';
+                meta = {
+                  description = "Fast all-in-one JavaScript runtime";
+                  homepage = "https://bun.sh";
+                  license = pkgs.lib.licenses.mit;
+                  mainProgram = "bun";
+                  platforms = builtins.attrNames sources;
+                };
+              };
+
+            altru-coder-dev = pkgs.writeShellScriptBin "altru-coder-dev" ''
+                cd "$ALTRU_CODER_ROOT"
+              exec ${bun}/bin/bun dev "$@"
+            '';
+
+            altru-coder-install-bin = pkgs.writeShellScriptBin "altru-coder-install" ''
+              set -euo pipefail
+
+              CACHE_DIR="$HOME/.cache/altru-nix"
+              VERSION="''${1:-latest}"
+
+              # Platform detection
+              os=$(uname -s | tr '[:upper:]' '[:lower:]')
+              case "$os" in
+                darwin) os="darwin" ;;
+                linux) os="linux" ;;
+                *) echo "Unsupported OS: $os" >&2; exit 1 ;;
+              esac
+
+              arch=$(uname -m)
+              case "$arch" in
+                aarch64) arch="arm64" ;;
+                x86_64) arch="x64" ;;
+                *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+              esac
+
+              # Rosetta 2 detection on macOS
+              if [ "$os" = "darwin" ] && [ "$arch" = "x64" ]; then
+                rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
+                if [ "$rosetta_flag" = "1" ]; then
+                  arch="arm64"
+                fi
+              fi
+
+              # Musl detection on Linux
+              is_musl=""
+              if [ "$os" = "linux" ]; then
+                if [ -f /etc/alpine-release ] || (command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl); then
+                  is_musl="-musl"
+                fi
+              fi
+
+              # AVX2 detection for baseline builds
+              needs_baseline=""
+              if [ "$arch" = "x64" ]; then
+                if [ "$os" = "linux" ] && ! grep -qi avx2 /proc/cpuinfo 2>/dev/null; then
+                  needs_baseline="-baseline"
+                elif [ "$os" = "darwin" ]; then
+                  avx2=$(sysctl -n hw.optional.avx2_0 2>/dev/null || echo 0)
+                  if [ "$avx2" != "1" ]; then
+                    needs_baseline="-baseline"
+                  fi
+                fi
+              fi
+
+              # Determine archive extension
+              if [ "$os" = "linux" ]; then
+                ext=".tar.gz"
+              else
+                ext=".zip"
+              fi
+
+              # Build filename and URL
+              target="$os-$arch$needs_baseline$is_musl"
+              filename="altru-coder-$target$ext"
+
+              if [ "$VERSION" = "latest" ]; then
+                url="https://github.com/Altru-Coder/altrucoder/releases/latest/download/$filename"
+                echo "Installing latest version of altru-coder..." >&2
+              else
+                # Strip leading 'v' if present
+                VERSION="''${VERSION#v}"
+                url="https://github.com/Altru-Coder/altrucoder/releases/download/v''${VERSION}/$filename"
+                echo "Installing altru-coder version $VERSION..." >&2
+              fi
+
+              # Create cache directory
+              mkdir -p "$CACHE_DIR"
+
+              # Download to temporary directory
+              tmp_dir=$(mktemp -d)
+              trap "rm -rf $tmp_dir" EXIT
+
+              echo "Downloading from $url..." >&2
+              if ! ${pkgs.curl}/bin/curl -fsSL -o "$tmp_dir/$filename" "$url"; then
+                echo "Error: Failed to download altru-coder from $url" >&2
+                echo "Please check your internet connection or visit https://github.com/Altru-Coder/altrucoder/releases" >&2
+                exit 1
+              fi
+
+              # Extract the archive
+              echo "Extracting..." >&2
+              if [ "$os" = "linux" ]; then
+                ${pkgs.gnutar}/bin/tar -xzf "$tmp_dir/$filename" -C "$tmp_dir"
+              else
+                ${pkgs.unzip}/bin/unzip -q "$tmp_dir/$filename" -d "$tmp_dir"
+              fi
+
+              # Install the binary
+              ALTRU_CODER_BIN="$CACHE_DIR/altru"
+              mv "$tmp_dir/altru" "$ALTRU_CODER_BIN"
+              chmod +x "$ALTRU_CODER_BIN"
+
+              # Get the installed version
+              installed_version=$("$ALTRU_CODER_BIN" --version 2>/dev/null || echo "unknown")
+              echo "Successfully installed altru-coder $installed_version to $ALTRU_CODER_BIN" >&2
+            '';
+
+            altru-coder-bin = pkgs.writeShellScriptBin "altru-coder" ''
+              set -euo pipefail
+
+              CACHE_DIR="$HOME/.cache/altru-nix"
+              ALTRU_CODER_BIN="$CACHE_DIR/altru"
+
+              if [ ! -f "$ALTRU_CODER_BIN" ]; then
+                echo "Error: altru-coder is not installed in the cache." >&2
+                echo "Please run 'altru-coder-install' first to download and install altru-coder." >&2
+                echo "" >&2
+                echo "Examples:" >&2
+                echo "  altru-coder-install          # Install latest version" >&2
+                echo "  altru-coder-install 1.0.180  # Install specific version" >&2
+                exit 1
+              fi
+
+              # Execute the cached binary with all arguments
+              exec "$ALTRU_CODER_BIN" "$@"
+            '';
+          in
+          pkgs.mkShell {
+            packages =
+              with pkgs;
+              [
+                bun
+                nodejs_20
+                python3
+                pkg-config
+                openssl
+                git
+                gh
+                playwright-driver.browsers
+                vsce
+                unzip
+                gnutar
+                gzip
+                patchelf
+                ripgrep
+                jetbrains.jdk
+                jdk21
+                altru-coder-dev
+                altru-coder-install-bin
+                altru-coder-bin
+              ]
+              ++ lib.optionals stdenv.isLinux [
+                libX11
+                libXext
+                libXrender
+                libXtst
+                libXi
+                fontconfig
+                freetype
+              ];
+            shellHook = ''
+              export ALTRU_CODER_ROOT="$PWD"
+              export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            ''
+            + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+              export LD_LIBRARY_PATH="${
+                pkgs.lib.makeLibraryPath [
+                  pkgs.libX11
+                  pkgs.libXext
+                  pkgs.libXrender
+                  pkgs.libXtst
+                  pkgs.libXi
+                  pkgs.fontconfig
+                  pkgs.freetype
+                ]
+              }:$LD_LIBRARY_PATH"
+            '';
+          };
+      });
+
+      overlays = {
+        default =
+          final: _prev:
+          let
+            node_modules = final.callPackage ./nix/node_modules.nix {
+              inherit rev;
+            };
+            opencode = final.callPackage ./nix/opencode.nix {
+              inherit node_modules;
+            };
+          in
+          {
+            inherit opencode;
+          };
+      };
+
+      packages = forEachSystem (
+        pkgs:
+        let
+          node_modules = pkgs.callPackage ./nix/node_modules.nix {
+            inherit rev;
+          };
+          altru-coder = pkgs.callPackage ./nix/altru.nix {
+            inherit node_modules;
+          };
+        in
+        {
+          default = altru-coder;
+          inherit altru-coder;
+          # Updater derivation with fakeHash - build fails and reveals correct hash
+          node_modules_updater = node_modules.override {
+            hash = pkgs.lib.fakeHash;
+          };
+        }
+      );
+    };
+}

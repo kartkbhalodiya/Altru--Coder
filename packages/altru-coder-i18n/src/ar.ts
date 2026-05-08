@@ -1,0 +1,100 @@
+export const dict = {
+  // Altru Coder Gateway provider translations
+  "provider.connect.altruCoderGateway.line1":
+    "يمنحك Altru Coder Gateway الوصول إلى مجموعة مختارة من النماذج الموثوقة والمحسّنة لوكلاء البرمجة.",
+  "provider.connect.altruCoderGateway.line2":
+    "بمفتاح API واحد، ستحصل على إمكانية الوصول إلى نماذج مثل Claude وGPT وGemini وGLM والمزيد.",
+  "provider.connect.altruCoderGateway.visit.prefix": "قم بزيارة ",
+  "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
+  "provider.connect.altruCoderGateway.visit.suffix": " للحصول على مفتاح API الخاص بك.",
+
+  // Provider dialog translations
+  "dialog.provider.group.recommended": "موصى به",
+  "dialog.provider.altru-coder.note": "الوصول إلى أكثر من 500 نموذج ذكاء اصطناعي",
+
+  // Reasoning block label
+  "ui.permission.run": "تشغيل",
+  "ui.reasoning.label": "الاستدلال",
+
+  // Marketplace
+  "marketplace.tab.skills": "المهارات",
+  "marketplace.tab.mcpServers": "خوادم MCP",
+  "marketplace.tab.modes": "الأوضاع",
+  "marketplace.category.all": "الكل",
+  "marketplace.placeholder": "سيتم تنفيذه لاحقاً",
+  "marketplace.card.installed": "مثبت",
+  "marketplace.card.install": "تثبيت",
+  "marketplace.card.remove": "إزالة",
+  "marketplace.card.removeScope": "إزالة ({{scope}})",
+  "marketplace.card.showMore": "عرض المزيد",
+  "marketplace.card.showLess": "عرض أقل",
+  "marketplace.install.title": "تثبيت {{name}}",
+  "marketplace.install.scope": "النطاق",
+  "marketplace.install.scope.project": "المشروع",
+  "marketplace.install.scope.global": "عالمي",
+  "marketplace.install.prerequisites": "المتطلبات الأساسية",
+  "marketplace.install.installing": "جاري التثبيت...",
+  "marketplace.install.cancel": "إلغاء",
+  "marketplace.install.success": "تم التثبيت بنجاح!",
+  "marketplace.install.failed": "فشل التثبيت",
+  "marketplace.install.done": "تم",
+  "marketplace.install.close": "إغلاق",
+  "marketplace.remove.title": "إزالة {{name}}؟",
+  "marketplace.remove.confirm":
+    "هل أنت متأكد أنك تريد إزالة هذا الـ {{type}}؟ سيؤدي هذا إلى إزالته من تكوين {{scope}} الخاص بك.",
+  "marketplace.remove.cancel": "إلغاء",
+  "marketplace.remove.confirm.button": "إزالة",
+  "marketplace.tab.mcp": "MCP",
+  "marketplace.search": "بحث...",
+  "marketplace.filter.all": "جميع العناصر",
+  "marketplace.filter.notInstalled": "غير مثبت",
+  "marketplace.empty": "لم يتم العثور على عناصر",
+  "marketplace.badge.mcpServer": "خادم MCP",
+  "marketplace.badge.mode": "وضع",
+  "marketplace.card.by": "بواسطة {{author}}",
+  "marketplace.install.method": "طريقة التثبيت",
+  "marketplace.install.parameters": "المعلمات",
+  "marketplace.install.optional": "(اختياري)",
+  "marketplace.install.required": "{{name}} مطلوب",
+  "marketplace.scope.project": "مشروع",
+  "marketplace.scope.global": "عام",
+  "marketplace.remove.type.mcp": "خادم MCP",
+  "marketplace.remove.type.skill": "مهارة",
+  "marketplace.remove.type.mode": "وضع",
+  "marketplace.remove.failed": "فشلت إزالة {{name}}",
+  "marketplace.install": "تثبيت",
+  "marketplace.filter.installed": "مثبت",
+  "marketplace.error.dismiss": "تجاهل",
+  "marketplace.warning.busyOne": "جلسة واحدة تعمل وستتوقف",
+  "marketplace.warning.busyMany": "عدة جلسات تعمل وستتوقف",
+  "marketplace.warning.installAnyway": "تثبيت على أي حال",
+  "marketplace.warning.cancel": "إلغاء",
+  "marketplace.contribute.prompt": "هل تفتقد مهارة أو وضعًا أو خادم MCP؟",
+  "marketplace.contribute.cta": "ساهم على GitHub",
+
+  // Plan follow-up question shown after plan_exit
+  "plan.followup.header": "نفّذ",
+  "plan.followup.question": "جاهز للتنفيذ؟",
+  "plan.followup.answer.newSession": "بدء جلسة جديدة",
+  "plan.followup.answer.newSession.description": "نفّذ في جلسة جديدة بسياق نظيف",
+  "plan.followup.answer.continue": "المتابعة هنا",
+  "plan.followup.answer.continue.description": "نفّذ الخطة في هذه الجلسة",
+
+  // Slow-repo snapshot prompt
+  "snapshot.slowRepo.header": "اللقطة بطيئة",
+  "snapshot.slowRepo.question":
+    "يستغرق تهيئة نظام اللقطات وقتًا طويلاً، غالبًا بسبب حجم المستودع.\n\nهل تريد تعطيل اللقطات لهذا المستودع؟",
+  "snapshot.slowRepo.answer.continue": "المتابعة مع اللقطات",
+  "snapshot.slowRepo.answer.continue.description":
+    "استمر في الانتظار حتى تكتمل اللقطة. تكون الدورات اللاحقة سريعة بعد إنشاء اللقطة الأولى.",
+  "snapshot.slowRepo.answer.disable": "تعطيل لهذا المشروع",
+  "snapshot.slowRepo.answer.disable.description":
+    "أوقف لقطات Altru Coder لهذا المشروع. ستفقد ميزة التراجع/الإعادة لتعديلات Altru Coder، لكن git سيستمر في تتبع كل شيء.",
+
+  "ui.messagePart.openInDiffViewer": "فتح في عارض الفروقات",
+
+  // Message feedback (thumbs up/down per assistant response)
+  "ui.message.feedback.helpful": "كان هذا مفيدًا",
+  "ui.message.feedback.notHelpful": "لم يكن هذا مفيدًا",
+  "ui.message.feedback.clearRating": "مسح التقييم",
+}
