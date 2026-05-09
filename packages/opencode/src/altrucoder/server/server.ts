@@ -24,5 +24,14 @@ export async function authChanged(providerID: string) {
   await InstanceStore.disposeAllInstances()
 }
 
+/** Run auth invalidation after the credential write response has been sent. */
+export function authChangedLater(providerID: string) {
+  setTimeout(() => {
+    void authChanged(providerID).catch((error) => {
+      console.warn(`[Altru Coder] auth invalidation failed for ${providerID}:`, error)
+    })
+  }, 0)
+}
+
 export const DOC_TITLE = "altru-coder"
 export const DOC_DESCRIPTION = "altru-coder api"

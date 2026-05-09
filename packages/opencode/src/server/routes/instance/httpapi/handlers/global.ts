@@ -83,7 +83,21 @@ export const globalHandlers = HttpApiBuilder.group(RootHttpApi, "global", (handl
     })
 
     const configUpdate = Effect.fn("GlobalHttpApi.configUpdate")(function* (ctx) {
-      return yield* config.updateGlobal(ctx.payload)
+      // altrucoder_change start - return after the config file write; dispose stale instances asynchronously
+      const next = yield* config.updateGlobal(ctx.payload, { dispose: false, invalidate: false })
+      yield* Effect.sync(() => {
+        setTimeout(() => {
+          Effect.runFork(
+            config.invalidate(false).pipe(
+              Effect.catch((error) =>
+                Effect.sync(() => console.warn("[Altru Coder] global config invalidation failed:", error)),
+              ),
+            ),
+          )
+        }, 0)
+      })
+      return next
+      // altrucoder_change end
     })
 
     const dispose = Effect.fn("GlobalHttpApi.dispose")(function* () {

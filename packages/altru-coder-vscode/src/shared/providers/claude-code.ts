@@ -1,0 +1,31 @@
+import type { ProviderPreset } from './types'
+
+export const ClaudeCodePreset: ProviderPreset = {
+  id: "claude-code",
+  name: "Claude Code",
+  baseURL: "http://localhost",
+  note: "Select Claude Code model IDs copied from Cline local model data.",
+  local: true,
+  fetch: false,
+  models: [
+    { id: "sonnet", name: "Sonnet" },
+    { id: "sonnet[1m]", name: "Sonnet[1m]" },
+    { id: "opus", name: "Opus" },
+    { id: "opus[1m]", name: "Opus[1m]" },
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4 5 20251001" },
+    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4 6" },
+    { id: "claude-sonnet-4-6[1m]", name: "Claude Sonnet 4 6[1m]" },
+    { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4 5 20250929" },
+    { id: "claude-sonnet-4-5-20250929[1m]", name: "Claude Sonnet 4 5 20250929[1m]" },
+    { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4 20250514" },
+    { id: "claude-opus-4-6", name: "Claude Opus 4 6" },
+    { id: "claude-opus-4-6[1m]", name: "Claude Opus 4 6[1m]" },
+    { id: "claude-opus-4-7", name: "Claude Opus 4 7" },
+    { id: "claude-opus-4-7[1m]", name: "Claude Opus 4 7[1m]" },
+    { id: "claude-opus-4-5-20251101", name: "Claude Opus 4 5 20251101" },
+    { id: "claude-opus-4-1-20250805", name: "Claude Opus 4 1 20250805" },
+    { id: "claude-opus-4-20250514", name: "Claude Opus 4 20250514" },
+    { id: "claude-3-7-sonnet-20250219", name: "Claude 3 7 Sonnet 20250219" },
+    { id: "claude-3-5-haiku-20241022", name: "Claude 3 5 Haiku 20241022" },
+  ],
+}

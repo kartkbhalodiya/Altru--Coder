@@ -6,6 +6,8 @@ const { AltruCoderProvider } = await import("../../src/AltruCoderProvider")
 
 type Internals = {
   connectionState: "connecting" | "connected" | "disconnected" | "error"
+  cachedConfigMessage: unknown
+  cachedGlobalConfig: Config | null
   currentSession: { id: string } | null
   reloadAfterAuthChange: () => Promise<void>
   handleUpdateConfig: (partial: Partial<Config>) => Promise<void>
@@ -20,21 +22,32 @@ type Internals = {
 
 function createConnection() {
   let drains = 0
+  let releaseUpdate: (() => void) | undefined
   const client = {
     global: {
       config: {
         get: async () => ({ data: {} }),
-        update: async () => ({ data: {} }),
+        update: async () => {
+          await new Promise<void>((resolve) => {
+            releaseUpdate = resolve
+          })
+          return { data: {} }
+        },
       },
     },
     config: {
       get: async () => ({ data: {} }),
       update: async () => ({ data: {} }),
     },
+    provider: {
+      list: async () => ({ data: { all: [], connected: [], default: {} } }),
+      auth: async () => ({ data: {} }),
+    },
   }
 
   return {
     drains: () => drains,
+    releaseUpdate: () => releaseUpdate?.(),
     service: {
       drainPendingPrompts: async () => {
         drains += 1
@@ -93,6 +106,34 @@ describe("AltruCoderProvider indexing refresh", () => {
 
     expect(conn.drains()).toBe(1)
     expect(indexing).toBe(0)
+  })
+
+  it("handleUpdateConfig acknowledges before the backend config write completes", async () => {
+    const conn = createConnection()
+    const provider = new AltruCoderProvider({} as never, conn.service as never)
+    const internal = provider as unknown as Internals
+    const posts: unknown[] = []
+
+    internal.connectionState = "connected"
+    internal.cachedConfigMessage = { config: { provider: {} }, features: { indexing: false } }
+    internal.cachedGlobalConfig = { provider: {} }
+    provider.postMessage = (msg: unknown) => posts.push(msg)
+
+    const task = internal.handleUpdateConfig({
+      provider: {
+        nvidia: {
+          name: "NVIDIA NIM",
+          options: { baseURL: "https://integrate.api.nvidia.com/v1" },
+          models: { "moonshotai/kimi-k2.6": { name: "Kimi K2.6" } },
+        },
+      },
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(posts.some((msg) => typeof msg === "object" && msg !== null && (msg as { type?: string }).type === "configUpdated")).toBe(true)
+    conn.releaseUpdate()
+    await task
   })
 
   it("fetchAndSendIndexingStatus uses current session directory header", async () => {

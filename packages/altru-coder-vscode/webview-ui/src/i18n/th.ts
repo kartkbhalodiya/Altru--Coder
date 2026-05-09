@@ -1546,4 +1546,17 @@ export const dict = {
   "diffViewer.group.git": "Git",
   "diffViewer.notice.snapshotsDisabled":
     "ปิดใช้งานสแนปช็อตสำหรับที่เก็บนี้ กรุณาแก้ไขไฟล์การกำหนดค่าเพื่อแสดงการเปลี่ยนแปลงของเซสชัน",
+  "settings.providers.section.catalog": "Model provider catalog",
+  "provider.custom.preset.title": "Add {{provider}} models",
+  "provider.custom.preset.models.label": "Inbuilt model",
+  "provider.custom.preset.models.placeholder": "Select model",
+  "provider.custom.preset.models.autofetch": "Autofetch all models",
+  "provider.custom.models.fetch.title": "Fetch from API",
+  "provider.custom.models.fetch.addedAll": "Added all {{count}} fetched model(s).",
+  "provider.custom.models.fetch.needsApiKey": "Enter an API key before autofetching models.",
+  "settings.models.addModel.title": "Add model",
+  "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
+  "session.messages.welcomeTyping": "What can Altru Coder do for you?",
+  "dialog.model.addFirst": "Add model",
+  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

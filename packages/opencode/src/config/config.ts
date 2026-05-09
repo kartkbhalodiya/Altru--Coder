@@ -51,6 +51,7 @@ import { AltruCoderDefaultPlugins } from "@/altrucoder/config/default-plugins"
 import { IndexingConfig as AltruCoderIndexingConfig } from "@altru-coder/altru-coder-indexing/config"
 import { makeRuntime } from "@/effect/run-service"
 import { unique } from "remeda"
+import { LocalContext } from "@/util/local-context"
 // altrucoder_change end
 
 const log = Log.create({ service: "config" })
@@ -353,7 +354,9 @@ export interface Interface {
   readonly getGlobal: () => Effect.Effect<Info>
   readonly getConsoleState: () => Effect.Effect<ConsoleState>
   readonly update: (config: Info, options?: { dispose?: boolean }) => Effect.Effect<void>
-  readonly updateGlobal: (config: Info, options?: { dispose?: boolean }) => Effect.Effect<Info> // altrucoder_change
+  // altrucoder_change start
+  readonly updateGlobal: (config: Info, options?: { dispose?: boolean; invalidate?: boolean }) => Effect.Effect<Info>
+  // altrucoder_change end
   readonly invalidate: (wait?: boolean) => Effect.Effect<void>
   readonly directories: () => Effect.Effect<string[]>
   readonly waitForDependencies: () => Effect.Effect<void>
@@ -987,7 +990,10 @@ export const layer = Layer.effect(
     })
 
     // altrucoder_change start - add dispose option to skip Instance.disposeAll for permission-only changes
-    const updateGlobal = Effect.fn("Config.updateGlobal")(function* (config: Info, options?: { dispose?: boolean }) {
+    const updateGlobal = Effect.fn("Config.updateGlobal")(function* (
+      config: Info,
+      options?: { dispose?: boolean; invalidate?: boolean },
+    ) {
       const dispose = options?.dispose ?? true
       // altrucoder_change end
       const file = globalConfigFile()
@@ -1013,8 +1019,14 @@ export const layer = Layer.effect(
 
       // altrucoder_change start - skip dispose when caller opts out
       if (!dispose) {
+        if (options?.invalidate === false) return next
         yield* invalidateGlobal
-        yield* InstanceState.invalidate(state)
+        yield* InstanceState.invalidate(state).pipe(
+          Effect.catchDefect((err: unknown) => {
+            if (err instanceof LocalContext.NotFound) return Effect.void
+            return Effect.die(err)
+          }),
+        )
         yield* Effect.sync(() =>
           GlobalBus.emit("event", {
             directory: "global",
@@ -1075,7 +1087,7 @@ export async function update(config: Info, options?: { dispose?: boolean }) {
   return runPromise((svc) => svc.update(config, options))
 }
 
-export async function updateGlobal(config: Info, options?: { dispose?: boolean }) {
+export async function updateGlobal(config: Info, options?: { dispose?: boolean; invalidate?: boolean }) {
   return runPromise((svc) => svc.updateGlobal(config, options))
 }
 

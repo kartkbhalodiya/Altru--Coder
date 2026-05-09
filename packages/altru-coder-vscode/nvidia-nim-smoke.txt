@@ -1,0 +1,18 @@
+NVIDIA NIM benchmark
+Created: 2026-05-09T13:43:36.195Z
+Models: 1
+Mode: normal
+Prompt: Generate a premium high-end liquid glass login page in one complete HTML file. Include HTML, CSS, and JavaScript. Use a modern glassmorphism layout, animated liquid background, email/password fields, remember me, validation, and polished responsive design.
+
+============================================================
+MODEL: 01-ai/yi-large
+MODE: normal
+STATUS: 404
+TTFT_SEC: n/a
+TOTAL_SEC: n/a
+APPROX_TOKENS: n/a
+APPROX_TOKENS_PER_SEC_AFTER_FIRST: n/a
+CHUNKS: 0
+ERROR:
+{"status":404,"title":"Not Found","detail":"Function '23bd454d-b225-49a3-8118-582a62fc51b8': Not found for account 'JLIVPbvHFX5d4vlzThZzZpsXKqO-EUNDwfOnt38X3Fk'"}
+

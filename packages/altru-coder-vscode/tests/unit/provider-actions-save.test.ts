@@ -2,8 +2,16 @@ import { describe, expect, it } from "bun:test"
 import { connectProvider, disconnectProvider, fetchProviderData, saveCustomProvider } from "../../src/provider-actions"
 
 type ExistingGlobal = { disabled_providers?: string[]; provider?: Record<string, unknown> }
+type Options = {
+  refresh?: () => Promise<void>
+  configUpdate?: (input: { config: Record<string, unknown> }) => Promise<{ data: { config: Record<string, unknown> } }>
+}
 
-function createCtx(existing: ExistingGlobal = { disabled_providers: [] }, merged: ExistingGlobal = existing) {
+function createCtx(
+  existing: ExistingGlobal = { disabled_providers: [] },
+  merged: ExistingGlobal = existing,
+  opts: Options = {},
+) {
   const calls = {
     set: [] as Array<{ providerID: string; auth: { type: string; key: string; metadata?: Record<string, string> } }>,
     remove: [] as Array<{ providerID: string }>,
@@ -11,6 +19,8 @@ function createCtx(existing: ExistingGlobal = { disabled_providers: [] }, merged
     config: [] as Array<{ config: Record<string, unknown> }>,
     project: [] as Array<{ config: Record<string, unknown> }>,
     cached: [] as unknown[],
+    global: 0,
+    merged: 0,
     refresh: 0,
     dispose: 0,
   }
@@ -50,15 +60,21 @@ function createCtx(existing: ExistingGlobal = { disabled_providers: [] }, merged
       },
       global: {
         config: {
-          get: async () => ({ data: existing }),
-          update: async (input: { config: Record<string, unknown> }) => {
+          get: async () => {
+            calls.global += 1
+            return { data: existing }
+          },
+          update: opts.configUpdate ?? (async (input: { config: Record<string, unknown> }) => {
             calls.config.push(input)
             return { data: input }
-          },
+          }),
         },
       },
       config: {
-        get: async () => ({ data: merged }),
+        get: async () => {
+          calls.merged += 1
+          return { data: merged }
+        },
         update: async (input: { config: Record<string, unknown> }) => {
           calls.project.push(input)
           return { data: input }
@@ -71,9 +87,9 @@ function createCtx(existing: ExistingGlobal = { disabled_providers: [] }, merged
     disposeGlobal: async () => {
       calls.dispose += 1
     },
-    fetchAndSendProviders: async () => {
+    fetchAndSendProviders: opts.refresh ?? (async () => {
       calls.refresh += 1
-    },
+    }),
   } as unknown as Parameters<typeof saveCustomProvider>[0]
 
   return {
@@ -98,6 +114,10 @@ function createSavedProvider() {
     npm: "@ai-sdk/openai-compatible",
     ...createProvider(),
   }
+}
+
+function flushRefresh() {
+  return new Promise((resolve) => setTimeout(resolve, 10))
 }
 
 describe("disconnectProvider", () => {
@@ -139,6 +159,7 @@ describe("connectProvider", () => {
         },
       },
     ])
+    await flushRefresh()
     expect(calls.refresh).toBe(1)
     expect(calls.posts).toContainEqual({ type: "providerConnected", requestId: "req", providerID: "azure" })
   })
@@ -166,6 +187,22 @@ describe("connectProvider", () => {
       },
     ])
   })
+
+  it("acknowledges api-key connect before provider refresh completes", async () => {
+    const refresh = () => new Promise<void>(() => {})
+    const { ctx, calls } = createCtx({ disabled_providers: [] }, { disabled_providers: [] }, { refresh })
+
+    const result = await Promise.race([
+      connectProvider(ctx, "req", "openai", "sk-test").then(() => "connected"),
+      new Promise((resolve) => setTimeout(() => resolve("timeout"), 50)),
+    ])
+
+    expect(result).toBe("connected")
+    expect(calls.set).toEqual([{ providerID: "openai", auth: { type: "api", key: "sk-test" } }])
+    expect(calls.posts).toContainEqual({ type: "providerConnected", requestId: "req", providerID: "openai" })
+    await flushRefresh()
+    expect(calls.dispose).toBe(1)
+  })
 })
 
 describe("saveCustomProvider", () => {
@@ -176,6 +213,7 @@ describe("saveCustomProvider", () => {
 
     expect(calls.set).toHaveLength(0)
     expect(calls.remove).toHaveLength(0)
+    await flushRefresh()
     expect(calls.refresh).toBe(1)
   })
 
@@ -303,6 +341,96 @@ describe("saveCustomProvider", () => {
 
     expect(calls.config).toHaveLength(1)
     expect(calls.config[0].config.disabled_providers).toEqual(["openai"])
+  })
+
+  it("posts the saved provider in configUpdated even when the merged refresh is stale", async () => {
+    const { ctx, calls, setCachedConfig } = createCtx({ disabled_providers: [] })
+    const cache = { type: "configLoaded", config: {}, globalConfig: { disabled_providers: [] } }
+
+    await saveCustomProvider(ctx, "req", "myprovider", createProvider(), undefined, false, cache, setCachedConfig)
+
+    const connected = calls.posts.findIndex(
+      (item) => item.type === "providerConnected" && item.requestId === "req" && item.providerID === "myprovider",
+    )
+    const updated = calls.posts.findIndex((item) => item.type === "configUpdated")
+    const msg = calls.posts.find(
+      (item): item is { type: "configUpdated"; config: { provider?: Record<string, { models?: Record<string, unknown> }> } } =>
+        !!item && typeof item === "object" && (item as { type?: string }).type === "configUpdated",
+    )
+
+    expect(connected).toBeGreaterThanOrEqual(0)
+    expect(updated).toBeGreaterThan(connected)
+    expect(msg?.config.provider?.myprovider?.models?.["model-1"]).toEqual({ name: "Model One" })
+    expect(calls.global).toBe(0)
+    expect(calls.merged).toBe(0)
+  })
+
+  it("acknowledges NVIDIA Kimi saves with thinking variants", async () => {
+    const { ctx, calls, setCachedConfig } = createCtx({ disabled_providers: [] })
+    const nvidia = {
+      name: "NVIDIA NIM",
+      options: { baseURL: "https://integrate.api.nvidia.com/v1" },
+      models: {
+        "moonshotai/kimi-k2.6": {
+          name: "Kimi K2.6",
+          reasoning: true,
+          variants: {
+            xhigh: { chat_template_kwargs: { thinking: true } },
+          },
+        },
+      },
+    }
+
+    await saveCustomProvider(ctx, "req", "nvidia", nvidia, "nvapi-test", true, null, setCachedConfig)
+
+    const connected = calls.posts.findIndex(
+      (item) => item.type === "providerConnected" && item.requestId === "req" && item.providerID === "nvidia",
+    )
+    const updated = calls.posts.findIndex((item) => item.type === "configUpdated")
+    expect(connected).toBeGreaterThanOrEqual(0)
+    expect(updated).toBeGreaterThan(connected)
+    expect(calls.set).toEqual([{ providerID: "nvidia", auth: { type: "api", key: "nvapi-test" } }])
+  })
+
+  it("acknowledges NVIDIA saves before the config write completes", async () => {
+    const wait = () => new Promise((resolve) => setTimeout(resolve, 30))
+    const opts = {
+      configUpdate: async (input: { config: Record<string, unknown> }) => {
+        await wait()
+        return { data: input }
+      },
+    }
+    const { ctx, calls, setCachedConfig } = createCtx({ disabled_providers: [] }, { disabled_providers: [] }, opts)
+    const nvidia = {
+      name: "NVIDIA NIM",
+      options: { baseURL: "https://integrate.api.nvidia.com/v1" },
+      models: { "moonshotai/kimi-k2.6": { name: "Kimi K2.6" } },
+    }
+
+    const task = saveCustomProvider(ctx, "req", "nvidia", nvidia, "nvapi-test", true, null, setCachedConfig)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(calls.posts).toContainEqual({ type: "providerConnected", requestId: "req", providerID: "nvidia" })
+    expect(calls.set).toHaveLength(0)
+    await task
+    expect(calls.set).toEqual([{ providerID: "nvidia", auth: { type: "api", key: "nvapi-test" } }])
+  })
+
+  it("acknowledges save before provider refresh completes", async () => {
+    const refresh = () => new Promise<void>(() => {})
+    const { ctx, calls, setCachedConfig } = createCtx({ disabled_providers: [] }, { disabled_providers: [] }, { refresh })
+
+    const result = await Promise.race([
+      saveCustomProvider(ctx, "req", "myprovider", createProvider(), undefined, false, null, setCachedConfig).then(
+        () => "saved",
+      ),
+      new Promise((resolve) => setTimeout(() => resolve("timeout"), 50)),
+    ])
+
+    expect(result).toBe("saved")
+    expect(calls.posts).toContainEqual({ type: "providerConnected", requestId: "req", providerID: "myprovider" })
+    await flushRefresh()
+    expect(calls.dispose).toBe(1)
   })
 })
 

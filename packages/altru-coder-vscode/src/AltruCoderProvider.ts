@@ -139,23 +139,20 @@ import type { AltruCoderProviderOptions } from "./altru-coder-provider/options"
 import { fetchAltruCoderEmbeddingModelCatalog } from "@altru-coder/altru-coder-gateway"
 
 type MessageLoadMode = "replace" | "prepend" | "focus" | "reconcile"
-// Helper to map agent data to the subset of fields sent to the webview
 const mapAgent = (a: Agent) => ({
-  name: a.name,
-  displayName: a.displayName,
-  description: a.description,
-  mode: a.mode,
-  native: a.native,
-  hidden: a.hidden,
-  color: a.color,
-  deprecated: a.deprecated,
-  permission: a.permission,
-  model: a.model,
+  name: a.name, displayName: a.displayName, description: a.description,
+  mode: a.mode, native: a.native, hidden: a.hidden, color: a.color,
+  deprecated: a.deprecated, permission: a.permission, model: a.model,
 })
 
-// message.part.* events are always session-scoped; drop them when the session is unknown.
 const SESSION_SCOPED_PART_EVENTS = new Set(["message.part.updated", "message.part.delta", "message.part.removed"])
 const isSessionScopedPartEvent = (type: string) => SESSION_SCOPED_PART_EVENTS.has(type)
+const PROVIDER_ACTION_TYPES = new Set(["connectProvider", "authorizeProviderOAuth", "completeProviderOAuth", "disconnectProvider", "saveCustomProvider"])
+
+function providerAction(message: unknown): message is Record<string, unknown> {
+  const type = message && typeof message === "object" ? (message as { type?: unknown }).type : undefined
+  return typeof type === "string" && PROVIDER_ACTION_TYPES.has(type)
+}
 
 export class AltruCoderProvider implements vscode.WebviewViewProvider, TelemetryPropertiesProvider {
   public static readonly viewType = "altru-coder.SidebarProvider"
@@ -627,6 +624,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     this.telemetryStateDisposable?.dispose()
     this.telemetryStateDisposable = watchTelemetryState((msg) => this.postMessage(msg))
     this.webviewMessageDisposable = webview.onDidReceiveMessage(async (message) => {
+      if (providerAction(message)) {
+        await this.runProviderAction(message)
+        return
+      }
       const intercepted = await interceptMessage(message, {
         workspaceDir: (sid) => this.getWorkspaceDirectory(sid ?? this.currentSession?.id),
         post: (m) => this.postMessage(m),
@@ -816,7 +817,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
         case "completeProviderOAuth":
         case "disconnectProvider":
         case "saveCustomProvider":
-          await this.handleProviderAction(message)
+          await this.runProviderAction(message)
           break
         case "fetchCustomProviderModels":
           this.handleFetchCustomProviderModels(message).catch((e) =>
@@ -1751,24 +1752,45 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     await done
   }
 
-  private async handleProviderAction(msg: Record<string, unknown>): Promise<void> {
-    const rid = typeof msg.requestId === "string" ? msg.requestId : ""
-    const pid = typeof msg.providerID === "string" ? msg.providerID : ""
-    if (!rid || !pid) return
-    if (!this.client) {
-      const action =
-        msg.type === "disconnectProvider"
-          ? "disconnect"
-          : msg.type === "authorizeProviderOAuth"
-            ? "authorize"
-            : "connect"
+  private async runProviderAction(msg: Record<string, unknown>): Promise<void> {
+    try {
+      await this.handleProviderAction(msg)
+    } catch (err) {
+      const rid = typeof msg.requestId === "string" ? msg.requestId : ""
+      const pid = typeof msg.providerID === "string" ? msg.providerID : ""
+      const action = msg.type === "disconnectProvider" ? "disconnect" : msg.type === "authorizeProviderOAuth" ? "authorize" : "connect"
+      console.error("[Altru Coder New] provider action failed:", err)
+      if (!rid || !pid) return
       this.postMessage({
         type: "providerActionError",
         requestId: rid,
         providerID: pid,
         action,
-        message: "Not connected to CLI backend",
+        message: getErrorMessage(err) || "Provider action failed",
       })
+    }
+  }
+
+  private async handleProviderAction(msg: Record<string, unknown>): Promise<void> {
+    const rid = typeof msg.requestId === "string" ? msg.requestId : ""
+    const pid = typeof msg.providerID === "string" ? msg.providerID : ""
+    if (!rid || !pid) return
+    const action =
+      msg.type === "disconnectProvider"
+        ? "disconnect"
+        : msg.type === "authorizeProviderOAuth"
+          ? "authorize"
+          : "connect"
+    const fail = (message: string) =>
+      this.postMessage({
+        type: "providerActionError",
+        requestId: rid,
+        providerID: pid,
+        action,
+        message,
+      })
+    if (!this.client) {
+      fail("Not connected to CLI backend")
       return
     }
     const ctx = buildActionContext(
@@ -1791,11 +1813,20 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     const metadata =
       msg.metadata && typeof msg.metadata === "object" ? (msg.metadata as Record<string, unknown>) : undefined
     if (msg.type === "connectProvider" && key) return connectProviderAction(ctx, rid, pid, key, metadata)
+    if (msg.type === "connectProvider") {
+      fail("API key is required")
+      return
+    }
     if (msg.type === "authorizeProviderOAuth") return authorizeOAuthAction(ctx, rid, pid, method)
     if (msg.type === "completeProviderOAuth") return completeOAuthAction(ctx, rid, pid, method, code)
     if (msg.type === "disconnectProvider") return disconnectProviderAction(ctx, rid, pid, this.cachedConfigMessage, set)
     if (msg.type === "saveCustomProvider" && config)
       return saveCustomProviderAction(ctx, rid, pid, config, key, keyChanged, this.cachedConfigMessage, set)
+    if (msg.type === "saveCustomProvider") {
+      fail("Custom provider config is required")
+      return
+    }
+    fail("Unsupported provider action")
   }
 
   private async handleFetchCustomProviderModels(msg: Record<string, unknown>): Promise<void> {
@@ -2409,6 +2440,16 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
     this.pending++
     const dir = this.getWorkspaceDirectory()
+    const patch =
+      partial.indexing === undefined && project.indexing === undefined
+        ? { ...partial, ...project }
+        : { ...partial, ...project, indexing: { ...(partial.indexing ?? {}), ...(project.indexing ?? {}) } }
+    const cached = (this.cachedConfigMessage as { config?: unknown } | null)?.config
+    const features = (this.cachedConfigMessage as { features?: unknown } | null)?.features
+    const optimistic = cached && typeof cached === "object" ? { ...(cached as Record<string, unknown>), ...patch } : patch
+    const global = this.cachedGlobalConfig && hasGlobal ? ({ ...this.cachedGlobalConfig, ...partial } as Config) : (this.cachedGlobalConfig ?? undefined)
+    const ack = { type: "configUpdated", config: optimistic, globalConfig: global, features: features ?? configFeatures(optimistic as Config) }
+    this.postMessage(ack)
 
     try {
       await this.connectionService.drainPendingPrompts()
@@ -2439,20 +2480,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       if (refreshProviders) await this.fetchAndSendProviders()
     } catch (error) {
       console.error("[Altru Coder New] AltruCoderProvider: Config write succeeded but post-write refresh failed:", error)
-      const patch =
-        partial.indexing === undefined && project.indexing === undefined
-          ? { ...partial, ...project }
-          : { ...partial, ...project, indexing: { ...(partial.indexing ?? {}), ...(project.indexing ?? {}) } }
-      const cached = (this.cachedConfigMessage as { config?: unknown } | null)?.config
-      const features = (this.cachedConfigMessage as { features?: unknown } | null)?.features
-      const optimistic =
-        cached && typeof cached === "object" ? { ...(cached as Record<string, unknown>), ...patch } : patch
-      this.postMessage({
-        type: "configUpdated",
-        config: optimistic,
-        globalConfig: this.cachedGlobalConfig ?? undefined,
-        features: features ?? configFeatures(optimistic as Config),
-      })
+      this.postMessage(ack)
     } finally {
       this.pending--
     }

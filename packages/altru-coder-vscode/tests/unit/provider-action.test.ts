@@ -140,4 +140,30 @@ describe("createProviderAction", () => {
     expect(seen).toEqual([])
     action.dispose()
   })
+
+  it("times out requests that never receive a terminal response", async () => {
+    const transport = createTransport()
+    const action = createProviderAction(transport, 0)
+    const seen: string[] = []
+
+    action.send(
+      {
+        type: "saveCustomProvider",
+        providerID: "myprovider",
+        config: {
+          name: "My Provider",
+          options: { baseURL: "https://example.com/v1" },
+          models: { "model-1": { name: "Model One" } },
+        },
+      },
+      {
+        onError: (message) => seen.push(`${message.providerID}:${message.message}`),
+      },
+    )
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(seen).toEqual(["myprovider:Provider action timed out"])
+    action.dispose()
+  })
 })

@@ -561,6 +561,8 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
             {(model) => (
               <ProviderLogo
                 providerID={model().providerID}
+                modelID={model().id}
+                modelName={model().name}
                 width={14}
                 height={14}
                 class="model-selector-trigger-icon"
@@ -694,6 +696,8 @@ export const ModelSelectorBase: Component<ModelSelectorBaseProps> = (props) => {
                             <div class="model-selector-item-left">
                               <ProviderLogo
                                 providerID={model.providerID}
+                                modelID={model.id}
+                                modelName={model.name}
                                 width={16}
                                 height={16}
                                 class="model-selector-provider-icon"

@@ -1,0 +1,29 @@
+import type { ProviderPreset } from './types'
+
+export const GooglePreset: ProviderPreset = {
+  id: "google",
+  name: "Google Gemini",
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+  note: "Select Gemini models from the built-in Cline registry through Google's OpenAI-compatible endpoint.",
+  fetch: false,
+  models: [
+    { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview", reasoning: true },
+    { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview", reasoning: true },
+    { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview", reasoning: true },
+    { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", reasoning: true },
+    { id: "gemini-2.5-flash-lite-preview-06-17", name: "Gemini 2.5 Flash Lite Preview 06 17", reasoning: true },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", reasoning: true },
+    { id: "gemini-2.0-flash-001", name: "Gemini 2.0 Flash 001" },
+    { id: "gemini-2.0-flash-lite-preview-02-05", name: "Gemini 2.0 Flash Lite Preview 02 05" },
+    { id: "gemini-2.0-pro-exp-02-05", name: "Gemini 2.0 Pro Exp 02 05" },
+    { id: "gemini-2.0-flash-thinking-exp-01-21", name: "Gemini 2.0 Flash Thinking Exp 01 21" },
+    { id: "gemini-2.0-flash-thinking-exp-1219", name: "Gemini 2.0 Flash Thinking Exp 1219" },
+    { id: "gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp" },
+    { id: "gemini-1.5-flash-002", name: "Gemini 1.5 Flash 002" },
+    { id: "gemini-1.5-flash-exp-0827", name: "Gemini 1.5 Flash Exp 0827" },
+    { id: "gemini-1.5-flash-8b-exp-0827", name: "Gemini 1.5 Flash 8b Exp 0827" },
+    { id: "gemini-1.5-pro-002", name: "Gemini 1.5 Pro 002" },
+    { id: "gemini-1.5-pro-exp-0827", name: "Gemini 1.5 Pro Exp 0827" },
+    { id: "gemini-exp-1206", name: "Gemini Exp 1206" },
+  ],
+}

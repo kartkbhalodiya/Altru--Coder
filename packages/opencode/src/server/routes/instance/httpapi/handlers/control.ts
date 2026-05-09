@@ -5,6 +5,7 @@ import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { RootHttpApi } from "../api"
 import { LogInput } from "../groups/control"
+import * as AltruCoderServer from "@/altrucoder/server/server" // altrucoder_change
 
 export const controlHandlers = HttpApiBuilder.group(RootHttpApi, "control", (handlers) =>
   Effect.gen(function* () {
@@ -15,11 +16,13 @@ export const controlHandlers = HttpApiBuilder.group(RootHttpApi, "control", (han
       payload: Auth.Info
     }) {
       yield* auth.set(ctx.params.providerID, ctx.payload).pipe(Effect.orDie)
+      yield* Effect.sync(() => AltruCoderServer.authChangedLater(ctx.params.providerID)) // altrucoder_change
       return true
     })
 
     const authRemove = Effect.fn("ControlHttpApi.authRemove")(function* (ctx: { params: { providerID: ProviderID } }) {
       yield* auth.remove(ctx.params.providerID).pipe(Effect.orDie)
+      yield* Effect.sync(() => AltruCoderServer.authChangedLater(ctx.params.providerID)) // altrucoder_change
       return true
     })
 

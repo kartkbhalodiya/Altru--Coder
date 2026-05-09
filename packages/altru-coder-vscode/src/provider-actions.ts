@@ -7,6 +7,7 @@ import { validateProviderID as validateProviderIDShared } from "./shared/custom-
 import {
   resolveCustomProviderAuth,
   sanitizeCustomProviderConfig,
+  type SanitizedProviderConfig,
   withCustomProviderDeletions,
 } from "./shared/custom-provider"
 import { ALTRU_CODER_AUTO, parseModelString, isCustomProviderPackage } from "./shared/provider-model"
@@ -42,6 +43,33 @@ function same(a: unknown, b: unknown): boolean {
   const bkeys = Object.keys(b).sort()
   if (akeys.length !== bkeys.length) return false
   return akeys.every((key, index) => key === bkeys[index] && same(a[key], b[key]))
+}
+
+function visibleConfig(config: Config | undefined, id: string, provider: SanitizedProviderConfig, disabled: string[]) {
+  const base = config ?? {}
+  const providers = record(base.provider) ? base.provider : {}
+  return {
+    ...base,
+    provider: { ...providers, [id]: provider },
+    disabled_providers: disabled,
+  } as Config
+}
+
+function cachedConfig(message: unknown) {
+  if (!record(message)) return undefined
+  return record(message.config) ? (message.config as Config) : undefined
+}
+
+function cachedGlobal(message: unknown) {
+  if (!record(message)) return undefined
+  return record(message.globalConfig) ? (message.globalConfig as Config) : undefined
+}
+
+function bound<T>(label: string, task: Promise<T>) {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`${label} timed out after ${SAVE_TIMEOUT_MS}ms`)), SAVE_TIMEOUT_MS),
+  )
+  return Promise.race([task, timeout])
 }
 
 /** Fetch auth methods alongside the provider list. Auth states default to empty (endpoint not yet available). */
@@ -147,6 +175,7 @@ type PostMessage = (message: unknown) => void
 type GetErrorMessage = (error: unknown) => string
 type SetCachedConfig = (msg: unknown) => void
 type AuthMetadata = Record<string, string>
+const SAVE_TIMEOUT_MS = 10_000
 
 interface ActionContext {
   client: AltruCoderClient
@@ -165,6 +194,17 @@ function postError(
   message: string,
 ) {
   ctx.postMessage({ type: "providerActionError", requestId, providerID, action, message })
+}
+
+function reload(ctx: ActionContext, reason: string) {
+  setTimeout(() => {
+    void (async () => {
+      await ctx.disposeGlobal(reason)
+      await ctx.fetchAndSendProviders()
+    })().catch((error) => {
+      console.warn(`[Altru Coder New] provider refresh failed after ${reason}:`, error)
+    })
+  }, 0)
 }
 
 function validateID(
@@ -266,9 +306,8 @@ export async function connectProvider(
     const meta = cleanMetadata(metadata)
     const auth = meta ? { type: "api" as const, key: apiKey, metadata: meta } : { type: "api" as const, key: apiKey }
     await ctx.client.auth.set({ providerID: id, auth }, { throwOnError: true })
-    await ctx.disposeGlobal(`provider connect (${id})`)
-    await ctx.fetchAndSendProviders()
     ctx.postMessage({ type: "providerConnected", requestId, providerID: id })
+    reload(ctx, `provider connect (${id})`)
   } catch (error) {
     postError(ctx, requestId, providerID, "connect", ctx.getErrorMessage(error) || "Failed to connect provider")
   }
@@ -317,9 +356,8 @@ export async function completeProviderOAuth(
       { providerID: id, method, code, directory: ctx.workspaceDir },
       { throwOnError: true },
     )
-    await ctx.disposeGlobal(`provider oauth (${id})`)
-    await ctx.fetchAndSendProviders()
     ctx.postMessage({ type: "providerConnected", requestId, providerID: id })
+    reload(ctx, `provider oauth (${id})`)
   } catch (error) {
     postError(
       ctx,
@@ -402,50 +440,61 @@ export async function saveCustomProvider(
     return
   }
 
-  const refresh = async () => {
-    await ctx.disposeGlobal(`custom provider save (${id})`)
-    await ctx.fetchAndSendProviders()
-  }
-
   try {
-    const globalConfig = (await ctx.client.global.config.get({ throwOnError: true })).data ?? {}
-    const disabled = globalConfig.disabled_providers ?? []
+    console.log(`[Altru Coder New] saveCustomProvider(${id}) start`)
+    const cached = cachedGlobal(cachedConfigMessage)
+    const optimistic = cached ?? {}
+    const disabled = optimistic.disabled_providers ?? []
     const nextDisabled = disabled.filter((item: string) => item !== id)
-    const existing = (globalConfig.provider as Record<string, unknown> | undefined)?.[id]
+    const existing = (optimistic.provider as Record<string, unknown> | undefined)?.[id]
     const patch = withCustomProviderDeletions(existing, sanitized.value)
-    const { data: updated } = await ctx.client.global.config.update(
-      {
-        config: {
-          provider: { [id]: patch },
-          disabled_providers: nextDisabled,
-        },
-      },
-      { throwOnError: true },
-    )
-
-    const merged = await ctx.client.config.get({ directory: ctx.workspaceDir }, { throwOnError: true })
-    const config = merged.data ?? updated
-    const msg = { type: "configLoaded", config, globalConfig: updated, features: configFeatures(config) }
+    const globalNext = visibleConfig(optimistic, id, sanitized.value, nextDisabled)
+    const config = visibleConfig(cachedConfig(cachedConfigMessage) ?? globalNext, id, sanitized.value, nextDisabled)
+    const features = configFeatures(config)
+    const msg = { type: "configLoaded", config, globalConfig: globalNext, features }
     setCachedConfig(msg)
-    ctx.postMessage({ type: "configUpdated", config, globalConfig: updated, features: configFeatures(config) })
+    ctx.postMessage({ type: "providerConnected", requestId, providerID: id })
+    ctx.postMessage({ type: "configUpdated", config, globalConfig: globalNext, features })
+    console.log(`[Altru Coder New] saveCustomProvider(${id}) acknowledged`)
+
+    const globalConfig =
+      cached ?? ((await bound("custom provider global config read", ctx.client.global.config.get({ throwOnError: true }))).data ?? {})
+    const disabledSaved = globalConfig.disabled_providers ?? []
+    const existingSaved = (globalConfig.provider as Record<string, unknown> | undefined)?.[id]
+    const saved = withCustomProviderDeletions(existingSaved, sanitized.value)
+    await bound(
+      `custom provider config save (${id})`,
+      ctx.client.global.config.update(
+        {
+          config: {
+            provider: { [id]: saved },
+            disabled_providers: disabledSaved.filter((item: string) => item !== id),
+          },
+        },
+        { throwOnError: true },
+      ),
+    )
+    console.log(`[Altru Coder New] saveCustomProvider(${id}) config saved`)
 
     const auth = resolveCustomProviderAuth(apiKey, apiKeyChanged)
 
     try {
       if (auth.mode === "set") {
-        await ctx.client.auth.set({ providerID: id, auth: { type: "api", key: auth.key } }, { throwOnError: true })
+        await bound(
+          `custom provider auth save (${id})`,
+          ctx.client.auth.set({ providerID: id, auth: { type: "api", key: auth.key } }, { throwOnError: true }),
+        )
       }
       if (auth.mode === "clear") {
-        await ctx.client.auth.remove({ providerID: id }, { throwOnError: true })
+        await bound(`custom provider auth clear (${id})`, ctx.client.auth.remove({ providerID: id }, { throwOnError: true }))
       }
     } catch (error) {
-      await refresh()
-      postError(ctx, requestId, providerID, "connect", ctx.getErrorMessage(error) || "Failed to save custom provider")
+      console.warn(`[Altru Coder New] saveCustomProvider(${id}) auth save failed after ack:`, error)
+      reload(ctx, `custom provider save (${id})`)
       return
     }
-
-    await refresh()
-    ctx.postMessage({ type: "providerConnected", requestId, providerID: id })
+    console.log(`[Altru Coder New] saveCustomProvider(${id}) auth saved`)
+    reload(ctx, `custom provider save (${id})`)
   } catch (error) {
     postError(ctx, requestId, providerID, "connect", ctx.getErrorMessage(error) || "Failed to save custom provider")
   }

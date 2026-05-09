@@ -33,7 +33,7 @@ export function stripSubProviderPrefix(name: string): string {
   const colon = name.indexOf(": ")
   if (colon < 0) return name
   const prefix = name.slice(0, colon)
-  if (prefix.toLowerCase() === ALTRU_CODER_GATEWAY_ID) return name
+  if (prefix.toLowerCase().replace(/\s+/g, "-") === ALTRU_CODER_GATEWAY_ID) return name
   return name.slice(colon + 2)
 }
 

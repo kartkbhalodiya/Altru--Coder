@@ -10,7 +10,9 @@ import { ProviderLogo } from "../shared/ProviderLogo"
 import { CUSTOM_PROVIDER_ID, isPopularProvider, altruFallbackProvider, popularProviderIndex } from "./provider-catalog"
 import CustomProviderDialog from "./CustomProviderDialog"
 import { ALTRU_CODER_PROVIDER_ID } from "../../../../src/shared/provider-model"
+import { NVIDIA_NIM_PROVIDER_ID } from "../../../../src/shared/nvidia-nim"
 import { PROVIDER_PRESETS, type ProviderPreset } from "./provider-presets"
+import NvidiaNimDialog from "./NvidiaNimDialog"
 
 type ProviderItem = {
   id: string
@@ -85,6 +87,10 @@ const ProviderSelectDialog = () => {
     }
 
     if (item.preset) {
+      if (item.id === NVIDIA_NIM_PROVIDER_ID) {
+        dialog.show(() => <NvidiaNimDialog onBack={() => dialog.show(() => <ProviderSelectDialog />)} />)
+        return
+      }
       dialog.show(() => (
         <CustomProviderDialog preset={item.preset} onBack={() => dialog.show(() => <ProviderSelectDialog />)} />
       ))

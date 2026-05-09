@@ -38,8 +38,8 @@ describe("disabledProviderOptions", () => {
     )
 
     expect(options).toEqual([
-      { value: "anthropic", label: "Anthropic" },
       { value: "altru-coder", label: "Altru Coder Gateway" },
+      { value: "anthropic", label: "Anthropic" },
     ])
   })
 

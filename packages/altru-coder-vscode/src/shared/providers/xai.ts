@@ -1,0 +1,32 @@
+import type { ProviderPreset } from './types'
+
+export const XaiPreset: ProviderPreset = {
+  id: "xai",
+  name: "xAI",
+  baseURL: "https://api.x.ai/v1",
+  note: "Select Grok models from the built-in Cline registry.",
+  fetch: false,
+  models: [
+    { id: "grok-4-1-fast-reasoning", name: "Grok 4 1 Fast Reasoning" },
+    { id: "grok-4-1-fast-non-reasoning", name: "Grok 4 1 Fast Non Reasoning" },
+    { id: "grok-code-fast-1", name: "Grok Code Fast 1" },
+    { id: "grok-4-fast-reasoning", name: "Grok 4 Fast Reasoning" },
+    { id: "grok-4", name: "Grok 4" },
+    { id: "grok-3-beta", name: "Grok 3 Beta" },
+    { id: "grok-3-fast-beta", name: "Grok 3 Fast Beta" },
+    { id: "grok-3-mini-beta", name: "Grok 3 Mini Beta" },
+    { id: "grok-3-mini-fast-beta", name: "Grok 3 Mini Fast Beta" },
+    { id: "grok-3", name: "Grok 3" },
+    { id: "grok-3-fast", name: "Grok 3 Fast" },
+    { id: "grok-3-mini", name: "Grok 3 Mini" },
+    { id: "grok-3-mini-fast", name: "Grok 3 Mini Fast" },
+    { id: "grok-2-latest", name: "Grok 2 Latest" },
+    { id: "grok-2", name: "Grok 2" },
+    { id: "grok-2-1212", name: "Grok 2 1212" },
+    { id: "grok-2-vision-latest", name: "Grok 2 Vision Latest" },
+    { id: "grok-2-vision", name: "Grok 2 Vision" },
+    { id: "grok-2-vision-1212", name: "Grok 2 Vision 1212" },
+    { id: "grok-vision-beta", name: "Grok Vision Beta" },
+    { id: "grok-beta", name: "Grok Beta" },
+  ],
+}
