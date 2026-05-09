@@ -43,13 +43,58 @@ function fuzzy(query: string, target: string) {
   return qi === q.length
 }
 
-type FetchedModel = { id: string; name: string }
+type FetchedModel = { id: string; name: string; reasoning?: boolean; variants?: Record<string, Record<string, unknown>> }
 type PresetOption = { id: string; name: string; fetch?: boolean }
 type T = (key: string, args?: Record<string, string>) => string
 type Existing = {
   providerID: string
   name: string
   config: ProviderConfig
+}
+
+function record(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value)
+}
+
+function thinking(value: unknown): ThinkingTypeValue {
+  if (!record(value)) return undefined
+  return value.type === "enabled" || value.type === "disabled" ? value.type : undefined
+}
+
+function chatArgs(value: unknown): ChatTemplateArgsValue {
+  if (!record(value)) return undefined
+  return typeof value.enable_thinking === "boolean" ? value.enable_thinking : undefined
+}
+
+function effort(value: unknown): ReasoningEffortValue {
+  if (
+    value === "none" ||
+    value === "minimal" ||
+    value === "low" ||
+    value === "medium" ||
+    value === "high" ||
+    value === "xhigh"
+  )
+    return value
+  return undefined
+}
+
+function variant(name: string, cfg: Record<string, unknown>): VariantEntry {
+  return {
+    name,
+    enableThinking: typeof cfg.enable_thinking === "boolean" ? cfg.enable_thinking : undefined,
+    thinking: thinking(cfg.thinking),
+    reasoningEffort: effort(cfg.reasoningEffort),
+    chatTemplateArgs: chatArgs(cfg.chat_template_args),
+    extra: { ...cfg },
+  }
+}
+
+function variants(raw: unknown): VariantEntry[] {
+  if (!record(raw)) return []
+  return Object.entries(raw)
+    .filter((entry): entry is [string, Record<string, unknown>] => record(entry[1]))
+    .map(([name, cfg]) => variant(name, cfg))
 }
 
 function blank(): ModelEntry {
@@ -70,7 +115,7 @@ function copy(m: ModelEntry): ModelEntry {
     id: m.id,
     name: m.name,
     reasoning: m.reasoning,
-    variants: m.variants.map((v) => ({ ...v })),
+    variants: m.variants.map((v) => ({ ...v, extra: v.extra ? { ...v.extra } : undefined })),
   }
 }
 
@@ -79,7 +124,7 @@ function option(m: ModelEntry): PresetOption {
 }
 
 function fetched(m: FetchedModel): ModelEntry {
-  return { id: m.id, name: m.name, reasoning: false, variants: [] }
+  return { id: m.id, name: m.name, reasoning: m.reasoning === true, variants: variants(m.variants) }
 }
 
 function suggestions(preset: ProviderPreset | undefined) {
@@ -194,25 +239,11 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     if (entries.length === 0) return [blank()]
     return entries.map(([id, m]) => {
       const raw = m as { name?: string; reasoning?: boolean; variants?: Record<string, Record<string, unknown>> }
-      const variants: VariantEntry[] = Object.entries(raw?.variants ?? {}).map(([vname, vcfg]) => ({
-        name: vname,
-        enableThinking: typeof vcfg.enable_thinking === "boolean" ? (vcfg.enable_thinking as boolean) : undefined,
-        thinking:
-          typeof vcfg.thinking === "object" && vcfg.thinking !== null
-            ? ((vcfg.thinking as { type?: string }).type as ThinkingTypeValue)
-            : undefined,
-        reasoningEffort:
-          typeof vcfg.reasoningEffort === "string" ? (vcfg.reasoningEffort as ReasoningEffortValue) : undefined,
-        chatTemplateArgs:
-          typeof vcfg.chat_template_args === "object" && vcfg.chat_template_args !== null
-            ? ((vcfg.chat_template_args as { enable_thinking?: boolean }).enable_thinking as ChatTemplateArgsValue)
-            : undefined,
-      }))
       return {
         id,
         name: raw?.name ?? id,
         reasoning: raw?.reasoning ?? false,
-        variants,
+        variants: variants(raw?.variants),
       }
     })
   }
@@ -483,7 +514,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     return {
       ...item,
       name: preset?.name ?? item.name,
-      reasoning: preset?.reasoning ?? item.reasoning,
+      reasoning: preset?.reasoning === true || item.reasoning,
     }
   }
 
@@ -526,6 +557,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
       thinking: undefined,
       reasoningEffort: undefined,
       chatTemplateArgs: undefined,
+      extra: undefined,
     }
     setForm("models", mi, "variants", (v) => [...v, blank])
     setErrors("models", mi, "variants", (v) => [...(v ?? []), {}])

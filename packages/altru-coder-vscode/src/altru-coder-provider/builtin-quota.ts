@@ -56,7 +56,7 @@ function total(tokens: unknown): number {
 }
 
 function view(state: State): BuiltinQuotaSnapshot {
-  const used = Math.min(ALTRU_CODER_BUILTIN_TOKEN_LIMIT, Math.floor(state.used))
+  const used = Math.floor(state.used)
   const started = state.started > 0 ? state.started : Date.now()
   return {
     limit: ALTRU_CODER_BUILTIN_TOKEN_LIMIT,
@@ -115,6 +115,7 @@ export class BuiltinQuota {
 
   async canSend(providerID: string | undefined, modelID: string | undefined): Promise<boolean> {
     if (!isAltruCoderBuiltinModel(providerID, modelID)) return true
+    if (ALTRU_CODER_BUILTIN_TOKEN_LIMIT >= Number.MAX_SAFE_INTEGER / 2) return true
     const current = await this.snapshot()
     return current.remaining > 0
   }

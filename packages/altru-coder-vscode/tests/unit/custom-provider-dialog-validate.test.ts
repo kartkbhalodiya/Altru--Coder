@@ -156,4 +156,28 @@ describe("validateCustomProvider – variant name validation", () => {
     const saved = out.result!.config.models["model-1"] as Record<string, unknown>
     expect(saved.variants).toEqual({ eco: { enable_thinking: true, reasoningEffort: "low" } })
   })
+
+  it("preserves auto-fetched provider-specific variant extras", () => {
+    const form = base()
+    form.models[0].reasoning = true
+    form.models[0].variants = [
+      {
+        name: "xhigh",
+        enableThinking: undefined,
+        thinking: undefined,
+        reasoningEffort: "xhigh",
+        chatTemplateArgs: undefined,
+        extra: { chat_template_kwargs: { enable_thinking: true } },
+      },
+    ]
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeDefined()
+    const saved = out.result!.config.models["model-1"] as Record<string, unknown>
+    expect(saved.variants).toEqual({
+      xhigh: {
+        chat_template_kwargs: { enable_thinking: true },
+        reasoningEffort: "xhigh",
+      },
+    })
+  })
 })

@@ -19,6 +19,7 @@ export type VariantEntry = {
   thinking: ThinkingTypeValue
   reasoningEffort: ReasoningEffortValue
   chatTemplateArgs: ChatTemplateArgsValue
+  extra?: Record<string, unknown>
 }
 
 export type ModelEntry = {

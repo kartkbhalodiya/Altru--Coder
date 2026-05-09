@@ -24,9 +24,6 @@
   <!-- packages/altru-coder-vscode/webview-ui/src/components/settings/AboutAltruCoderTab.tsx -->
 - <https://altrucoder.vercel.app/blog.html>
   <!-- packages/altru-coder-vscode/webview-ui/src/components/migration/MigrationWizard.tsx -->
-- <https://altrucoder.vercel.app/login.html>
-  <!-- packages/altru-coder-vscode/webview-ui/altru-coder-claw/components/SetupView.tsx -->
-  <!-- packages/altru-coder-vscode/webview-ui/altru-coder-claw/components/UpgradeView.tsx -->
 - <https://altrucoder.vercel.app/config.json>
   <!-- packages/altru-coder-vscode/src/altru-coder-provider/config-file.ts -->
 - <https://altrucoder.vercel.app/docs.html>
@@ -34,6 +31,9 @@
   <!-- packages/altru-coder-vscode/webview-ui/src/components/migration/MigrationWizard.tsx -->
   <!-- packages/altru-coder-vscode/webview-ui/src/components/settings/CustomProviderDialog.tsx -->
   <!-- packages/altru-coder-vscode/webview-ui/src/hooks/useSlashCommand.ts -->
+- <https://altrucoder.vercel.app/login.html>
+  <!-- packages/altru-coder-vscode/webview-ui/altru-coder-claw/components/SetupView.tsx -->
+  <!-- packages/altru-coder-vscode/webview-ui/altru-coder-claw/components/UpgradeView.tsx -->
 - <https://altrucoder.vercel.app/settings.html>
   <!-- packages/altru-coder-vscode/src/services/autocomplete/AutocompleteServiceManager.ts -->
 - <https://api.altru-coder.ai>

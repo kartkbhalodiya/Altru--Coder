@@ -1,25 +1,69 @@
 export const ALTRU_CODER_PROVIDER_ID = "altru-coder"
 export const ALTRU_CODER_AUTO = { providerID: ALTRU_CODER_PROVIDER_ID, modelID: "altru-coder-auto/free" } as const
-export const ALTRU_CODER_BUILTIN_TOKEN_LIMIT = 200_000
+export const ALTRU_CODER_BUILTIN_TOKEN_LIMIT = Number.MAX_SAFE_INTEGER
 export const ALTRU_CODER_BUILTIN_TOKEN_WINDOW_MS = 48 * 60 * 60 * 1000
+const context = 1_000_000
+const reasoning = Object.fromEntries(
+  ["low", "medium", "high", "xhigh"].map((effort) => [effort, { reasoning: { effort } }]),
+)
+
 export const ALTRU_CODER_BUILTIN_MODELS = [
   {
     providerID: ALTRU_CODER_PROVIDER_ID,
     modelID: "altru-coder-auto/free",
     name: "Altru Coder Auto Free",
-    context: 204_800,
-    output: 131_072,
-    reasoning: true,
+    context,
+    output: 128_000,
+    reasoning: false,
     recommendedIndex: 1,
   },
   {
     providerID: ALTRU_CODER_PROVIDER_ID,
+    modelID: "altru-coder/big-pickle-free",
+    name: "Altru Coder Big Pickle Free",
+    context,
+    output: 128_000,
+    reasoning: false,
+    recommendedIndex: 2,
+  },
+  {
+    providerID: ALTRU_CODER_PROVIDER_ID,
+    modelID: "altru-coder/hy3-preview-free",
+    name: "Altru Coder Hy3 Preview Free",
+    context,
+    output: 64_000,
+    reasoning: false,
+    recommendedIndex: 3,
+  },
+  {
+    providerID: ALTRU_CODER_PROVIDER_ID,
+    modelID: "altru-coder/minimax-m2.5-free",
+    name: "Altru Coder MiniMax M2.5 Free",
+    context,
+    output: 131_072,
+    reasoning: true,
+    variants: reasoning,
+    recommendedIndex: 4,
+  },
+  {
+    providerID: ALTRU_CODER_PROVIDER_ID,
+    modelID: "altru-coder/nemotron-3-super-free",
+    name: "Altru Coder Nemotron 3 Super Free",
+    context,
+    output: 128_000,
+    reasoning: true,
+    variants: reasoning,
+    recommendedIndex: 5,
+  },
+  {
+    providerID: ALTRU_CODER_PROVIDER_ID,
     modelID: "openai/gpt-oss-120b",
-    name: "GPT OSS 120B",
+    name: "Altru Coder GPT OSS 120B",
     context: 131_072,
     output: 26_215,
     reasoning: true,
-    recommendedIndex: 2,
+    variants: reasoning,
+    recommendedIndex: 6,
   },
 ] as const
 export const CUSTOM_PROVIDER_PACKAGE = "@ai-sdk/openai-compatible"
@@ -88,6 +132,7 @@ export function createAltruCoderBuiltinProvider() {
           recommendedIndex: model.recommendedIndex,
           limit: { context: model.context, output: model.output },
           capabilities: { reasoning: model.reasoning },
+          ...(model.reasoning ? { variants: model.variants } : {}),
         },
       ]),
     ),

@@ -19,6 +19,7 @@ export const AltruBuiltinQuotaIndicator: Component<{ sessionID?: Accessor<string
     const selection = session.selected(props.sessionID?.())
     const quota = session.altruBuiltinQuota()
     if (!selection || !quota || !isAltruCoderBuiltinModel(selection.providerID, selection.modelID)) return undefined
+    if (quota.limit >= Number.MAX_SAFE_INTEGER / 2) return undefined
 
     const pct = quota.limit > 0 ? Math.min(100, Math.round((quota.used / quota.limit) * 100)) : 0
     const reset = new Date(quota.resetAt).toLocaleString(language.locale())

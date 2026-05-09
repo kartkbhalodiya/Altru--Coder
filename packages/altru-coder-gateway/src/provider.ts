@@ -17,6 +17,87 @@ import {
 } from "./api/constants.js"
 import { resolveAltruCoderOpenRouterBaseUrl } from "./api/url.js"
 
+const REASONING_KEYS = new Set([
+  "reasoning",
+  "reasoning_content",
+  "reasoning_details",
+  "reasoning_text",
+  "reasoning_tokens",
+])
+
+function clean(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value
+  if (Array.isArray(value)) return value.map(clean)
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !REASONING_KEYS.has(key))
+      .map(([key, item]) => [key, clean(item)]),
+  )
+}
+
+function headers(source: Headers) {
+  const next = new Headers(source)
+  next.delete("content-length")
+  return next
+}
+
+function line(value: string) {
+  if (!value.startsWith("data:")) return value
+  const raw = value.slice(5).trim()
+  if (!raw || raw === "[DONE]") return value
+  try {
+    return `data: ${JSON.stringify(clean(JSON.parse(raw)))}`
+  } catch {
+    return value
+  }
+}
+
+async function strip(response: Response) {
+  const type = response.headers.get("content-type") ?? ""
+  if (type.includes("text/event-stream") && response.body) {
+    const decoder = new TextDecoder()
+    const encoder = new TextEncoder()
+    let buffer = ""
+    const stream = response.body.pipeThrough(
+      new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          buffer += decoder.decode(chunk, { stream: true })
+          const rows = buffer.split(/\r?\n/)
+          buffer = rows.pop() ?? ""
+          for (const row of rows) {
+            controller.enqueue(encoder.encode(`${line(row)}\n`))
+          }
+        },
+        flush(controller) {
+          buffer += decoder.decode()
+          if (buffer) controller.enqueue(encoder.encode(line(buffer)))
+        },
+      }),
+    )
+    return new Response(stream, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: headers(response.headers),
+    })
+  }
+
+  if (!type.includes("application/json")) return response
+  const raw = await response.text()
+  try {
+    return new Response(JSON.stringify(clean(JSON.parse(raw))), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: headers(response.headers),
+    })
+  } catch {
+    return new Response(raw, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: headers(response.headers),
+    })
+  }
+}
+
 /**
  * Create a AltruCoder provider instance
  *
@@ -69,6 +150,17 @@ export function createAltruCoder(options: AltruCoderProviderOptions = {}): Altru
       headers,
     })
   }
+  const bearerFetch = (key: string | undefined, scrub = false) => {
+    return async (input: string | URL | Request, init?: RequestInit) => {
+      const headers = new Headers(init?.headers)
+      if (key) headers.set("Authorization", `Bearer ${key}`)
+      const response = await originalFetch(input, {
+        ...init,
+        headers,
+      })
+      return scrub ? strip(response) : response
+    }
+  }
 
   const sdkOptions = {
     baseURL: openRouterUrl,
@@ -83,24 +175,32 @@ export function createAltruCoder(options: AltruCoderProviderOptions = {}): Altru
   const openai = createOpenAI(sdkOptions)
   const openaiCompatible = createOpenAICompatible({ ...sdkOptions, name: "openaiCompatible" })
   const nvidiaKey = options.nvidiaApiKey ?? process.env[ENV_NVIDIA_API_KEY]
+  const nvidiaFetch = bearerFetch(nvidiaKey, true)
+  const publicFetch = bearerFetch(OPENCODE_ZEN_PUBLIC_API_KEY, true)
   const nvidia = createOpenAICompatible({
     baseURL: NVIDIA_NIM_BASE,
     apiKey: nvidiaKey,
     name: "openaiCompatible",
-    fetch: originalFetch as typeof fetch,
+    fetch: nvidiaFetch as typeof fetch,
+    transformRequestBody(body) {
+      return { ...body, reasoning: { exclude: true } }
+    },
   })
   const opencode = createOpenAICompatible({
     baseURL: OPENCODE_ZEN_PUBLIC_BASE,
     apiKey: OPENCODE_ZEN_PUBLIC_API_KEY,
     name: "openaiCompatible",
-    fetch: originalFetch as typeof fetch,
+    fetch: publicFetch as typeof fetch,
+    transformRequestBody(body) {
+      return { ...body, reasoning: { exclude: true } }
+    },
   })
 
   return {
     languageModel(modelId) {
       const publicId = OPENCODE_ZEN_PUBLIC_MODEL_MAP[modelId as keyof typeof OPENCODE_ZEN_PUBLIC_MODEL_MAP]
       if (publicId) return opencode(publicId)
-      if (modelId === NVIDIA_NIM_GPT_OSS_120B_MODEL) return nvidia(modelId)
+      if (modelId === NVIDIA_NIM_GPT_OSS_120B_MODEL && nvidiaKey) return nvidia(modelId)
       return openrouter(modelId)
     },
     embeddingModel(modelId: string) {

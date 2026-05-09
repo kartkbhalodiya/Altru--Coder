@@ -55,6 +55,11 @@ type ValidateResult = {
 }
 
 const PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
+
+function record(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value)
+}
+
 function checkVariant(v: VariantEntry, seen: Set<string>, t: Translator) {
   const n = v.name.trim()
   if (!n) return { name: t("provider.custom.error.required") }
@@ -111,11 +116,17 @@ function checkProviderID(
 }
 
 function serializeVariant(v: VariantEntry): [string, Record<string, unknown>] {
-  const cfg: Record<string, unknown> = {}
+  const cfg: Record<string, unknown> = { ...(v.extra ?? {}) }
   if (v.enableThinking !== undefined) cfg.enable_thinking = v.enableThinking
-  if (v.thinking !== undefined) cfg.thinking = { type: v.thinking }
+  if (v.thinking !== undefined) {
+    const prev = record(cfg.thinking) ? cfg.thinking : {}
+    cfg.thinking = { ...prev, type: v.thinking }
+  }
   if (v.reasoningEffort !== undefined) cfg.reasoningEffort = v.reasoningEffort
-  if (v.chatTemplateArgs !== undefined) cfg.chat_template_args = { enable_thinking: v.chatTemplateArgs }
+  if (v.chatTemplateArgs !== undefined) {
+    const prev = record(cfg.chat_template_args) ? cfg.chat_template_args : {}
+    cfg.chat_template_args = { ...prev, enable_thinking: v.chatTemplateArgs }
+  }
   return [v.name.trim(), cfg]
 }
 

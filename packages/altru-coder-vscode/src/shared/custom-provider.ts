@@ -18,10 +18,10 @@ export const EnvSchema = z
 
 const VariantConfigSchema = z.object({
   enable_thinking: z.boolean().optional(),
-  thinking: z.object({ type: z.enum(["enabled", "disabled"]) }).optional(),
-  reasoningEffort: z.enum(["none", "minimal", "low", "medium", "high"]).optional(),
-  chat_template_args: z.object({ enable_thinking: z.boolean() }).optional(),
-})
+  thinking: z.object({ type: z.enum(["enabled", "disabled", "adaptive"]).optional() }).passthrough().optional(),
+  reasoningEffort: z.enum(["none", "minimal", "low", "medium", "high", "xhigh"]).optional(),
+  chat_template_args: z.object({ enable_thinking: z.boolean().optional() }).passthrough().optional(),
+}).passthrough()
 
 export type VariantConfig = z.infer<typeof VariantConfigSchema>
 

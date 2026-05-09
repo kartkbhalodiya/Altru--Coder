@@ -319,7 +319,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     const quota = await this.quota.snapshot()
     const reset = new Date(quota.resetAt).toLocaleString()
     this.postMessage({ type: "altruBuiltinQuotaLoaded", quota })
-    return `Altru built-in model token limit reached. The 200K token quota refreshes ${reset}.`
+    return `Altru built-in model token limit reached. The quota refreshes ${reset}.`
   }
 
   private focusSession(id?: string): void {

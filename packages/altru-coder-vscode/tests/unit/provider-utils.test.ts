@@ -6,7 +6,11 @@ import {
   localProviders,
   mergeLocalProviders,
 } from "../../webview-ui/src/context/provider-utils"
-import { ANTHROPIC_PROVIDER_PACKAGE, CUSTOM_PROVIDER_PACKAGE } from "../../src/shared/provider-model"
+import {
+  ALTRU_CODER_BUILTIN_MODELS,
+  ANTHROPIC_PROVIDER_PACKAGE,
+  CUSTOM_PROVIDER_PACKAGE,
+} from "../../src/shared/provider-model"
 import type { Provider } from "../../webview-ui/src/types/messages"
 
 function makeProvider(id: string, name: string, modelIds: string[]): Provider {
@@ -107,6 +111,20 @@ describe("isModelValid", () => {
   it("accepts the local GPT OSS built-in model", () => {
     const local = localProviders(undefined)
     expect(isModelValid(local, [], { providerID: "altru-coder", modelID: "openai/gpt-oss-120b" })).toBe(true)
+  })
+
+  it("exposes local Altru built-in reasoning metadata", () => {
+    const local = localProviders(undefined)
+    const models = local["altru-coder"]?.models ?? {}
+    for (const item of ALTRU_CODER_BUILTIN_MODELS) {
+      expect(models[item.modelID]).toBeDefined()
+      expect(models[item.modelID]?.name).toBe(item.name)
+      expect(models[item.modelID]?.isFree).toBe(true)
+      expect(models[item.modelID]?.capabilities?.reasoning).toBe(item.reasoning)
+      if (item.reasoning) {
+        expect(Object.keys(models[item.modelID]?.variants ?? {})).toEqual(["low", "medium", "high", "xhigh"])
+      }
+    }
   })
 
   it("rejects unknown models", () => {

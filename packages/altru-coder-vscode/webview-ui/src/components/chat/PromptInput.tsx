@@ -333,6 +333,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const selection = session.selected(sid())
     const quota = session.altruBuiltinQuota()
     if (!selection || !quota || !isAltruCoderBuiltinModel(selection.providerID, selection.modelID)) return false
+    if (quota.limit >= Number.MAX_SAFE_INTEGER / 2) return false
     return quota.remaining <= 0
   }
   const canSend = () =>

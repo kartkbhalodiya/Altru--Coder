@@ -61,7 +61,7 @@ export const OPENCODE_ZEN_PUBLIC_MODEL_MAP = {
 export const ALTRU_CODER_FREE_RESET_MS = 48 * 60 * 60 * 1000
 
 /** Free tier token budget per reset window */
-export const ALTRU_CODER_FREE_TOKEN_LIMIT = 200_000
+export const ALTRU_CODER_FREE_TOKEN_LIMIT = Number.MAX_SAFE_INTEGER
 
 /** Target context window for the default free auto model */
 export const ALTRU_CODER_FREE_CONTEXT_WINDOW = 1_000_000

@@ -16,6 +16,11 @@ import { useSession } from "../../context/session"
 // Reusable base component
 // ---------------------------------------------------------------------------
 
+function name(value: string) {
+  if (value === "xhigh") return "Extra High"
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
 export interface ThinkingSelectorBaseProps {
   /** Available variant names (e.g. ["low","medium","high"]) */
   variants: string[]
@@ -103,7 +108,7 @@ export const ThinkingSelectorBase: Component<ThinkingSelectorBaseProps> = (props
 
   const label = () => {
     const v = props.value
-    return v ? v.charAt(0).toUpperCase() + v.slice(1) : ""
+    return v ? name(v) : ""
   }
 
   return (
@@ -145,7 +150,7 @@ export const ThinkingSelectorBase: Component<ThinkingSelectorBaseProps> = (props
                   onClick={() => pick(v)}
                   onFocus={() => setFocused(i())}
                 >
-                  <span class="thinking-selector-item-name">{v.charAt(0).toUpperCase() + v.slice(1)}</span>
+                  <span class="thinking-selector-item-name">{name(v)}</span>
                 </div>
               )}
             </For>
