@@ -85,9 +85,6 @@ import { dict as altruUk } from "../../../altru-coder-i18n/src/uk"
 
 // Layer 4: agent manager (locale alignment already tested in agent-manager-i18n-split.test.ts)
 import { dict as amEn } from "../../webview-ui/agent-manager/i18n/en"
-import { dict as amTr } from "../../webview-ui/agent-manager/i18n/tr"
-import { dict as amNl } from "../../webview-ui/agent-manager/i18n/nl"
-import { dict as amUk } from "../../webview-ui/agent-manager/i18n/uk"
 
 // ── Extension-side dictionaries ─────────────────────────────────────────────
 
