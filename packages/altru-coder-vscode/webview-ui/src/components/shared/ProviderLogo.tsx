@@ -1,7 +1,7 @@
-import type { Component } from "solid-js"
+import { Show, type Component } from "solid-js"
 import { ProviderIcon } from "@altru-coder/altru-coder-ui/provider-icon"
 import { ALTRU_CODER_PROVIDER_ID } from "../../../../src/shared/provider-model"
-import { providerIcon } from "../settings/provider-catalog"
+import { providerIcon, providerLogoID } from "../settings/provider-catalog"
 
 const ASSETS: Record<string, string> = {
   "alibaba-cn": "alibaba-cn.png",
@@ -46,10 +46,13 @@ const ASSETS: Record<string, string> = {
   venice: "venice.png",
   xai: "xAI.png",
   zai: "zai.svg",
+  "zai-cn": "zai.svg",
 }
 
 interface ProviderLogoProps {
   providerID: string
+  modelID?: string
+  modelName?: string
   width?: number
   height?: number
   class?: string
@@ -62,12 +65,36 @@ export const ProviderLogo: Component<ProviderLogoProps> = (props) => {
   const height = () => props.height ?? width()
   const slot = () => props["data-slot"]
   const icons = () => (window as { ICONS_BASE_URI?: string }).ICONS_BASE_URI || ""
+  const id = () => providerLogoID(props.providerID, props.modelID, props.modelName)
+  const asset = () => ASSETS[id()]
 
-  if (props.providerID === ALTRU_CODER_PROVIDER_ID) {
-    return (
+  return (
+    <Show
+      when={id() === ALTRU_CODER_PROVIDER_ID}
+      fallback={
+        <Show
+          when={asset()}
+          fallback={<ProviderIcon id={providerIcon(id())} width={width()} height={height()} class={props.class} />}
+        >
+          {(file) => (
+            <img
+              data-component="provider-logo"
+              data-provider={id()}
+              data-slot={slot()}
+              class={props.class}
+              src={`${icons()}/provider-logos/${file()}`}
+              alt=""
+              width={width()}
+              height={height()}
+              title={props.title}
+            />
+          )}
+        </Show>
+      }
+    >
       <img
         data-component="provider-logo"
-        data-provider={props.providerID}
+        data-provider={id()}
         data-slot={slot()}
         class={props.class}
         src={`${icons()}/altru-logo.png`}
@@ -76,32 +103,6 @@ export const ProviderLogo: Component<ProviderLogoProps> = (props) => {
         height={height()}
         title={props.title}
       />
-    )
-  }
-
-  const asset = ASSETS[props.providerID]
-  if (asset) {
-    return (
-      <img
-        data-component="provider-logo"
-        data-provider={props.providerID}
-        data-slot={slot()}
-        class={props.class}
-        src={`${icons()}/provider-logos/${asset}`}
-        alt=""
-        width={width()}
-        height={height()}
-        title={props.title}
-      />
-    )
-  }
-
-  return (
-    <ProviderIcon
-      id={providerIcon(props.providerID)}
-      width={width()}
-      height={height()}
-      class={props.class}
-    />
+    </Show>
   )
 }

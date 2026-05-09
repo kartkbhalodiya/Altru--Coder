@@ -206,7 +206,7 @@ const cliLocales: Record<string, Record<string, string>> = {
 }
 
 // Merge webview dictionaries in the same priority order as language.tsx
-const webviewKeys = new Set(Object.keys({ ...appEn, ...uiEn, ...altruCoderEn, ...amEn }))
+const webviewKeys = new Set(Object.keys({ ...appEn, ...uiEn, ...altruEn, ...amEn }))
 const cliKeys = new Set(Object.keys(cliEn))
 const acKeys = new Set(Object.keys(acEn))
 

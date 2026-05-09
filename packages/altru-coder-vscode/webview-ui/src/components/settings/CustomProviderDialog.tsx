@@ -2,7 +2,6 @@ import { Button } from "@altru-coder/altru-coder-ui/button"
 import { useDialog } from "@altru-coder/altru-coder-ui/context/dialog"
 import { Dialog } from "@altru-coder/altru-coder-ui/dialog"
 import { IconButton } from "@altru-coder/altru-coder-ui/icon-button"
-import { Select } from "@altru-coder/altru-coder-ui/select"
 import { Spinner } from "@altru-coder/altru-coder-ui/spinner"
 import { TextField } from "@altru-coder/altru-coder-ui/text-field"
 import { showToast } from "@altru-coder/altru-coder-ui/toast"
@@ -106,7 +105,7 @@ function entry(item: ProviderPresetModel): ModelEntry {
     id: item.id,
     name: item.name ?? item.id,
     reasoning: item.reasoning ?? false,
-    variants: [],
+    variants: variants(item.variants),
   }
 }
 
@@ -196,9 +195,12 @@ function initialURL(existing: Existing | undefined, preset: ProviderPreset | und
   return ""
 }
 
-function initialPicked(compact: boolean, models: ModelEntry[]) {
+function initialPicked(compact: boolean, models: ModelEntry[], preset: ProviderPreset | undefined) {
+  if (compact && preset?.fetch !== false) return FETCH_ALL_ID
+  const id = models.find((m) => m.id.trim())?.id
+  if (id) return id
   if (compact) return FETCH_ALL_ID
-  return models.find((m) => m.id.trim())?.id ?? ""
+  return ""
 }
 
 export interface CustomProviderDialogProps {
@@ -220,12 +222,33 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
   const editing = () => !!props.existing
   const compact = () => !!props.preset && !props.existing
   const presets = suggestions(props.preset)
-  const [picked, setPicked] = createSignal(initialPicked(compact(), presets))
+  const [picked, setPicked] = createSignal(initialPicked(compact(), presets, props.preset))
+  const [open, setOpen] = createSignal(false)
+  const [presetSearch, setPresetSearch] = createSignal("")
+  const [chosen, setChosen] = createSignal(new Set(initModels().map((m) => m.id).filter(Boolean)))
   const presetOptions = createMemo(() => [
     ...presets.filter((m) => m.id.trim()).map(option),
-    { id: FETCH_ALL_ID, name: language.t("provider.custom.preset.models.autofetch"), fetch: true },
+    ...(props.preset?.fetch === false
+      ? []
+      : [{ id: FETCH_ALL_ID, name: language.t("provider.custom.preset.models.autofetch"), fetch: true }]),
   ])
   const currentPreset = createMemo(() => presetOptions().find((o) => o.id === picked()))
+  const filteredPresets = createMemo(() => {
+    const q = presetSearch().trim().toLowerCase()
+    const options = presetOptions().filter((item) => !item.fetch)
+    if (!q) return options
+    return options.filter((item) => item.id.toLowerCase().includes(q) || item.name.toLowerCase().includes(q))
+  })
+  const chosenModels = createMemo(() => {
+    const ids = chosen()
+    return presets.filter((item) => ids.has(item.id))
+  })
+  const pickerLabel = createMemo(() => {
+    const items = chosenModels()
+    if (items.length === 0) return language.t("provider.custom.preset.models.placeholder")
+    if (items.length === 1) return items[0].name || items[0].id
+    return `${items.length} models selected`
+  })
 
   function initModels(): ModelEntry[] {
     if (!props.existing) {
@@ -394,21 +417,8 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
         return
       }
 
-      if (opts.all) {
-        const merged = models.map(inflate)
-        setForm("models", merged)
-        setErrors(
-          "models",
-          merged.map((m) => ({ variants: m.variants.map(() => ({})) })),
-        )
-        setSelected(new Set<string>())
-        setFetchedModels(undefined)
-        setFetchStatus(language.t("provider.custom.models.fetch.addedAll", { count: String(merged.length) }))
-        return
-      }
-
       // Filter using the snapshot taken at fetch time
-      const fresh = models.filter((m) => !existing.has(m.id))
+      const fresh = opts.all ? models : models.filter((m) => !existing.has(m.id))
       if (fresh.length === 0) {
         setFetchStatus(language.t("provider.custom.models.fetch.allExist"))
         return
@@ -458,20 +468,21 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     const models = fetchedModels()
     if (!models) return
     const sel = selected()
-    const picked = models.filter((m) => sel.has(m.id))
-    if (picked.length === 0) return
+    const items = models.filter((m) => sel.has(m.id))
+    if (items.length === 0) return
 
     // Replace the single empty row or append
     const row = form.models[0]
     const empty = form.models.length === 1 && !!row && !row.id.trim() && !row.name.trim()
-    const merged = empty ? picked.map(inflate) : [...form.models, ...picked.map(inflate)]
+    const next = items.map(inflate)
+    const merged = compact() && picked() === FETCH_ALL_ID ? next : empty ? next : [...form.models, ...next]
 
     setForm("models", merged)
     setErrors(
       "models",
       merged.map((m) => ({ variants: m.variants.map(() => ({})) })),
     )
-    setFetchStatus(language.t("provider.custom.models.fetch.added", { count: String(picked.length) }))
+    setFetchStatus(language.t("provider.custom.models.fetch.added", { count: String(items.length) }))
     setFetchedModels(undefined)
     setSearch("")
   }
@@ -503,6 +514,28 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     )
   }
 
+  function syncChosen(next: Set<string>) {
+    setChosen(next)
+    const models = presets.filter((m) => next.has(m.id)).map(copy)
+    if (models.length === 0) {
+      setForm("models", [blank()])
+      setErrors("models", [{ variants: [] }])
+      return
+    }
+    setForm("models", models)
+    setErrors(
+      "models",
+      models.map((m) => ({ variants: m.variants.map(() => ({})) })),
+    )
+  }
+
+  function togglePreset(id: string) {
+    const next = new Set(chosen())
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    syncChosen(next)
+  }
+
   function cancelFetch() {
     setFetchedModels(undefined)
     setSearch("")
@@ -511,10 +544,12 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
   function inflate(m: FetchedModel) {
     const preset = presets.find((p) => p.id === m.id)
     const item = fetched(m)
+    const vars = item.variants.length > 0 ? item.variants : variants(preset?.variants)
     return {
       ...item,
       name: preset?.name ?? item.name,
       reasoning: preset?.reasoning === true || item.reasoning,
+      variants: vars,
     }
   }
 
@@ -582,40 +617,59 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     return output.result
   }
 
-  function save(e: SubmitEvent) {
-    e.preventDefault()
-    if (form.saving || fetching()) return
+  function submit() {
+    console.log("[Altru Coder New] CustomProviderDialog save clicked", {
+      providerID: form.providerID,
+      fetching: fetching(),
+      fetched: !!fetchedModels(),
+    })
+    if (fetching()) {
+      showToast({
+        variant: "error",
+        title: language.t("common.requestFailed"),
+        description: language.t("provider.custom.models.fetching"),
+      })
+      return
+    }
 
     const result = validate()
-    if (!result) return
+    if (!result) {
+      console.warn("[Altru Coder New] CustomProviderDialog save validation failed", {
+        providerID: form.providerID,
+        errors,
+      })
+      showToast({
+        variant: "error",
+        title: language.t("common.requestFailed"),
+        description: language.t("provider.custom.error.required"),
+      })
+      return
+    }
 
-    setForm("saving", true)
+    // Fire-and-forget: send directly to skip the 30s timeout in action.send().
+    // The extension handles the save optimistically and errors are non-fatal.
+    console.log("[Altru Coder New] CustomProviderDialog save posted", { providerID: result.providerID })
+    vscode.postMessage({
+      type: "saveCustomProvider",
+      requestId: crypto.randomUUID(),
+      providerID: result.providerID,
+      config: result.config,
+      apiKey: apiTouched() ? result.key : undefined,
+      apiKeyChanged: apiTouched(),
+    })
 
-    action.send(
-      {
-        type: "saveCustomProvider",
-        providerID: result.providerID,
-        config: result.config,
-        apiKey: apiTouched() ? result.key : undefined,
-        apiKeyChanged: apiTouched(),
-      },
-      {
-        onConnected: () => {
-          setForm("saving", false)
-          dialog.close()
-          showToast({
-            variant: "success",
-            icon: "circle-check",
-            title: language.t("provider.connect.toast.connected.title", { provider: result.name }),
-            description: language.t("provider.connect.toast.connected.description", { provider: result.name }),
-          })
-        },
-        onError: (message) => {
-          setForm("saving", false)
-          showToast({ title: language.t("common.requestFailed"), description: message.message })
-        },
-      },
-    )
+    dialog.close()
+    showToast({
+      variant: "success",
+      icon: "circle-check",
+      title: language.t("provider.connect.toast.connected.title", { provider: result.name }),
+      description: language.t("provider.connect.toast.connected.description", { provider: result.name }),
+    })
+  }
+
+  function save(e: SubmitEvent) {
+    e.preventDefault()
+    submit()
   }
 
   // ── Render ──────────────────────────────────────────────────────────
@@ -812,25 +866,6 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     )
   }
 
-  function CompactFetchState() {
-    return (
-      <>
-        <Show when={fetching()}>
-          <span class="custom-provider-section-note">
-            <Spinner style={{ width: "12px", height: "12px" }} />
-            {language.t("provider.custom.models.fetching")}
-          </span>
-        </Show>
-        <Show when={fetchError()}>
-          {(err) => <span class="custom-provider-section-error">{err()}</span>}
-        </Show>
-        <Show when={fetchInfo()}>
-          {(status) => <span class="custom-provider-section-note">{status()}</span>}
-        </Show>
-      </>
-    )
-  }
-
   return (
     <Dialog
       title={
@@ -926,19 +961,113 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
             <div class="custom-provider-compact">
               <div class="custom-provider-section">
                 <label class="custom-provider-section-title">{language.t("provider.custom.preset.models.label")}</label>
-                <Select
-                  options={presetOptions()}
-                  current={currentPreset()}
-                  value={(o) => o.id}
-                  label={(o) => o.name}
-                  onSelect={selectPreset}
-                  placeholder={language.t("provider.custom.preset.models.placeholder")}
-                  variant="secondary"
-                  size="small"
-                  triggerVariant="settings"
-                  triggerStyle={{ width: "100%" }}
-                />
-                <CompactFetchState />
+                <div style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    onClick={() => setOpen((value) => !value)}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: "1px solid var(--vscode-inputOption-activeBorder, #4c8dff)",
+                      "border-radius": "8px",
+                      background:
+                        "linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025)), var(--vscode-input-background)",
+                      color: "var(--vscode-input-foreground)",
+                      "box-shadow": "inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 28px rgba(0,0,0,0.18)",
+                      display: "flex",
+                      "align-items": "center",
+                      "justify-content": "space-between",
+                      gap: "10px",
+                      cursor: "pointer",
+                      "font-size": "var(--altru-coder-font-size-13)",
+                    }}
+                  >
+                    <span style={{ overflow: "hidden", "text-overflow": "ellipsis", "white-space": "nowrap" }}>
+                      {pickerLabel()}
+                    </span>
+                    <span style={{ color: "var(--vscode-descriptionForeground)" }}>{open() ? "Close" : "Open"}</span>
+                  </button>
+                  <Show when={open()}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        "z-index": 50,
+                        top: "calc(100% + 8px)",
+                        left: 0,
+                        right: 0,
+                        padding: "10px",
+                        border: "1px solid var(--vscode-inputOption-activeBorder, #4c8dff)",
+                        "border-radius": "10px",
+                        background:
+                          "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)), var(--vscode-editorWidget-background)",
+                        "backdrop-filter": "blur(18px)",
+                        "box-shadow": "0 18px 46px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <input
+                        type="search"
+                        value={presetSearch()}
+                        onInput={(event) => setPresetSearch(event.currentTarget.value)}
+                        placeholder={language.t("provider.custom.models.fetch.search")}
+                        style={{
+                          width: "100%",
+                          height: "32px",
+                          padding: "0 10px",
+                          border: "1px solid var(--border-weak-base, var(--vscode-panel-border))",
+                          "border-radius": "7px",
+                          background: "var(--vscode-input-background)",
+                          color: "var(--vscode-input-foreground)",
+                          "margin-bottom": "8px",
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          "flex-direction": "column",
+                          gap: "4px",
+                          "max-height": "220px",
+                          overflow: "auto",
+                        }}
+                      >
+                        <For each={filteredPresets()}>
+                          {(item) => (
+                            <label
+                              style={{
+                                display: "flex",
+                                gap: "8px",
+                                "align-items": "center",
+                                padding: "7px 8px",
+                                "border-radius": "7px",
+                                cursor: "pointer",
+                                color: "var(--vscode-foreground)",
+                                background: chosen().has(item.id) ? "rgba(76, 141, 255, 0.16)" : "transparent",
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={chosen().has(item.id)}
+                                onChange={() => togglePreset(item.id)}
+                              />
+                              <span style={{ "font-size": "var(--altru-coder-font-size-13)" }}>{item.name}</span>
+                              <span
+                                style={{
+                                  "margin-left": "auto",
+                                  color: "var(--vscode-descriptionForeground)",
+                                  "font-size": "var(--altru-coder-font-size-11)",
+                                }}
+                              >
+                                {item.id}
+                              </span>
+                            </label>
+                          )}
+                        </For>
+                      </div>
+                    </div>
+                  </Show>
+                </div>
+                <Show when={props.preset?.fetch !== false}>
+                  <FetchPanel />
+                </Show>
               </div>
               <div class="custom-provider-section">
                 <ApiKeyField autofocus />
@@ -1218,7 +1347,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
 
           </Show>
 
-          <Button type="submit" size="large" variant="primary" disabled={form.saving || fetching()}>
+          <Button type="button" size="large" variant="primary" disabled={form.saving || fetching()} onClick={submit}>
             {submitLabel(form.saving, language.t)}
           </Button>
         </form>

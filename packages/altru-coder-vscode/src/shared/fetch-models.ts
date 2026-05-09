@@ -4,6 +4,9 @@
  */
 
 import { ANTHROPIC_PROVIDER_PACKAGE } from "./provider-model"
+import { nvidiaNimModels } from "./nvidia-nim"
+
+const EFFORTS = ["low", "medium", "high", "xhigh"] as const
 
 type Options = {
   baseURL: string
@@ -24,27 +27,7 @@ type RawModel = {
   name?: unknown
   display_name?: unknown
   displayName?: unknown
-  reasoning?: unknown
-  capabilities?: unknown
-  supported_parameters?: unknown
-  supportedParameters?: unknown
-  parameters?: unknown
-  variants?: unknown
 }
-
-const EFFORTS = ["low", "medium", "high", "xhigh"] as const
-const REASONING_PARAMS = new Set([
-  "reasoning",
-  "reasoning_effort",
-  "reasoningeffort",
-  "include_reasoning",
-  "include_reasoning_content",
-  "thinking",
-  "thinking_config",
-  "enable_thinking",
-  "chat_template_args",
-  "chat_template_kwargs",
-])
 
 export class FetchModelsError extends Error {
   constructor(
@@ -95,25 +78,6 @@ function text(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined
 }
 
-function strings(value: unknown): string[] {
-  if (!Array.isArray(value)) return []
-  return value.filter((item): item is string => typeof item === "string").map((item) => item.toLowerCase())
-}
-
-function nestedFlag(value: unknown): boolean | undefined {
-  if (!record(value)) return undefined
-  if (value.reasoning === true || value.thinking === true || value.reasoning_effort === true) return true
-  if (value.reasoning === false || value.thinking === false || value.reasoning_effort === false) return false
-  return undefined
-}
-
-function variants(value: unknown): Record<string, Record<string, unknown>> | undefined {
-  if (!record(value)) return undefined
-  const entries = Object.entries(value).filter((entry): entry is [string, Record<string, unknown>] => record(entry[1]))
-  if (entries.length === 0) return undefined
-  return Object.fromEntries(entries)
-}
-
 function knownReasoningModel(id: string, name: string) {
   const value = `${id} ${name}`.toLowerCase()
   if (/\b(non[-_ ]?reasoning|nonreasoning|no[-_ ]?think|nothink)\b/.test(value)) return false
@@ -140,28 +104,16 @@ function knownReasoningModel(id: string, name: string) {
   return undefined
 }
 
-function supportsReasoning(item: RawModel, id: string, name: string) {
-  const known = knownReasoningModel(id, name)
-  if (known !== undefined) return known
-  if (item.reasoning === true) return true
-  const caps = nestedFlag(item.capabilities)
-  if (caps !== undefined) return caps
-  const params = [
-    ...strings(item.supported_parameters),
-    ...strings(item.supportedParameters),
-    ...strings(item.parameters),
-  ]
-  if (params.some((param) => REASONING_PARAMS.has(param.replace(/-/g, "_")))) return true
-  if (item.reasoning === false) return false
-  return false
+function supportsReasoning(id: string, name: string) {
+  return knownReasoningModel(id, name) === true
 }
 
 function effortVariants(base: Record<string, unknown>) {
-  return Object.fromEntries(EFFORTS.map((effort) => [effort, { ...base, reasoningEffort: effort }]))
+  return Object.fromEntries(EFFORTS.map((item) => [item, { ...base, reasoningEffort: item }]))
 }
 
 function namedVariants(base: Record<string, unknown>) {
-  return Object.fromEntries(EFFORTS.map((effort) => [effort, { ...base }]))
+  return Object.fromEntries(EFFORTS.map((item) => [item, { ...base }]))
 }
 
 function modelVariants(opts: Options, id: string, name: string) {
@@ -179,12 +131,6 @@ function modelVariants(opts: Options, id: string, name: string) {
   }
   if (zai(opts) && value.includes("glm")) {
     return namedVariants({ thinking: { type: "enabled", clear_thinking: false } })
-  }
-  if (nvidia(opts) && (value.includes("qwen") || value.includes("glm"))) {
-    return namedVariants({ chat_template_kwargs: { enable_thinking: true } })
-  }
-  if (nvidia(opts) && value.includes("kimi")) {
-    return namedVariants({ chat_template_kwargs: { thinking: true } })
   }
   return effortVariants({})
 }
@@ -206,6 +152,8 @@ function headers(opts: Options): Record<string, string> {
 }
 
 export async function fetchOpenAIModels(opts: Options): Promise<ModelEntry[]> {
+  if (nvidia(opts)) return nvidiaNimModels()
+
   const response = await fetch(endpoint(opts.baseURL), {
     method: "GET",
     headers: headers(opts),
@@ -228,13 +176,11 @@ export async function fetchOpenAIModels(opts: Options): Promise<ModelEntry[]> {
     if (!id || seen.has(id)) continue
     seen.add(id)
     const name = text(item.name) ?? text(item.display_name) ?? text(item.displayName) ?? id
-    const reasoning = supportsReasoning(item, id, name)
-    const existing = variants(item.variants)
+    const reasoning = supportsReasoning(id, name)
     result.push({
       id,
       name,
-      ...(reasoning ? { reasoning } : {}),
-      ...(existing ? { variants: existing } : reasoning ? { variants: modelVariants(opts, id, name) } : {}),
+      ...(reasoning ? { reasoning, variants: modelVariants(opts, id, name) } : {}),
     })
   }
   result.sort((a, b) => a.id.localeCompare(b.id))

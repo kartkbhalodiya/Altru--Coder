@@ -1,0 +1,739 @@
+NVIDIA NIM benchmark
+Created: 2026-05-09T13:43:59.404Z
+Models: 1
+Mode: both
+Prompt: Generate a premium high-end liquid glass login page in one complete HTML file. Include HTML, CSS, and JavaScript. Use a modern glassmorphism layout, animated liquid background, email/password fields, remember me, validation, and polished responsive design.
+
+============================================================
+MODEL: moonshotai/kimi-k2.6
+MODE: normal
+STATUS: 200
+TTFT_SEC: 0.57
+TOTAL_SEC: 114.47
+APPROX_TOKENS: 4071.00
+APPROX_TOKENS_PER_SEC_AFTER_FIRST: 35.74
+CHUNKS: 413
+
+--- OUTPUT ---
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Glass - Premium Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0f172a;
+        }
+
+        /* Liquid Canvas Background */
+        #liquid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 20px 60px -5px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Input Styling */
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px 12px 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+            transition: color 0.3s ease;
+        }
+
+        .input-field:focus + .input-icon {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-label {
+            position: absolute;
+            left: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .input-field:focus ~ .input-label,
+        .input-field:not(:placeholder-shown) ~ .input-label {
+            top: -10px;
+            left: 0;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            background: transparent;
+            padding: 0 4px;
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox input:checked + div {
+            background-color: #a78bfa;
+            border-color: #a78bfa;
+        }
+        
+        .custom-checkbox input:checked + div svg {
+            display: block;
+        }
+
+        /* Button Glow */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn-glow:hover::after {
+            left: 100%;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-left-color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Shake Animation for Errors */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: rgba(30, 41, 59, 0.9);
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 640px) {
+            .glass-card {
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="text-white antialiased selection:bg-indigo-500 selection:text-white h-screen flex items-center justify-center">
+
+    <!-- Interactive Liquid Background -->
+    <canvas id="liquid-canvas"></canvas>
+
+    <!-- Main Container -->
+    <div id="login-container" class="relative z-10 w-full max-w-md p-6 perspective-1000">
+        
+        <!-- Glass Card -->
+        <div class="glass-card rounded-3xl p-8 md:p-10 relative overflow-hidden transform-gpu">
+            
+            <!-- Decorative Top Light -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500 rounded-full mix-blend-overlay filter blur-[60px] opacity-40 pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500 rounded-full mix-blend-overlay filter blur-[60px] opacity-40 pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="text-center mb-10 relative">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 mb-4 shadow-lg">
+                    <i class="fa-solid fa-fingerprint text-3xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 to-purple-200"></i>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+                    Secure Portal
+                </h1>
+                <p class="text-sm text-gray-400">Enter your credentials to access the dashboard.</p>
+            </div>
+
+            <!-- Form -->
+            <form id="login-form" class="relative z-20" novalidate>
+                
+                <!-- Email Field -->
+                <div class="input-group mb-5">
+                    <input type="email" id="email" class="input-field" placeholder=" " required autocomplete="off">
+                    <i class="fa-regular fa-envelope input-icon text-base"></i>
+                    <label for="email" class="input-label">Email Address</label>
+                    <p class="text-red-400 text-xs mt-1 ml-1 hidden" id="email-error">Please enter a valid email</p>
+                </div>
+
+                <!-- Password Field -->
+                <div class="input-group mb-2 relative">
+                    <input type="password" id="password" class="input-field" placeholder=" " required>
+                    <i class="fa-solid fa-lock input-icon text-base"></i>
+                    <label for="password" class="input-label">Password</label>
+                    <button type="button" id="toggle-password" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+
+                <!-- Password Strength Bar (Hidden by default) -->
+                <div class="h-1 w-full bg-gray-700 rounded-full mb-4 overflow-hidden transition-all duration-500 opacity-0 scale-y-0 origin-top" id="strength-container">
+                    <div id="strength-bar" class="h-full bg-red-500 transition-all duration-300 w-0"></div>
+                </div>
+
+                <!-- Remember & Forgot -->
+                <div class="flex items-center justify-between mb-8 text-sm">
+                    <label class="flex items-center gap-2 cursor-pointer custom-checkbox group">
+                        <input type="checkbox" class="hidden">
+                        <div class="w-4 h-4 border border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-indigo-400">
+                            <svg class="w-2.5 h-2.5 text-white hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-200 transition-colors">Remember me</span>
+                    </label>
+                    <a href="#" class="text-indigo-400 hover:text-indigo-300 transition-colors font-medium">Forgot Password?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submit-btn" class="btn-glow w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-indigo-500/30 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 group">
+                    <span class="spinner" id="spinner"></span>
+                    <span id="btn-text">Sign In</span>
+                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform" id="btn-icon"></i>
+                </button>
+
+                <!-- Divider -->
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-700"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs uppercase">
+                        <span class="bg-[#0f172a]/50 backdrop-blur-sm px-2 text-gray-500 rounded">Or continue with</span>
+                    </div>
+                </div>
+
+                <!-- Social Login -->
+                <div class="grid grid-cols-3 gap-3">
+                    <button type="button" class="flex items-center justify-center py-2.5 border border-gray-700 rounded-xl hover:bg-white/5 transition-colors text-gray-300 hover:text-white">
+                        <i class="fa-brands fa-google"></i>
+                    </button>
+                    <button type="button" class="flex items-center justify-center py-2.5 border border-gray-700 rounded-xl hover:bg-white/5 transition-colors text-gray-300 hover:text-white">
+                        <i class="fa-brands fa-github"></i>
+                    </button>
+                    <button type="button" class="flex items-center justify-center py-2.5 border border-gray-700 rounded-xl hover:bg-white/5 transition-colors text-gray-300 hover:text-white">
+                        <i class="fa-brands fa-apple"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer Links -->
+        <p class="text-center mt-8 text-gray-500 text-sm">
+            Don't have an account? 
+            <a href="#" class="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">Create Account</a>
+        </p>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">
+        <i class="fa-solid fa-circle-check text-green-400 text-xl"></i>
+        <span id="toast-message">Login successful!</span>
+    </div>
+
+    <script>
+        /* --- LIQUID BACKGROUND ANIMATION --- */
+        const canvas = document.getElementById('liquid-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+        let tick = 0;
+
+        // Configuration
+        const config = {
+            blobCount: 4,
+            blobs: [
+                { color: 'rgba(99, 102, 241, 0.25)", r: 300, x: 0.3, y: 0.5, speed: 0.001, offset: 0 },
+                { color: "rgba(168, 85, 247, 0.2)", r: 350, x: 0.7, y: 0.5, speed: 0.0015, offset: 100 },
+                { color: "rgba(79, 70, 229, 0.15)", r: 400, x: 0.5, y: 0.8, speed: 0.002, offset: 200 },
+                { color: "rgba(236, 72, 153, 0.2)", r: 250, x: 0.8, y: 0.2, speed: 0.002, offset: 300 }
+            ]
+        };
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        document.addEventListener('mousemove', (e) => {
+            // Normalize mouse position -1 to 1
+            mouse.targetX = (e.clientX / width) * 2 - 1;
+            mouse.targetY = (e.clientY / height) * 2 - 1;
+        });
+
+        // Easing for smooth mouse movement
+        function lerp(start, end, factor) {
+            return start + (end - start) * factor;
+        }
+
+        function drawBlob(x, y, r, color, tick) {
+            ctx.beginPath();
+            const points = 12;
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                // Create a wobbly effect
+                const wobble = Math.sin(tick * 0.002 + i * 0.5) * 30;
+                // Interactive push away from cursor
+                const pushX = mouse.x * 50; 
+                const pushY = mouse.y * 50;
+                
+                const px = x + Math.cos(angle) * (r + wobble) + pushX;
+                const py = y + Math.sin(angle) * (r + wobble) + pushY;
+                
+                if (i === 0) ctx.moveTo(px, py);
+                else {
+                    // Simple smoothing between points
+                    const prevAngle = (i - 1) / points * Math.PI * 2;
+                    const prevWobble = Math.sin(tick * 0.002 + (i-1) * 0.5) * 30;
+                    const plx = x + Math.cos(prevAngle) * (r + prevWobble) + pushX;
+                    const ply = y + Math.sin(prevAngle) * (r + prevWobble) + pushY;
+                    
+                    // Control point for bezier (average of current and prev)
+                    const cx = (plx + px) / 2;
+                    const cy = (ply + py) / 2;
+                    
+                    // Use quadraticCurveTo for smoother curves if this wasn't fast enough, 
+                    // but lineTo with many points is fast and can look "liquid" if blurred.
+                    // Let's stick to standard curveTo for true liquid look
+                    const cp1x = (plx + cx) / 2;
+                    const cp1y = (ply + cy) / 2;
+                    const cp2x = (px + cx) / 2;
+                    const cp2y = (py + cy) / 2;
+                    
+                    ctx.quadraticCurveTo(plx, ply, cx, cy);
+                }
+            }
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function animate() {
+            // Smooth mouse lerp
+            mouse.x = lerp(mouse.x || 0, mouse.targetX, 0.05);
+            mouse.y = lerp(mouse
+
+
+============================================================
+MODEL: moonshotai/kimi-k2.6
+MODE: reasoning
+STATUS: 200
+TTFT_SEC: 10.81
+TOTAL_SEC: 127.75
+APPROX_TOKENS: 4066.25
+APPROX_TOKENS_PER_SEC_AFTER_FIRST: 34.77
+CHUNKS: 414
+
+--- REASONING ---
+" I need to build a premium, high-end liquid glass login page. The user wants a single HTML file containing all the HTML, CSS, and JavaScript. The key requirements are "liquid glass," "glassmorphism," an "animated liquid background," email/password fields, "remember me," validation, and a polished responsive design. This is quite specific, especially the "liquid" effect, which is usually achieved through WebGL or a high-performance Canvas. It needs to be both visually stunning and perform smoothly. I chose to use a shader-based approach to create a truly flowing, iridescent liquid, rather than a simple CSS animation. This approach will better embody the "high-end" and "premium" feel.
+
+First, I need to plan the overall structure. The page needs a full-screen background to host the liquid animation. The Canvas element is the most suitable choice because it's optimized for pixel-level manipulation and is suitable for shader rendering. The login module itself needs to be centered on the screen. To achieve the glassmorphism effect, I can't just use a semi-transparent background and blur; that would be too basic. I need to simulate the refraction and reflection of real glass. This means multi-layered shadows (inner and outer glows), pseudo-transparency (like `background: rgba(255, 255, 255, 0.03)`), and blur effects. The edges need to be crisp but subtle, so a thin border with some alpha variation is necessary.
+
+Next are the various elements of the login module. It needs a brand logo area, which can be designed more abstractly, using SVG combined with animations (like pulse and rotation) to add a dynamic touch. Then comes the title area, with a large headline and a subtitle, using high-contrast, thin fonts to look modern. A small tagline is also needed to enhance the premium feel.
+
+The core is the form. The email and password fields need to have a focus effect. When a user clicks on a field, the glass panel beneath it should slightly brighten or have a glow effect to indicate it's active. This can be achieved by having JavaScript listen for `focus` and `blur` events, then dynamically adding or removing CSS classes to change the style. The password field needs a visibility toggle function, which is standard. The "remember me" checkbox cannot use the browser's default style; it should be customized using pure CSS to create a switch-style interaction, which is more refined than a regular checkbox.
+
+The "Forgot Password?" link should be subtle, but adding a hover effect that changes color and an underline animation can give it more texture. The login button is the most important interactive element. It needs to have the most prominent visual hierarchy, with a gradient background, shadow, and a hover upward-floating effect. When clicked, the button's text should change to a loading animation first, then, upon successful "verification," change to an icon (e.g., a checkmark) and trigger a celebratory effect (like confetti).
+
+Validation is key. After the user submits the form, it must not immediately jump to the main page, as that would be too abrupt. I need to simulate a brief "verifying..." process. If successful, the login module should fade out and shrink, while "Initialization Successful" and a welcome message gradually appear, following the entire process. If it fails, an error message should be displayed with a shaking animation (shake effect) to alert the user.
+
+For responsiveness, the entire layout should be centered and adaptive. On smaller screens, the padding, font size, and input field heights need to shrink to ensure it's readable tappable without breaking. I'll use Tailwind CSS to quickly build the layout while relying on custom CSS for fine-tuning the glass effects and animations.
+
+Now, considering the specific implementation. For the liquid background, I'll use the `noise` and `fbm` functions from ShaderToy to generate procedural noise, then use another `noise` function to perturb time and position, creating a constantly shifting, organic body. The colors will be primarily cyan, purple, and pink, using `mix` to adjust the blend, with the mouse position affecting the lighting to enhance the sense of depth.
+
+For the glass effect, I'll combine pseudo-elements and backdrop-filter. The `::before` pseudo-element on the `.glass` class will be used to create a gradient on the top edge, simulating glass reflection. The `box-shadow` will be set in multiple layers, with both inner and outer shadows, and an extremely low alpha value. `backdrop-filter: blur(16px)` will be the core, blurring what's behind it.
+
+In terms of interaction details, the focus state of the input fields and the click state of the button should be supported by smooth CSS `transition` animations. The loading state of the button text can be controlled by JavaScript to change its content and prevent duplicate submissions.
+
+For some additional details, I can add a copyright notice at the bottom of the page and a link to "Main Website" in the top right corner to make the page look more "complete." For loading performance, I'll also create a full-screen loading animation that covers the screen at the start and disappears once the page is fully ready.
+
+Finally, I'll integrate all the code—HTML structure, Tailwind utilities (though mostly used for layout, the glass effect will be custom), the custom CSS for glass effects, and the JavaScript for handling all interactions and animations—into a single `index.html` file. The JS part will include generating noise textures, setting up the WebGL scene, handling mouse input, form validation, loading animations, and celebratory effects. The code needs to be complete and ready to run directly. I have a clear plan for how each part connects, so I can start coding now.
+
+--- OUTPUT ---
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | Liquid Glass Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@100;300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-highlight: rgba(255, 255, 255, 0.2);
+            --accent-cyan: #00f0ff;
+            --accent-purple: #7000ff;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter Tight', sans-serif;
+            background-color: #050505;
+            color: #fff;
+        }
+
+        /* Liquid Background Canvas */
+        #liquid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Glassmorphism Core */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.37),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* Edge Lighting Effect */
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.3;
+        }
+
+        /* Specific Glass Highlights */
+        .glass-reflection {
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 60%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50% 50% 0 0 / 20% 20% 0 0;
+            transform: scaleX(0.9) translateY(-10%);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.5;
+            filter: blur(20px);
+        }
+
+        /* Form Elements */
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 16px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            outline: none;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .input-field:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2), inset 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .input-label {
+            position: absolute;
+            left: 16px;
+            top: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        .input-field:focus ~ .input-label,
+        .input-field:not(:placeholder-shown) ~ .input-label {
+            top: -10px;
+            left: 12px;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            background: rgba(5, 5, 5, 0.8);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox input {
+            display: none;
+        }
+        .custom-checkbox .checkmark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            display: inline-block;
+            position: relative;
+            margin-right: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-checkbox input:checked ~ .checkmark {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+        .custom-checkbox .checkmark::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) scale(0);
+            transition: transform 0.2s;
+        }
+        .custom-checkbox input:checked ~ .checkmark::after {
+            transform: rotate(45deg) scale(1);
+        }
+
+        /* Button */
+        .liquid-btn {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            z-index: 1;
+        }
+        .liquid-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+        .liquid-btn:hover::before {
+            left: 100%;
+        }
+        .liquid-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+        .liquid-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Spinner */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-left-color: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Floating Orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Success Animation */
+        .success-ring {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawCheck 0.5s forwards ease-in-out;
+        }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+        
+        /* Utilities */
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Input Eye Icon */
+        .eye-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.2s;
+        }
+        .eye-btn:hover { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <!-- WebGL Background -->
+    <canvas id="liquid-canvas"></canvas>
+
+    <!-- Floating Decorative Orbs -->
+    <div class="orb w-96 h-96 bg-purple-600/20 top-[-10%] left-[-10%] animate-pulse"></div>
+    <div class="orb w-[500px] h-[500px] bg-cyan-600/10 bottom-[-20%] right-[-10%]"></div>
+
+    <!-- Main Container -->
+    <div id="app-container" class="relative z-10 w-full h-screen flex items-center justify-center p-4">
+        
+        <!-- Login Card -->
+        <div id="login-card" class="glass-panel rounded-3xl w-full max-w-md p-8 md:p-10 transform transition-all duration-700 opacity-0 translate-y-10 scale-95">
+            
+            <!-- Header -->
+            <div class="text-center mb-8 relative z-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-white/10 to-transparent border border-white/10 mb-4 shadow-lg shadow-cyan-500/20 relative group">
+                    <svg class="w-8 h-8 text-cyan-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.424-1.415 3.424H4.828c-1.782 0-2.674-2.164-1.414-3.424l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    <div class="absolute inset-0 bg-cyan-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70">
+                    NEXUS
+                </h1>
+                <p class="text-white/40 text-xs font-mono tracking-[0.2em] mt-1 uppercase">Secure Access Terminal</p>
+            </div>
+
+            <!-- Form -->
+            <form id="login-form" class="space-y-6 relative z-10" onsubmit="event.preventDefault();">
+                
+                <div class="space-y-4">
+                    <!-- Email Field -->
+                    <div class="input-group group">
+                        <input type="email" id="email" class="input-field peer" placeholder=" " required />
+                        <label for="email" class="input-label">Email Address</label>
+                        <div class="absolute right-4 top-3.5 text-white/20 pointer-events-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26
+

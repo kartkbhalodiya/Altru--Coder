@@ -11,6 +11,10 @@
 import { describe, expect, it } from "bun:test"
 import * as Config from "../../src/config/config"
 import { AltruCoderConfig } from "../../src/altrucoder/config/config"
+import { Global } from "@opencode-ai/core/global"
+import path from "path"
+import fs from "fs/promises"
+import { tmpdir } from "../fixture/fixture"
 
 describe("Config.Info — null sentinels for custom provider deletes", () => {
   it("accepts a null model value inside a provider", () => {
@@ -53,11 +57,33 @@ describe("Config.Info — null sentinels for custom provider deletes", () => {
     })
     expect(parsed.success).toBe(true)
   })
+
+  it("accepts NVIDIA chat template kwargs variants", () => {
+    const parsed = Config.Info.zod.safeParse({
+      provider: {
+        nvidia: {
+          name: "NVIDIA NIM",
+          npm: "@ai-sdk/openai-compatible",
+          options: { baseURL: "https://integrate.api.nvidia.com/v1" },
+          models: {
+            "moonshotai/kimi-k2.6": {
+              name: "Kimi K2.6",
+              reasoning: true,
+              variants: {
+                xhigh: { chat_template_kwargs: { thinking: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+    expect(parsed.success).toBe(true)
+  })
 })
 
 describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletion", () => {
   it("drops a model from an existing provider when the patch sets it to null", () => {
-    const existing = {
+    const existing: Config.Info = {
       provider: {
         myprovider: {
           name: "My Provider",
@@ -67,8 +93,8 @@ describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletio
           },
         },
       },
-    } as unknown as Config.Info
-    const patch = {
+    }
+    const patch: Config.Info = {
       provider: {
         myprovider: {
           models: {
@@ -77,16 +103,18 @@ describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletio
           },
         },
       },
-    } as unknown as Config.Info
+    }
 
     const merged = AltruCoderConfig.mergeConfig(existing, patch)
-    const models = (merged.provider as Record<string, { models: Record<string, unknown> }>).myprovider.models
+    const provider = merged.provider?.myprovider
+    if (!provider) throw new Error("missing merged provider")
+    const models = provider.models ?? {}
     expect(models["model-keep"]).toBeDefined()
     expect("model-gone" in models).toBe(false)
   })
 
   it("drops a provider when the patch sets it to null", () => {
-    const existing = {
+    const existing: Config.Info = {
       provider: {
         myprovider: {
           name: "My Provider",
@@ -96,12 +124,12 @@ describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletio
           name: "OpenAI",
         },
       },
-    } as unknown as Config.Info
-    const patch = {
+    }
+    const patch: Config.Info = {
       provider: {
         myprovider: null,
       },
-    } as unknown as Config.Info
+    }
 
     const merged = AltruCoderConfig.mergeConfig(existing, patch)
     expect(merged.provider?.openai).toBeDefined()
@@ -109,7 +137,7 @@ describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletio
   })
 
   it("drops a variant from an existing model when the patch sets it to null", () => {
-    const existing = {
+    const existing: Config.Info = {
       provider: {
         myprovider: {
           name: "My Provider",
@@ -124,8 +152,8 @@ describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletio
           },
         },
       },
-    } as unknown as Config.Info
-    const patch = {
+    }
+    const patch: Config.Info = {
       provider: {
         myprovider: {
           models: {
@@ -138,13 +166,48 @@ describe("AltruCoderConfig.mergeConfig — custom provider model/variant deletio
           },
         },
       },
-    } as unknown as Config.Info
+    }
 
     const merged = AltruCoderConfig.mergeConfig(existing, patch)
-    const variants = (
-      merged.provider as Record<string, { models: Record<string, { variants: Record<string, unknown> }> }>
-    ).myprovider.models["model-1"].variants
+    const provider = merged.provider?.myprovider
+    if (!provider) throw new Error("missing merged provider")
+    const model = provider.models?.["model-1"]
+    if (!model) throw new Error("missing merged model")
+    const variants = model.variants ?? {}
     expect(variants.high).toBeDefined()
     expect("low" in variants).toBe(false)
+  })
+})
+
+describe("Config.updateGlobal — custom provider save without instance context", () => {
+  it("updates global config with dispose disabled outside an instance", async () => {
+    await using tmp = await tmpdir()
+    const prev = Global.Path.config
+    ;(Global.Path as { config: string }).config = tmp.path
+
+    try {
+      const config: Config.Info = {
+        provider: {
+          myprovider: {
+            npm: "@ai-sdk/openai-compatible",
+            name: "My Provider",
+            options: { baseURL: "https://example.com/v1" },
+            models: { keep: { name: "Keep" }, gone: null },
+          },
+        },
+      }
+      const result = await Config.updateGlobal(
+        config,
+        { dispose: false, invalidate: false },
+      )
+
+      expect(result.provider?.myprovider).toBeDefined()
+      const text = await fs.readFile(path.join(tmp.path, "altru-coder.jsonc"), "utf8")
+      expect(text).toContain('"keep"')
+      expect(text).not.toContain('"gone"')
+    } finally {
+      ;(Global.Path as { config: string }).config = prev
+      await Config.invalidate(true)
+    }
   })
 })

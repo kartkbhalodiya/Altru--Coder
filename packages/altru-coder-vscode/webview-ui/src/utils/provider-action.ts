@@ -38,47 +38,76 @@ type Handlers = {
   onError?: (message: ProviderActionErrorMessage) => void
 }
 
-export function createProviderAction(vscode: Transport) {
-  const pending = new Map<string, Handlers>()
+type Pending = {
+  handlers: Handlers
+  timer: ReturnType<typeof setTimeout>
+}
+
+const TIMEOUT_MS = 30000
+
+function error(message: ProviderRequestInput, requestId: string): ProviderActionErrorMessage {
+  const action =
+    message.type === "disconnectProvider" ? "disconnect" : message.type === "authorizeProviderOAuth" ? "authorize" : "connect"
+  return {
+    type: "providerActionError",
+    requestId,
+    providerID: message.providerID,
+    action,
+    message: "Provider action timed out",
+  }
+}
+
+export function createProviderAction(vscode: Transport, timeout = TIMEOUT_MS) {
+  const pending = new Map<string, Pending>()
   const unsubscribe = vscode.onMessage((message) => {
     if (!("requestId" in message)) return
 
     const item = pending.get(message.requestId)
     if (!item) return
     pending.delete(message.requestId)
+    clearTimeout(item.timer)
 
     if (message.type === "providerOAuthReady") {
-      item.onOAuthReady?.(message)
+      item.handlers.onOAuthReady?.(message)
       return
     }
 
     if (message.type === "providerConnected") {
-      item.onConnected?.(message)
+      item.handlers.onConnected?.(message)
       return
     }
 
     if (message.type === "providerDisconnected") {
-      item.onDisconnected?.(message)
+      item.handlers.onDisconnected?.(message)
       return
     }
 
     if (message.type === "providerActionError") {
-      item.onError?.(message)
+      item.handlers.onError?.(message)
     }
   })
 
   function send(message: ProviderRequestInput, handlers: Handlers = {}) {
     const requestId = crypto.randomUUID()
-    pending.set(requestId, handlers)
+    const timer = setTimeout(() => {
+      const item = pending.get(requestId)
+      if (!item) return
+      pending.delete(requestId)
+      item.handlers.onError?.(error(message, requestId))
+    }, timeout)
+    pending.set(requestId, { handlers, timer })
     vscode.postMessage({ ...message, requestId } as ProviderRequest)
     return requestId
   }
 
   function clear(requestId?: string) {
     if (requestId) {
+      const item = pending.get(requestId)
+      if (item) clearTimeout(item.timer)
       pending.delete(requestId)
       return
     }
+    for (const item of pending.values()) clearTimeout(item.timer)
     pending.clear()
   }
 

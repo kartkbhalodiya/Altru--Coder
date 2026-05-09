@@ -46,7 +46,7 @@ export function ControlPlaneRoutes(): Hono {
             yield* auth.set(providerID, info)
           }),
         )
-        await AltruCoderServer.authChanged(providerID) // altrucoder_change
+        AltruCoderServer.authChangedLater(providerID) // altrucoder_change
         return c.json(true)
       },
     )
@@ -82,7 +82,7 @@ export function ControlPlaneRoutes(): Hono {
             yield* auth.remove(providerID)
           }),
         )
-        await AltruCoderServer.authChanged(providerID) // altrucoder_change
+        AltruCoderServer.authChangedLater(providerID) // altrucoder_change
         return c.json(true)
       },
     )

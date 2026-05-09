@@ -132,6 +132,39 @@ describe("sanitizeCustomProviderConfig", () => {
     })
   })
 
+  it("accepts NVIDIA chat_template_kwargs thinking variants", () => {
+    const result = sanitizeCustomProviderConfig({
+      name: "NVIDIA NIM",
+      options: { baseURL: "https://integrate.api.nvidia.com/v1" },
+      models: {
+        "moonshotai/kimi-k2.6": {
+          name: "Kimi K2.6",
+          reasoning: true,
+          variants: {
+            xhigh: { chat_template_kwargs: { thinking: true } },
+          },
+        },
+      },
+    })
+
+    expect(result).toEqual({
+      value: {
+        npm: "@ai-sdk/openai-compatible",
+        name: "NVIDIA NIM",
+        options: { baseURL: "https://integrate.api.nvidia.com/v1" },
+        models: {
+          "moonshotai/kimi-k2.6": {
+            name: "Kimi K2.6",
+            reasoning: true,
+            variants: {
+              xhigh: { chat_template_kwargs: { thinking: true } },
+            },
+          },
+        },
+      },
+    })
+  })
+
   it("preserves the Anthropic custom provider package", () => {
     const result = sanitizeCustomProviderConfig({
       npm: ANTHROPIC_PROVIDER_PACKAGE,

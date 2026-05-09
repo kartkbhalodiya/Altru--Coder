@@ -1548,4 +1548,17 @@ export const dict = {
   "diffViewer.group.git": "Git",
   "diffViewer.notice.snapshotsDisabled":
     "이 리포지토리에서 스냅샷이 비활성화되어 있습니다. 세션 변경 사항을 표시하려면 구성 파일을 편집하세요.",
+  "settings.providers.section.catalog": "Model provider catalog",
+  "provider.custom.preset.title": "Add {{provider}} models",
+  "provider.custom.preset.models.label": "Inbuilt model",
+  "provider.custom.preset.models.placeholder": "Select model",
+  "provider.custom.preset.models.autofetch": "Autofetch all models",
+  "provider.custom.models.fetch.title": "Fetch from API",
+  "provider.custom.models.fetch.addedAll": "Added all {{count}} fetched model(s).",
+  "provider.custom.models.fetch.needsApiKey": "Enter an API key before autofetching models.",
+  "settings.models.addModel.title": "Add model",
+  "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
+  "session.messages.welcomeTyping": "What can Altru Coder do for you?",
+  "dialog.model.addFirst": "Add model",
+  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

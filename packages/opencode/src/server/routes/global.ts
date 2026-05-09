@@ -8,7 +8,6 @@ import { SyncEvent } from "@/sync"
 import { GlobalBus } from "@/bus/global"
 import { AppRuntime } from "@/effect/app-runtime"
 import { AsyncQueue } from "@/util/queue"
-import { InstanceStore } from "../../project/instance-store"
 import { Installation } from "@/installation"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import * as Log from "@opencode-ai/core/util/log"
@@ -191,7 +190,16 @@ export const GlobalRoutes = lazy(() =>
       validator("json", Config.Info.zod),
       async (c) => {
         const config = c.req.valid("json")
-        const next = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.updateGlobal(config)))
+        // altrucoder_change start - return after the config file write; dispose stale instances asynchronously
+        const next = await AppRuntime.runPromise(
+          Config.Service.use((cfg) => cfg.updateGlobal(config, { dispose: false, invalidate: false })),
+        )
+        setTimeout(() => {
+          void Config.invalidate(false).catch((error) => {
+            console.warn("[Altru Coder] global config invalidation failed:", error)
+          })
+        }, 0)
+        // altrucoder_change end
         return c.json(next)
       },
     )

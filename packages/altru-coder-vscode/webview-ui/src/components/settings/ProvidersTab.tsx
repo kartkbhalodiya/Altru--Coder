@@ -16,8 +16,10 @@ import { ProviderLogo } from "../shared/ProviderLogo"
 import CustomProviderDialog from "./CustomProviderDialog"
 import ProviderConnectDialog from "./ProviderConnectDialog"
 import ProviderSelectDialog from "./ProviderSelectDialog"
+import NvidiaNimDialog from "./NvidiaNimDialog"
 import { disabledProviderOptions, providersWithAltruCoderFallback, visibleConnectedIds } from "./provider-visibility"
 import { ALTRU_CODER_PROVIDER_ID, isCustomProviderPackage } from "../../../../src/shared/provider-model"
+import { NVIDIA_NIM_PROVIDER_ID } from "../../../../src/shared/nvidia-nim"
 import { createProviderAction } from "../../utils/provider-action"
 import { PROVIDER_PRESETS } from "./provider-presets"
 
@@ -132,6 +134,14 @@ const ProvidersTab: Component = () => {
 
   function connectChatGPT(item: Provider) {
     dialog.show(() => <ProviderConnectDialog providerID={item.id} oauthOnly />)
+  }
+
+  function openPreset(item: (typeof PROVIDER_PRESETS)[number]) {
+    if (item.id === NVIDIA_NIM_PROVIDER_ID) {
+      dialog.show(() => <NvidiaNimDialog />)
+      return
+    }
+    dialog.show(() => <CustomProviderDialog preset={item} />)
   }
 
   function chatgpt(item: Provider) {
@@ -273,7 +283,7 @@ const ProvidersTab: Component = () => {
                 type="button"
                 class="provider-catalog-tile"
                 title={`${language.t("common.connect")} ${item.name}`}
-                onClick={() => dialog.show(() => <CustomProviderDialog preset={item} />)}
+                onClick={() => openPreset(item)}
               >
                 <span class="provider-catalog-icon">
                   <ProviderLogo providerID={item.id} width={22} height={22} />

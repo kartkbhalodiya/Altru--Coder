@@ -1,0 +1,33 @@
+import type { ProviderPreset } from './types'
+
+export const NebiusPreset: ProviderPreset = {
+  id: "nebius",
+  name: "Nebius AI Studio",
+  baseURL: "https://api.studio.nebius.ai/v1",
+  note: "Select Nebius hosted models from the built-in Cline registry.",
+  fetch: false,
+  models: [
+    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+    { id: "deepseek-ai/DeepSeek-V3-0324-fast", name: "DeepSeek V3 0324 Fast" },
+    { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
+    { id: "deepseek-ai/DeepSeek-R1-fast", name: "DeepSeek R1 Fast" },
+    { id: "deepseek-ai/DeepSeek-R1-0528", name: "DeepSeek R1 0528" },
+    { id: "meta-llama/Llama-3.3-70B-Instruct-fast", name: "Llama 3.3 70B Instruct Fast" },
+    { id: "Qwen/Qwen2.5-32B-Instruct-fast", name: "Qwen2.5 32B Instruct Fast" },
+    { id: "Qwen/Qwen2.5-Coder-32B-Instruct-fast", name: "Qwen2.5 Coder 32B Instruct Fast" },
+    { id: "Qwen/Qwen3-4B-fast", name: "Qwen3 4B Fast" },
+    { id: "Qwen/Qwen3-30B-A3B-fast", name: "Qwen3 30B A3B Fast" },
+    { id: "Qwen/Qwen3-235B-A22B", name: "Qwen3 235B A22B" },
+    { id: "openai/gpt-oss-120b", name: "Gpt Oss 120b" },
+    { id: "moonshotai/Kimi-K2-Instruct", name: "Kimi K2 Instruct" },
+    { id: "Qwen/Qwen3-Coder-480B-A35B-Instruct", name: "Qwen3 Coder 480B A35B Instruct" },
+    { id: "openai/gpt-oss-20b", name: "Gpt Oss 20b" },
+    { id: "zai-org/GLM-4.5", name: "GLM 4.5" },
+    { id: "zai-org/GLM-4.5-Air", name: "GLM 4.5 Air" },
+    { id: "deepseek-ai/DeepSeek-R1-0528-fast", name: "DeepSeek R1 0528 Fast" },
+    { id: "Qwen/Qwen3-235B-A22B-Instruct-2507", name: "Qwen3 235B A22B Instruct 2507" },
+    { id: "Qwen/Qwen3-30B-A3B", name: "Qwen3 30B A3B" },
+    { id: "Qwen/Qwen3-32B", name: "Qwen3 32B" },
+    { id: "Qwen/Qwen3-32B-fast", name: "Qwen3 32B Fast" },
+  ],
+}

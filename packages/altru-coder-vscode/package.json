@@ -2,7 +2,7 @@
   "name": "altru-coder-agent-by-kartik",
   "displayName": "Altru Coder - Agent by Kartik",
   "description": "AI coding agent for VS Code by Kartik. Generate code, edit files, run terminal commands, manage models, enhance prompts, and automate development from one workspace chat.",
-  "version": "1.0.9",
+  "version": "1.1.2",
   "icon": "assets/icons/logo-outline-black.png",
   "galleryBanner": {
     "color": "#FFFFFF",
@@ -877,7 +877,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "knip": "knip",
-    "check-altrucoder-change": "! grep -rn 'altrucoder_change' . ../altru-coder-ui/ --exclude='package.json' --exclude='*.md' --exclude-dir='node_modules' --exclude-dir='dist' | grep -v '`altrucoder_change`'",
+    "check-altrucoder-change": "bun script/check-altrucoder-change.ts",
     "lint": "eslint src webview-ui",
     "test": "vscode-test",
     "test:unit": "bun test tests/unit/",

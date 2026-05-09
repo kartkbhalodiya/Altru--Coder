@@ -86,9 +86,9 @@ export interface ApplyResult {
 /**
  * Apply a user-initiated model selection.
  *
- * Session-scoped selections write only to the per-session override.
- * No-session selections write to the global modelSelections map so sidebar
- * default picks still mirror CLI TUI's model.json behavior.
+ * Session-scoped selections also update the per-mode default so new sessions
+ * start from the model the user explicitly picked most recently. Programmatic
+ * session setup that must stay isolated should write sessionOverrides directly.
  */
 export function applyModel(
   store: ModelStore,
@@ -96,9 +96,7 @@ export function applyModel(
   selection: ModelSelection,
   sessionID: string | undefined,
 ): ApplyResult {
-  const modelSelections = sessionID
-    ? { ...store.modelSelections }
-    : { ...store.modelSelections, [agentName]: selection }
+  const modelSelections = { ...store.modelSelections, [agentName]: selection }
   const sessionOverrides = { ...store.sessionOverrides }
 
   if (sessionID) {

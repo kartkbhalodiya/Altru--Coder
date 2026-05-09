@@ -72,6 +72,8 @@ export const ModelPreview: Component<Props> = (props) => {
                 <div class="model-preview-name-row">
                   <ProviderLogo
                     providerID={model().providerID}
+                    modelID={model().id}
+                    modelName={model().name}
                     width={18}
                     height={18}
                     class="model-preview-provider-icon"

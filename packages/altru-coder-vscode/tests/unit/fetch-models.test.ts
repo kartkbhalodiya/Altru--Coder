@@ -82,35 +82,50 @@ describe("fetchOpenAIModels", () => {
     expect(grok?.variants).toBeUndefined()
   })
 
-  it("uses NVIDIA chat template kwargs for Qwen, GLM, and Kimi reasoning models", async () => {
+  it("does not trust provider model-list reasoning metadata", async () => {
     install(
       mock(async () => {
         return new Response(
           JSON.stringify({
             data: [
-              { id: "qwen/qwen3.5-397b-a17b" },
-              { id: "z-ai/glm-5.1" },
-              { id: "moonshotai/kimi-k2.6" },
+              {
+                id: "plain-model",
+                name: "Plain Model",
+                reasoning: true,
+                capabilities: { reasoning: true },
+                supported_parameters: ["reasoning_effort"],
+                variants: { high: { reasoningEffort: "high" } },
+              },
             ],
           }),
         )
       }) as typeof fetch,
     )
 
+    const models = await fetchOpenAIModels({ baseURL: "https://example.com/v1", apiKey: "sk-test" })
+
+    expect(models[0]?.reasoning).toBeUndefined()
+    expect(models[0]?.variants).toBeUndefined()
+  })
+
+  it("uses the built-in NVIDIA catalog instead of fetching the NVIDIA catalog", async () => {
+    const fn = mock(async () => {
+      return new Response(JSON.stringify({ data: [{ id: "qwen/qwen3.5-397b-a17b" }] }))
+    })
+    install(fn as typeof fetch)
+
     const models = await fetchOpenAIModels({
       baseURL: "https://integrate.api.nvidia.com/v1",
       apiKey: "nv-test",
     })
-    const qwen = models.find((model) => model.id === "qwen/qwen3.5-397b-a17b")
-    const glm = models.find((model) => model.id === "z-ai/glm-5.1")
-    const kimi = models.find((model) => model.id === "moonshotai/kimi-k2.6")
 
-    expect(qwen?.reasoning).toBe(true)
-    expect(glm?.reasoning).toBe(true)
+    expect(fn).not.toHaveBeenCalled()
+    expect(models.length > 100).toBe(true)
+    expect(models.some((item) => item.id === "qwen/qwen3.5-397b-a17b")).toBe(true)
+    const kimi = models.find((item) => item.id === "moonshotai/kimi-k2.6")
     expect(kimi?.reasoning).toBe(true)
-    expect(qwen?.variants?.high?.chat_template_kwargs).toEqual({ enable_thinking: true })
-    expect(glm?.variants?.high?.chat_template_kwargs).toEqual({ enable_thinking: true })
-    expect(kimi?.variants?.high?.chat_template_kwargs).toEqual({ thinking: true })
-    expect(qwen?.variants?.high?.reasoningEffort).toBeUndefined()
+    expect(Object.keys(kimi?.variants ?? {})).toEqual(["normal", "low", "medium", "high", "xhigh"])
+    expect(kimi?.variants?.normal).toEqual({})
+    expect(kimi?.variants?.xhigh?.chat_template_kwargs).toEqual({ thinking: true })
   })
 })

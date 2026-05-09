@@ -13,6 +13,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+const lf = (value: string) => value.replace(/\r\n/g, "\n")
+
 function runGit(cwd: string, args: string[]): string {
   const result = Bun.spawnSync({
     cmd: ["git", ...args],
@@ -376,7 +378,7 @@ describe("GitOps", () => {
         expect(result.ok).toBe(true)
 
         const content = await fs.readFile(nodePath.join(cwd, "a.txt"), "utf8")
-        expect(content).toBe("two\n")
+        expect(lf(content)).toBe("two\n")
       })
     })
 

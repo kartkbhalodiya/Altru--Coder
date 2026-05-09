@@ -489,7 +489,6 @@ export const SessionProvider: ParentComponent = (props) => {
     pushRecent(selection)
     if (sessionID) {
       setStore("sessionOverrides", sessionID, selection)
-      return
     }
     // Always remember the per-mode model choice so switching modes restores
     // the last-used model (mirrors CLI TUI's model.json behavior).

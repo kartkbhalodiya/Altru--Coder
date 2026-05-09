@@ -15,6 +15,7 @@ function git(args: string[], cwd: string): Promise<string> {
 }
 
 const noop = () => {}
+const lf = (value: string) => value.replace(/\r\n/g, "\n")
 
 describe("git-transfer", () => {
   let dir: string
@@ -109,7 +110,7 @@ describe("git-transfer", () => {
       const result = await apply(snapshot, target, noop)
       expect(result.ok).toBe(true)
       const content = await fs.readFile(path.join(target, "init.txt"), "utf8")
-      expect(content).toBe("modified\n")
+      expect(lf(content)).toBe("modified\n")
       // Should show as modified in target
       const status = await git(["status", "--porcelain"], target)
       expect(status).toContain("M init.txt")
@@ -122,7 +123,7 @@ describe("git-transfer", () => {
       const result = await apply(snapshot, target, noop)
       expect(result.ok).toBe(true)
       const content = await fs.readFile(path.join(target, "init.txt"), "utf8")
-      expect(content).toBe("staged\n")
+      expect(lf(content)).toBe("staged\n")
       // Should be staged in target
       const status = await git(["status", "--porcelain"], target)
       expect(status).toContain("M  init.txt")
@@ -194,7 +195,7 @@ describe("git-transfer", () => {
 
       // Unstaged content should be the working tree version
       const content = await fs.readFile(path.join(target, "init.txt"), "utf8")
-      expect(content).toBe("unstaged version\n")
+      expect(lf(content)).toBe("unstaged version\n")
 
       // Untracked file should exist
       const extra = await fs.readFile(path.join(target, "extra.txt"), "utf8")

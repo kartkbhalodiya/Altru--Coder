@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test"
+import os from "node:os"
 import { getShellEnvironment, execWithShellEnv, clearShellEnvCache } from "../../src/agent-manager/shell-env"
 
 afterEach(() => {
@@ -42,23 +43,26 @@ describe("getShellEnvironment", () => {
 
 describe("execWithShellEnv", () => {
   it("executes a simple command", async () => {
-    const { stdout } = await execWithShellEnv("echo", ["hello"])
+    const { stdout } = await execWithShellEnv(process.execPath, ["-e", "console.log('hello')"])
     expect(stdout.trim()).toBe("hello")
   })
 
   it("passes cwd option through", async () => {
-    const { stdout } = await execWithShellEnv("pwd", [], { cwd: "/tmp" })
-    // /tmp may resolve to /private/tmp on macOS
-    expect(stdout.trim()).toMatch(/\/tmp$/)
+    const cwd = os.tmpdir()
+    const { stdout } = await execWithShellEnv(process.execPath, ["-e", "console.log(process.cwd())"], { cwd })
+    expect(stdout.trim()).toBe(cwd)
   })
 
   it("throws on non-ENOENT errors", async () => {
-    await expect(execWithShellEnv("ls", ["--nonexistent-flag-that-fails"])).rejects.toThrow()
+    await expect(execWithShellEnv(process.execPath, ["-e", "process.exit(2)"])).rejects.toThrow()
   })
 
   it("concurrent calls don't reject prematurely", async () => {
     // Both calls should succeed — neither should throw due to a race
-    const [a, b] = await Promise.all([execWithShellEnv("echo", ["first"]), execWithShellEnv("echo", ["second"])])
+    const [a, b] = await Promise.all([
+      execWithShellEnv(process.execPath, ["-e", "console.log('first')"]),
+      execWithShellEnv(process.execPath, ["-e", "console.log('second')"]),
+    ])
     expect(a.stdout.trim()).toBe("first")
     expect(b.stdout.trim()).toBe("second")
   })
