@@ -13,7 +13,7 @@ import { Config } from "../config/config"
 import { ModelCache } from "./model-cache"
 import { Auth } from "../auth"
 import { AI_SDK_PROVIDERS, ALTRU_CODER_OPENROUTER_BASE, PROMPTS } from "@altru-coder/altru-coder-gateway"
-import { ALTRU_CODER_BUILTIN_MODELS } from "@/altrucoder/provider/builtin-models"
+import { ALTRU_CODER_BUILTIN_MODELS, ALTRU_CODER_REMOVED_MODEL_IDS } from "@/altrucoder/provider/builtin-models"
 // altrucoder_change end
 
 // altrucoder_change start
@@ -224,13 +224,17 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | HttpClie
           { concurrency: 2 },
         )
 
+        const models = Object.fromEntries(
+          Object.entries(altru).filter(([id]) => !ALTRU_CODER_REMOVED_MODEL_IDS.has(id)),
+        )
+
         providers["altru-coder"] = {
           id: "altru-coder",
           name: "Altru Coder Gateway",
           env: ["ALTRU_CODER_API_KEY"],
           api: ALTRU_CODER_OPENROUTER_BASE.endsWith("/") ? ALTRU_CODER_OPENROUTER_BASE : `${ALTRU_CODER_OPENROUTER_BASE}/`,
           npm: "@altru-coder/altru-coder-gateway",
-          models: { ...altru, ...ALTRU_CODER_BUILTIN_MODELS },
+          models: { ...models, ...ALTRU_CODER_BUILTIN_MODELS },
         }
         if (Object.keys(altru).length === 0) {
           yield* Effect.sync(() => void ModelCache.refresh("altru-coder", fetch).catch(() => {}))

@@ -28,22 +28,13 @@ export const ALTRU_CODER_BUILTIN_MODELS = [
   },
   {
     providerID: ALTRU_CODER_PROVIDER_ID,
-    modelID: "altru-coder/hy3-preview-free",
-    name: "Altru Coder Hy3 Preview Free",
-    context,
-    output: 64_000,
-    reasoning: false,
-    recommendedIndex: 3,
-  },
-  {
-    providerID: ALTRU_CODER_PROVIDER_ID,
     modelID: "altru-coder/minimax-m2.5-free",
     name: "Altru Coder MiniMax M2.5 Free",
     context,
     output: 131_072,
     reasoning: true,
     variants: reasoning,
-    recommendedIndex: 4,
+    recommendedIndex: 3,
   },
   {
     providerID: ALTRU_CODER_PROVIDER_ID,
@@ -53,17 +44,7 @@ export const ALTRU_CODER_BUILTIN_MODELS = [
     output: 128_000,
     reasoning: true,
     variants: reasoning,
-    recommendedIndex: 5,
-  },
-  {
-    providerID: ALTRU_CODER_PROVIDER_ID,
-    modelID: "openai/gpt-oss-120b",
-    name: "Altru Coder GPT OSS 120B",
-    context: 131_072,
-    output: 26_215,
-    reasoning: true,
-    variants: reasoning,
-    recommendedIndex: 6,
+    recommendedIndex: 4,
   },
 ] as const
 export const CUSTOM_PROVIDER_PACKAGE = "@ai-sdk/openai-compatible"

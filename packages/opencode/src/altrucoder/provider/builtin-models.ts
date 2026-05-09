@@ -3,6 +3,8 @@ const reasoning = Object.fromEntries(
   ["low", "medium", "high", "xhigh"].map((effort) => [effort, { reasoning: { effort } }]),
 )
 
+export const ALTRU_CODER_REMOVED_MODEL_IDS = new Set(["altru-coder/hy3-preview-free", "openai/gpt-oss-120b"])
+
 export const ALTRU_CODER_BUILTIN_MODELS = {
   "altru-coder-auto/free": {
     id: "altru-coder-auto/free",
@@ -37,23 +39,6 @@ export const ALTRU_CODER_BUILTIN_MODELS = {
     isFree: true,
     cost: { input: 0, output: 0 },
     limit: { context, output: 128_000 },
-  },
-  "altru-coder/hy3-preview-free": {
-    id: "altru-coder/hy3-preview-free",
-    name: "Altru Coder Hy3 Preview Free",
-    family: "altru-coder-free",
-    prompt: "gpt55",
-    attachment: false,
-    reasoning: false,
-    tool_call: true,
-    temperature: true,
-    release_date: "2026-03-15",
-    last_updated: "2026-03-15",
-    modalities: { input: ["text"], output: ["text"] },
-    open_weights: true,
-    isFree: true,
-    cost: { input: 0, output: 0 },
-    limit: { context, output: 64_000 },
   },
   "altru-coder/minimax-m2.5-free": {
     id: "altru-coder/minimax-m2.5-free",
@@ -90,23 +75,5 @@ export const ALTRU_CODER_BUILTIN_MODELS = {
     isFree: true,
     cost: { input: 0, output: 0 },
     limit: { context, output: 128_000 },
-  },
-  "openai/gpt-oss-120b": {
-    id: "openai/gpt-oss-120b",
-    name: "Altru Coder GPT OSS 120B",
-    family: "gpt-oss",
-    prompt: "gpt55",
-    attachment: false,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    variants: reasoning,
-    release_date: "2025-08-05",
-    last_updated: "2025-08-05",
-    modalities: { input: ["text"], output: ["text"] },
-    open_weights: true,
-    isFree: true,
-    cost: { input: 0, output: 0 },
-    limit: { context: 131_072, output: 26_215 },
   },
 } as const

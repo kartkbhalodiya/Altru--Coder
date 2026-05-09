@@ -108,9 +108,10 @@ describe("isModelValid", () => {
     expect(isModelValid(providers, [], { providerID: "altru-coder", modelID: "altru-coder-auto/free" })).toBe(true)
   })
 
-  it("accepts the local GPT OSS built-in model", () => {
+  it("rejects removed local built-in models", () => {
     const local = localProviders(undefined)
-    expect(isModelValid(local, [], { providerID: "altru-coder", modelID: "openai/gpt-oss-120b" })).toBe(true)
+    expect(isModelValid(local, [], { providerID: "altru-coder", modelID: "openai/gpt-oss-120b" })).toBe(false)
+    expect(isModelValid(local, [], { providerID: "altru-coder", modelID: "altru-coder/hy3-preview-free" })).toBe(false)
   })
 
   it("exposes local Altru built-in reasoning metadata", () => {

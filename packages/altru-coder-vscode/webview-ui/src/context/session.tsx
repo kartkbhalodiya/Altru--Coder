@@ -941,6 +941,8 @@ export const SessionProvider: ParentComponent = (props) => {
         setStore("messages", session.id, [])
       }
 
+      if (draftID) promote(draftID, session.id)
+
       const pendingAgent = draftID ? store.agentSelections[draftID] : pendingAgentSelection()
       const pendingModel = draftID ? store.sessionOverrides[draftID] : undefined
       if (draftID) {
@@ -985,6 +987,68 @@ export const SessionProvider: ParentComponent = (props) => {
 
   function patchPage(sessionID: string, patch: Partial<MessagePageState>) {
     setPages(sessionID, { ...(pages[sessionID] ?? emptyPageState), ...patch })
+  }
+
+  function pendingID(id: string | undefined) {
+    return id?.startsWith("pending:") ? id : undefined
+  }
+
+  function promote(draftID: string, sessionID: string) {
+    if (draftID === sessionID) return
+
+    const msgs = store.messages[draftID]
+    const page = pages[draftID]
+    const pending = pendingOptimistic.get(draftID)
+    const info = statusMap[draftID]
+    const busy = busySinceMap[draftID]
+
+    if (!msgs?.length && !page && !pending && !info && !busy) return
+
+    if (msgs?.length) {
+      setStore(
+        "messages",
+        sessionID,
+        msgs.map((msg) => ({ ...msg, sessionID })),
+      )
+      setStore(
+        "messages",
+        produce((map) => {
+          delete map[draftID]
+        }),
+      )
+    }
+
+    if (page) {
+      setPages(sessionID, page)
+      setPages(
+        produce((map) => {
+          delete map[draftID]
+        }),
+      )
+    }
+
+    if (pending) {
+      pendingOptimistic.set(sessionID, pending)
+      pendingOptimistic.delete(draftID)
+    }
+
+    if (info) {
+      setStatusMap(sessionID, info)
+      setStatusMap(
+        produce((map) => {
+          delete map[draftID]
+        }),
+      )
+    }
+
+    if (busy) {
+      setBusySinceMap(sessionID, busy)
+      setBusySinceMap(
+        produce((map) => {
+          delete map[draftID]
+        }),
+      )
+    }
   }
 
   function mergeMessages(current: Message[], incoming: Message[], mode: Exclude<MessageLoadMode, "focus">) {
@@ -1383,11 +1447,12 @@ export const SessionProvider: ParentComponent = (props) => {
    * by listening for the same sendMessageFailed event.
    */
   function handleSendMessageFailed(message: SendMessageFailedMessage) {
-    if (message.sessionID && message.messageID) {
-      pendingOptimistic.get(message.sessionID)?.delete(message.messageID)
+    const sid = message.sessionID ?? message.draftID
+    if (sid && message.messageID) {
+      pendingOptimistic.get(sid)?.delete(message.messageID)
       stash.remove(message.messageID)
       batch(() => {
-        setStore("messages", message.sessionID!, (msgs = []) => msgs.filter((m) => m.id !== message.messageID))
+        setStore("messages", sid, (msgs = []) => msgs.filter((m) => m.id !== message.messageID))
         setStore(
           "parts",
           produce((parts) => {
@@ -1404,6 +1469,12 @@ export const SessionProvider: ParentComponent = (props) => {
     })
 
     if (!message.sessionID && message.draftID) {
+      if (currentSessionID() === message.draftID) {
+        setCurrentSessionID(undefined)
+        setDraftSessionID(undefined)
+        setLoading(false)
+        return
+      }
       setDraftSessionID(message.draftID)
     }
   }
@@ -1789,15 +1860,24 @@ export const SessionProvider: ParentComponent = (props) => {
       return
     }
 
-    const sid = currentSessionID()
+    const active = currentSessionID()
+    const sid = pendingID(active) ? undefined : active
+    const draft = draftID ?? pendingID(active) ?? (!sid ? `pending:${messageID}` : undefined)
+    const target = sid ?? draft
     const suggestion = scopedSuggestions(sid)[0]
     if (suggestion) dismissSuggestion(suggestion.id)
     for (const q of scopedQuestions(sid)) {
       rejectQuestion(q.id)
     }
-    if (sid) addOptimistic(sid, messageID, text, files)
+    if (target) {
+      if (!sid) {
+        setCurrentSessionID(target)
+        setDraftSessionID(target)
+      }
+      addOptimistic(target, messageID, text, files)
+    }
 
-    const scope = draftID ?? sid
+    const scope = draft ?? sid
     const agent = promptAgent(scope)
 
     vscode.postMessage({
@@ -1805,7 +1885,7 @@ export const SessionProvider: ParentComponent = (props) => {
       text,
       messageID,
       sessionID: sid,
-      draftID,
+      draftID: draft,
       providerID,
       modelID,
       agent,
@@ -1851,16 +1931,25 @@ export const SessionProvider: ParentComponent = (props) => {
     }
 
     const messageID = Identifier.ascending("message")
-    const sid = currentSessionID()
+    const active = currentSessionID()
+    const sid = pendingID(active) ? undefined : active
+    const draft = draftID ?? pendingID(active) ?? (!sid ? `pending:${messageID}` : undefined)
+    const target = sid ?? draft
     const suggestion = scopedSuggestions(sid)[0]
     if (suggestion) dismissSuggestion(suggestion.id)
     for (const q of scopedQuestions(sid)) {
       rejectQuestion(q.id)
     }
 
-    if (sid) addOptimistic(sid, messageID, `/${command} ${args}`.trim(), files)
+    if (target) {
+      if (!sid) {
+        setCurrentSessionID(target)
+        setDraftSessionID(target)
+      }
+      addOptimistic(target, messageID, `/${command} ${args}`.trim(), files)
+    }
 
-    const scope = draftID ?? sid
+    const scope = draft ?? sid
     const agent = promptAgent(scope)
 
     vscode.postMessage({
@@ -1869,7 +1958,7 @@ export const SessionProvider: ParentComponent = (props) => {
       arguments: args,
       messageID,
       sessionID: sid,
-      draftID,
+      draftID: draft,
       providerID,
       modelID,
       agent,

@@ -29,9 +29,23 @@ mock.module("@altru-coder/altru-coder-gateway", () => ({
       cost: { input: 1.0, output: 2.0 },
       limit: { context: 128000, output: 4096 },
     },
+    "altru-coder/minimax-m2.5-free": {
+      id: "altru-coder/minimax-m2.5-free",
+      name: "Stale MiniMax M2.5 Free",
+      status: "deprecated",
+      cost: { input: 1.0, output: 2.0 },
+      limit: { context: 128000, output: 4096 },
+    },
     "openai/gpt-oss-120b": {
       id: "openai/gpt-oss-120b",
       name: "Stale GPT OSS 120B",
+      status: "deprecated",
+      cost: { input: 1.0, output: 2.0 },
+      limit: { context: 128000, output: 4096 },
+    },
+    "altru-coder/hy3-preview-free": {
+      id: "altru-coder/hy3-preview-free",
+      name: "Stale Hy3 Preview Free",
       status: "deprecated",
       cost: { input: 1.0, output: 2.0 },
       limit: { context: 128000, output: 4096 },
@@ -192,20 +206,13 @@ test("altru-coder bundled models override stale fetched metadata", async () => {
     directory: base.path,
     fn: async () => {
       const providers = await Provider.list()
-      const model = providers[ProviderID["altru-coder"]]?.models["openai/gpt-oss-120b"]
       const free = providers[ProviderID["altru-coder"]]?.models["altru-coder-auto/free"]
       const pickle = providers[ProviderID["altru-coder"]]?.models["altru-coder/big-pickle-free"]
-      const hy3 = providers[ProviderID["altru-coder"]]?.models["altru-coder/hy3-preview-free"]
       const mini = providers[ProviderID["altru-coder"]]?.models["altru-coder/minimax-m2.5-free"]
       const nemo = providers[ProviderID["altru-coder"]]?.models["altru-coder/nemotron-3-super-free"]
 
-      expect(model).toBeDefined()
-      expect(model?.status).toBe("active")
-      expect(model?.name).toBe("Altru Coder GPT OSS 120B")
-      expect(model?.prompt).toBe("gpt55")
-      expect(model?.capabilities.reasoning).toBe(false)
-      expect(model?.options.reasoning).toBeUndefined()
-      expect(model?.options.verbosity).toBeUndefined()
+      expect(providers[ProviderID["altru-coder"]]?.models["openai/gpt-oss-120b"]).toBeUndefined()
+      expect(providers[ProviderID["altru-coder"]]?.models["altru-coder/hy3-preview-free"]).toBeUndefined()
       expect(free?.prompt).toBe("gpt55")
       expect(free?.capabilities.reasoning).toBe(false)
       expect(free?.isFree).toBe(true)
@@ -216,14 +223,12 @@ test("altru-coder bundled models override stale fetched metadata", async () => {
       expect(pickle?.name).toBe("Altru Coder Big Pickle Free")
       expect(pickle?.capabilities.reasoning).toBe(false)
       expect(pickle?.limit.context).toBe(1_000_000)
-      expect(hy3?.cost.input).toBe(0)
-      expect(hy3?.capabilities.reasoning).toBe(false)
-      expect(hy3?.limit.context).toBe(1_000_000)
       expect(mini?.cost.input).toBe(0)
-      expect(mini?.capabilities.reasoning).toBe(false)
+      expect(mini?.name).toBe("Altru Coder MiniMax M2.5 Free")
+      expect(mini?.capabilities.reasoning).toBe(true)
       expect(mini?.limit.context).toBe(1_000_000)
       expect(nemo?.cost.input).toBe(0)
-      expect(nemo?.capabilities.reasoning).toBe(false)
+      expect(nemo?.capabilities.reasoning).toBe(true)
       expect(nemo?.limit.context).toBe(1_000_000)
     },
   })

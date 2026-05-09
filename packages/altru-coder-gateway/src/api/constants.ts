@@ -52,7 +52,6 @@ export const OPENCODE_ZEN_PUBLIC_API_KEY = "public"
 export const OPENCODE_ZEN_PUBLIC_MODEL_MAP = {
   "altru-coder-auto/free": "nemotron-3-super-free",
   "altru-coder/big-pickle-free": "big-pickle",
-  "altru-coder/hy3-preview-free": "hy3-preview-free",
   "altru-coder/minimax-m2.5-free": "minimax-m2.5-free",
   "altru-coder/nemotron-3-super-free": "nemotron-3-super-free",
 } as const
