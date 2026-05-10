@@ -103,6 +103,7 @@ const SIMPLE_TOOLS: ToolDef[] = [
   { id: "list", descriptionKey: "settings.autoApprove.tool.list" },
   { id: "task", descriptionKey: "settings.autoApprove.tool.task" },
   { id: "skill", descriptionKey: "settings.autoApprove.tool.skill" },
+  { id: "terminal", descriptionKey: "settings.autoApprove.tool.terminal" },
   { id: "lsp", descriptionKey: "settings.autoApprove.tool.lsp" },
 ]
 
@@ -281,7 +282,12 @@ const SimpleToolRow: Component<{
       }}
     >
       <div style={{ flex: 1, "min-width": 0 }}>
-        <div style={{ "font-size": "var(--altru-coder-font-size-13)", color: "var(--text-base, var(--vscode-foreground))" }}>
+        <div
+          style={{
+            "font-size": "var(--altru-coder-font-size-13)",
+            color: "var(--text-base, var(--vscode-foreground))",
+          }}
+        >
           {toolTitle(props.id)}
         </div>
         <div
@@ -349,7 +355,12 @@ const GranularToolRow: Component<{
     <div style={{ padding: "12px 0", "border-bottom": "1px solid var(--border-weak-base)" }}>
       <div style={{ display: "flex", gap: "24px", "align-items": "flex-start", "justify-content": "space-between" }}>
         <div style={{ flex: 1, "min-width": 0 }}>
-          <div style={{ "font-size": "var(--altru-coder-font-size-13)", color: "var(--text-base, var(--vscode-foreground))" }}>
+          <div
+            style={{
+              "font-size": "var(--altru-coder-font-size-13)",
+              color: "var(--text-base, var(--vscode-foreground))",
+            }}
+          >
             {toolTitle(props.tool.id)}
           </div>
           <div

@@ -9,9 +9,7 @@ function record(value: unknown): value is Record<string, unknown> {
 
 function variants(value: unknown): Record<string, Record<string, unknown>> | undefined {
   if (!record(value)) return undefined
-  const entries = Object.entries(value).filter((entry): entry is [string, Record<string, unknown>] =>
-    record(entry[1]),
-  )
+  const entries = Object.entries(value).filter((entry): entry is [string, Record<string, unknown>] => record(entry[1]))
   if (entries.length === 0) return undefined
   return Object.fromEntries(entries)
 }
@@ -47,9 +45,7 @@ export function localProviders(config: Record<string, ProviderConfig> | undefine
       env: cfg.env,
       models,
     }
-    result[id] = result[id]
-      ? { ...provider, models: { ...result[id]!.models, ...provider.models } }
-      : provider
+    result[id] = result[id] ? { ...provider, models: { ...result[id]!.models, ...provider.models } } : provider
   }
 
   return result

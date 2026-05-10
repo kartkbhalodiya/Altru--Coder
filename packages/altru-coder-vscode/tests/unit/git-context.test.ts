@@ -15,7 +15,16 @@ async function repo(run: (dir: string) => Promise<void>, commit = true) {
   try {
     git(dir, ["init"])
     if (commit)
-      git(dir, ["-c", "user.name=Altru Coder", "-c", "user.email=altru-coder@example.com", "commit", "--allow-empty", "-m", "init"])
+      git(dir, [
+        "-c",
+        "user.name=Altru Coder",
+        "-c",
+        "user.email=altru-coder@example.com",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "init",
+      ])
     await run(dir)
   } finally {
     await fs.rm(dir, { recursive: true, force: true })

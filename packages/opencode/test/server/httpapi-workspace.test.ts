@@ -32,6 +32,7 @@ function request(path: string, directory: string, init: RequestInit = {}, httpAp
     Flag.ALTRU_CODER_EXPERIMENTAL_HTTPAPI = httpApi
     const headers = new Headers(init.headers)
     headers.set("x-altru-coder-directory", directory)
+    headers.set("x-altru-coder-experimental-api", "true")
     return Promise.resolve(Server.Default().app.request(path, { ...init, headers }))
   })
 }

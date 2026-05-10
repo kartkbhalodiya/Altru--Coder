@@ -1,4 +1,4 @@
-import type { ProviderPreset } from './types'
+import type { ProviderPreset } from "./types"
 
 export const MistralPreset: ProviderPreset = {
   id: "mistral",
@@ -8,9 +8,22 @@ export const MistralPreset: ProviderPreset = {
   fetch: false,
   models: [
     { id: "devstral-2512", name: "Devstral 2512" },
+    { id: "devstral-small-2512", name: "Devstral Small 2512" },
     { id: "labs-devstral-small-2512", name: "Labs Devstral Small 2512" },
+    { id: "devstral-medium-2507", name: "Devstral Medium 2507" },
+    { id: "devstral-small-2507", name: "Devstral Small 2507" },
     { id: "mistral-large-2512", name: "Mistral Large 2512" },
+    { id: "mistral-medium-3.5", name: "Mistral Medium 3.5" },
+    { id: "mistral-medium-2508", name: "Mistral Medium 2508" },
+    { id: "mistral-small-2603", name: "Mistral Small 2603" },
+    { id: "mistral-small-2506", name: "Mistral Small 2506" },
+    { id: "mistral-small-2503", name: "Mistral Small 2503" },
+    { id: "mistral-saba-2502", name: "Mistral Saba 2502" },
+    { id: "magistral-medium-2509", name: "Magistral Medium 2509", reasoning: true },
+    { id: "magistral-small-2509", name: "Magistral Small 2509", reasoning: true },
     { id: "ministral-14b-2512", name: "Ministral 14b 2512" },
+    { id: "ministral-8b-2512", name: "Ministral 8b 2512" },
+    { id: "ministral-3b-2512", name: "Ministral 3b 2512" },
     { id: "mistral-large-2411", name: "Mistral Large 2411" },
     { id: "pixtral-large-2411", name: "Pixtral Large 2411" },
     { id: "ministral-3b-2410", name: "Ministral 3b 2410" },
@@ -21,6 +34,7 @@ export const MistralPreset: ProviderPreset = {
     { id: "pixtral-12b-2409", name: "Pixtral 12b 2409" },
     { id: "open-mistral-nemo-2407", name: "Open Mistral Nemo 2407" },
     { id: "open-codestral-mamba", name: "Open Codestral Mamba" },
+    { id: "codestral-2508", name: "Codestral 2508" },
     { id: "codestral-2501", name: "Codestral 2501" },
     { id: "devstral-small-2505", name: "Devstral Small 2505" },
     { id: "devstral-medium-latest", name: "Devstral Medium Latest" },

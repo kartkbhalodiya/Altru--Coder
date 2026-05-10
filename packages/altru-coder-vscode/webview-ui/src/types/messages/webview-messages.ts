@@ -840,6 +840,13 @@ export interface ToggleAutoApproveMessage {
   type: "toggleAutoApprove"
 }
 
+export type AutoApproveMode = "default" | "workspace" | "bypass"
+
+export interface SetAutoApproveModeMessage {
+  type: "setAutoApproveMode"
+  mode: AutoApproveMode
+}
+
 export interface ToggleRemoteMessage {
   type: "toggleRemote"
 }
@@ -1154,6 +1161,7 @@ export type WebviewMessage =
   | AgentManagerOpenSessionsMessage
   | RequestAutoApproveStateMessage
   | ToggleAutoApproveMessage
+  | SetAutoApproveModeMessage
   | FetchMarketplaceDataMessage
   | FilterMarketplaceItemsMessage
   | InstallMarketplaceItemMessage

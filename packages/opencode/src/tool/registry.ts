@@ -31,6 +31,7 @@ import { AltruCoderToolRegistry } from "../altrucoder/tool/registry"
 import { makeRuntime } from "@/effect/run-service"
 import { AltruCoderPolicy } from "@/altrucoder/policy"
 import { AltruCoderToolHooks } from "@/altrucoder/tool/hooks"
+import { nearest as nearestSkills } from "@/altrucoder/skills/routing"
 // altrucoder_change end
 import { Flag } from "@opencode-ai/core/flag/flag"
 import * as Log from "@opencode-ai/core/util/log"
@@ -74,7 +75,12 @@ export interface Interface {
   readonly ids: () => Effect.Effect<string[]>
   readonly all: () => Effect.Effect<Tool.Def[]>
   readonly named: () => Effect.Effect<{ task: TaskDef; read: ReadDef }>
-  readonly tools: (model: { providerID: ProviderID; modelID: ModelID; agent: Agent.Info }) => Effect.Effect<Tool.Def[]>
+  readonly tools: (model: {
+    providerID: ProviderID
+    modelID: ModelID
+    agent: Agent.Info
+    query?: string // altrucoder_change
+  }) => Effect.Effect<Tool.Def[]>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/ToolRegistry") {}
@@ -171,7 +177,7 @@ export const layer: Layer.Layer<
                   args,
                   ctx: toolCtx,
                   result: {
-                    title: typeof result === "string" ? "" : ("title" in result ? String(result.title ?? "") : ""),
+                    title: typeof result === "string" ? "" : "title" in result ? String(result.title ?? "") : "",
                     output,
                     metadata,
                   },
@@ -292,8 +298,8 @@ export const layer: Layer.Layer<
       return (yield* all()).map((tool) => tool.id)
     })
 
-    const describeSkill = Effect.fn("ToolRegistry.describeSkill")(function* (agent: Agent.Info) {
-      const list = yield* skill.available(agent)
+    const describeSkill = Effect.fn("ToolRegistry.describeSkill")(function* (agent: Agent.Info, query?: string) {
+      const list = nearestSkills(yield* skill.available(agent), query) // altrucoder_change
       if (list.length === 0) return "No skills are currently available."
       return [
         "Load a specialized skill that provides domain-specific instructions and workflows.",
@@ -304,8 +310,8 @@ export const layer: Layer.Layer<
         "",
         'Tool output includes a `<skill_content name="...">` block with the loaded content.',
         "",
-        "The following skills provide specialized sets of instructions for particular tasks",
-        "Invoke this tool to load a skill when a task matches one of the available skills listed below:",
+        "The following skills are the relevant skills for the current user request:",
+        "Invoke this tool to load one of these skills when the task matches it:",
         "",
         Skill.fmt(list, { verbose: false }),
       ].join("\n")
@@ -336,7 +342,7 @@ export const layer: Layer.Layer<
           // altrucoder_change start
           !!process.env["ALTRU_CODER_E2E_LLM_URL"] ||
           (input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4"))
-          // altrucoder_change end
+        // altrucoder_change end
         if (tool.id === ApplyPatchTool.id) return usePatch
         if (tool.id === EditTool.id) return !usePatch // altrucoder_change
 
@@ -359,7 +365,7 @@ export const layer: Layer.Layer<
             description: [
               output.description,
               tool.id === TaskTool.id ? yield* describeTask(input.agent) : undefined,
-              tool.id === SkillTool.id ? yield* describeSkill(input.agent) : undefined,
+              tool.id === SkillTool.id ? yield* describeSkill(input.agent, input.query) : undefined,
             ]
               .filter(Boolean)
               .join("\n"),

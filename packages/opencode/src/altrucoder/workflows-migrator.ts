@@ -70,7 +70,10 @@ export namespace WorkflowsMigrator {
     return workflows
   }
 
-  export async function discoverWorkflows(projectDir: string, skipGlobalPaths?: boolean): Promise<AltruCoderWorkflow[]> {
+  export async function discoverWorkflows(
+    projectDir: string,
+    skipGlobalPaths?: boolean,
+  ): Promise<AltruCoderWorkflow[]> {
     const workflows: AltruCoderWorkflow[] = []
 
     if (!skipGlobalPaths) {

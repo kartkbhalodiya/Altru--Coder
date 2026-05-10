@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import { ServerManager } from "./server-manager"
 import { createAltruCoderClient, type AltruCoderClient, type Event } from "@altru-coder/sdk/v2/client"
 import { SdkSSEAdapter } from "./sdk-sse-adapter"
+import { ThreadSSEAdapter, type ThreadSSEState } from "./thread-sse-adapter"
 import type { ServerConfig } from "./types"
 import { resolveEventSessionId as resolveEventSessionIdPure } from "./connection-utils"
 
@@ -89,6 +90,9 @@ export class AltruCoderConnectionService {
   private readonly focused: Map<string, string> = new Map()
   /** Provider key → all open (background) session IDs. */
   private readonly opened: Map<string, string[]> = new Map()
+  private readonly dirs: Map<string, string> = new Map()
+  private readonly threads: Map<string, { stream: ThreadSSEAdapter; directory: string }> = new Map()
+  private readonly threadStates: Map<string, ThreadSSEState> = new Map()
   private debounceTimer: ReturnType<typeof setTimeout> | null = null
   private unsubRemote: (() => void) | null = null
 
@@ -429,10 +433,15 @@ export class AltruCoderConnectionService {
    * Register the session a provider is actively viewing (focused).
    * After any change the aggregated set is sent to the server (debounced).
    */
-  registerFocused(key: string, sessionID: string): void {
-    if (this.focused.get(key) === sessionID) return
+  registerFocused(key: string, sessionID: string, directory?: string): void {
+    if (directory) this.dirs.set(sessionID, directory)
+    if (this.focused.get(key) === sessionID) {
+      this.syncThreadStreams()
+      return
+    }
     this.focused.set(key, sessionID)
     this.flushViewed()
+    this.syncThreadStreams()
   }
 
   /**
@@ -442,17 +451,27 @@ export class AltruCoderConnectionService {
     if (!this.focused.has(key)) return
     this.focused.delete(key)
     this.flushViewed()
+    this.syncThreadStreams()
   }
 
   /**
    * Register the open (background tab) session IDs for a provider.
    * Sessions that appear in both focused and open are reported as focused only.
    */
-  registerOpen(key: string, ids: string[]): void {
+  registerOpen(key: string, ids: string[], directory?: string): void {
+    if (directory) {
+      for (const id of ids) this.dirs.set(id, directory)
+    }
     const prev = this.opened.get(key)
     if (prev && prev.length === ids.length && prev.every((v, i) => v === ids[i])) return
     this.opened.set(key, ids)
     this.flushViewed()
+  }
+
+  registerSessionDirectory(sessionID: string, directory: string): void {
+    if (this.dirs.get(sessionID) === directory) return
+    this.dirs.set(sessionID, directory)
+    this.syncThreadStreams()
   }
 
   /** Debounced: send the aggregated focused + open session IDs to the server. */
@@ -480,6 +499,7 @@ export class AltruCoderConnectionService {
   dispose(): void {
     this.stopHealthPoll()
     this.sseClient?.dispose()
+    this.stopThreadStreams()
     this.serverManager.dispose()
     this.eventListeners.clear()
     this.stateListeners.clear()
@@ -492,6 +512,7 @@ export class AltruCoderConnectionService {
     this.messageSessionIdsByMessageId.clear()
     this.focused.clear()
     this.opened.clear()
+    this.dirs.clear()
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = null
@@ -562,6 +583,7 @@ export class AltruCoderConnectionService {
     // If we reconnect, ensure the previous SSE connection is cleaned up first.
     this.stopHealthPoll()
     this.sseClient?.dispose()
+    this.stopThreadStreams()
 
     const server = await this.serverManager.getServer()
     this.info = { port: server.port }
@@ -596,9 +618,8 @@ export class AltruCoderConnectionService {
 
     // Wire SSE events → broadcast to all registered listeners
     this.sseClient.onEvent((event, directory) => {
-      for (const listener of this.eventListeners) {
-        listener(event, directory)
-      }
+      if (this.shouldDeferToThread(event)) return
+      this.emitEvent(event, directory)
     })
 
     this.sseClient.onError((error) => {
@@ -633,6 +654,76 @@ export class AltruCoderConnectionService {
 
     // Start the independent health poll once we are confirmed connected.
     this.startHealthPoll(config.baseUrl, config.password)
+    this.syncThreadStreams()
+  }
+
+  private emitEvent(event: Event, directory?: string): void {
+    for (const listener of this.eventListeners) {
+      listener(event, directory)
+    }
+  }
+
+  private shouldDeferToThread(event: Event): boolean {
+    const id = this.resolveEventSessionId(event)
+    if (!id) return false
+    return this.threadStates.get(id) === "connected"
+  }
+
+  private syncThreadStreams(): void {
+    if (!this.client) return
+    const wanted = this.focusedThreadDirectories()
+
+    for (const [id, entry] of this.threads) {
+      if (wanted.get(id) === entry.directory) continue
+      entry.stream.dispose()
+      this.threads.delete(id)
+      this.threadStates.delete(id)
+    }
+
+    for (const [id, directory] of wanted) {
+      if (this.threads.has(id)) continue
+      const stream = new ThreadSSEAdapter(this.client, id, directory)
+      this.threads.set(id, { stream, directory })
+      this.threadStates.set(id, "connecting")
+      stream.onEvent((event, dir) => this.emitEvent(event, dir ?? directory))
+      stream.onError((err) => {
+        console.warn("[Altru Coder New] ConnectionService: thread SSE failed:", {
+          sessionID: id,
+          directory,
+          error: err.message,
+        })
+      })
+      stream.onStateChange((state) => {
+        this.threadStates.set(id, state)
+        if (state === "disconnected") this.threadStates.delete(id)
+      })
+      stream.connect()
+    }
+  }
+
+  private focusedThreadDirectories(): Map<string, string> {
+    const wanted = new Map<string, string>()
+    for (const id of this.focused.values()) {
+      const dir = this.dirs.get(id) ?? this.defaultDirectory()
+      if (dir) wanted.set(id, dir)
+    }
+    return wanted
+  }
+
+  private defaultDirectory(): string | undefined {
+    for (const provider of this.directoryProviders) {
+      const dir = provider()[0]
+      if (dir) return dir
+    }
+    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+  }
+
+  private stopThreadStreams(): void {
+    for (const entry of this.threads.values()) {
+      entry.stream.dispose()
+    }
+    this.threads.clear()
+    this.threadStates.clear()
   }
 }
 

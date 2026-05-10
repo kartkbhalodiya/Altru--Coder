@@ -53,7 +53,11 @@ function isPathSpecifier(value: string): boolean {
 
   const normalized = value.replaceAll("\\", "/")
   if (normalized.includes("/node_modules/")) return true
-  if (normalized.includes("/.opencode/") || normalized.includes("/.altru-coder/") || normalized.includes("/.altrucoder/")) {
+  if (
+    normalized.includes("/.opencode/") ||
+    normalized.includes("/.altru-coder/") ||
+    normalized.includes("/.altrucoder/")
+  ) {
     return true
   }
 

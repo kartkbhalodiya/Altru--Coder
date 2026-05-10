@@ -21,7 +21,8 @@ export const dict = {
   "altruClaw.upgrade.description1": "تم إعداد هذا المثيل قبل تفعيل الدردشة.",
   "altruClaw.upgrade.description2.before": "استخدم زر ",
   "altruClaw.upgrade.description2.bold": "الترقية إلى الأحدث",
-  "altruClaw.upgrade.description2.after": " في لوحة تحكم AltruCoderClaw لتنشيط الدردشة في الوقت الفعلي مع الروبوت الخاص بك.",
+  "altruClaw.upgrade.description2.after":
+    " في لوحة تحكم AltruCoderClaw لتنشيط الدردشة في الوقت الفعلي مع الروبوت الخاص بك.",
   "altruClaw.upgrade.openDashboard": "فتح لوحة التحكم",
   "altruClaw.sidebar.title": "AltruCoderClaw",
   "altruClaw.sidebar.instance": "المثيل",

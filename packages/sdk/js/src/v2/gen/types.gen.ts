@@ -590,6 +590,94 @@ export type EventCommandExecuted = {
   }
 }
 
+export type EventProcessStarted = {
+  type: "process.started"
+  properties: {
+    processID: string
+    id: string
+    command: string
+    cwd: string
+    sessionID: string
+    messageID: string
+    callID?: string
+    pid?: number
+    started: number
+    updated: number
+    status: string
+    running: boolean
+    exit: number | null
+    error?: string
+    stopped?: boolean
+    truncated: boolean
+    output: string
+  }
+}
+
+export type EventProcessOutput = {
+  type: "process.output"
+  properties: {
+    processID: string
+    id: string
+    sessionID: string
+    messageID: string
+    callID?: string
+    offset: number
+    nextOffset: number
+    output: string
+    truncated: boolean
+    running: boolean
+    exit: number | null
+    status: string
+    error?: string
+  }
+}
+
+export type EventProcessExited = {
+  type: "process.exited"
+  properties: {
+    processID: string
+    id: string
+    command: string
+    cwd: string
+    sessionID: string
+    messageID: string
+    callID?: string
+    pid?: number
+    started: number
+    updated: number
+    status: string
+    running: boolean
+    exit: number | null
+    error?: string
+    stopped?: boolean
+    truncated: boolean
+    output: string
+  }
+}
+
+export type EventProcessUpdated = {
+  type: "process.updated"
+  properties: {
+    processID: string
+    id: string
+    command: string
+    cwd: string
+    sessionID: string
+    messageID: string
+    callID?: string
+    pid?: number
+    started: number
+    updated: number
+    status: string
+    running: boolean
+    exit: number | null
+    error?: string
+    stopped?: boolean
+    truncated: boolean
+    output: string
+  }
+}
+
 export type EventAltrucoderAgentManagerStart = {
   type: "altrucoder.agent_manager.start"
   properties: {
@@ -1357,6 +1445,10 @@ export type GlobalEvent = {
     | EventSuggestionDismissed
     | EventSessionCompacted
     | EventCommandExecuted
+    | EventProcessStarted
+    | EventProcessOutput
+    | EventProcessExited
+    | EventProcessUpdated
     | EventAltrucoderAgentManagerStart
     | EventVcsBranchUpdated
     | EventAltruCoderSessionsRemoteStatusChanged
@@ -1575,6 +1667,7 @@ export type PermissionConfig =
       doom_loop?: PermissionActionConfig
       skill?: PermissionRuleConfig
       agent_manager?: PermissionRuleConfig
+      terminal?: PermissionRuleConfig
       [key: string]: PermissionRuleConfig | PermissionActionConfig | undefined
     }
 
@@ -2331,6 +2424,159 @@ export type GlobalSession = {
   worktreeName?: string
 }
 
+export type ProcessInfo = {
+  id: string
+  command: string
+  cwd: string
+  sessionID: string
+  messageID: string
+  callID?: string
+  pid?: number
+  started: number
+  updated: number
+  status: string
+  running: boolean
+  exit: number | null
+  error?: string
+  stopped?: boolean
+  truncated: boolean
+  output: string
+  processID: string
+}
+
+export type ProcessOutput = {
+  processID: string
+  id: string
+  offset: number
+  nextOffset: number
+  output: string
+  truncated: boolean
+  running: boolean
+  exit: number | null
+  status: string
+  error?: string
+}
+
+export type AppServerCapabilities = {
+  protocolVersion: string
+  server: {
+    name: string
+    version: string
+  }
+  methods: Array<string>
+  features: {
+    [key: string]: boolean
+  }
+}
+
+export type AppServerRpcResponse = {
+  jsonrpc: "2.0"
+  id: string | number | null
+  result?: unknown
+  error?: {
+    code: number
+    message: string
+    data?: unknown
+  }
+}
+
+export type ThreadRealtimeEvent = {
+  sessionID: string
+  directory?: string
+  project?: string
+  workspace?: string
+  payload: unknown
+}
+
+export type ThreadUsage = {
+  cost: number
+  tokens: {
+    input: number
+    output: number
+    reasoning: number
+    total: number
+    cache: {
+      read: number
+      write: number
+    }
+  }
+}
+
+export type ThreadRecovery = {
+  resumable: boolean
+  returnedMessages: number
+  truncated: boolean
+  nextCursor?: string
+  lastMessageID?: string
+  lastUserMessageID?: string
+  lastAssistantMessageID?: string
+}
+
+export type ThreadResume = {
+  session: Session
+  status: SessionStatus
+  messages: Array<{
+    info: Message
+    parts: Array<Part>
+  }>
+  todos: Array<Todo>
+  diff: Array<SnapshotFileDiff>
+  usage: ThreadUsage
+  recovery: ThreadRecovery
+}
+
+export type FilesystemStat = {
+  path: string
+  absolute: string
+  type: "file" | "directory" | "missing"
+  exists: boolean
+  size?: number
+  mtime?: number
+}
+
+export type FilesystemRead = {
+  path: string
+  absolute: string
+  type: "file"
+  exists: true
+  size?: number
+  mtime?: number
+  content: string
+  encoding: "utf8" | "base64"
+}
+
+export type FilesystemRemoved = {
+  path: string
+  absolute: string
+  removed: boolean
+}
+
+export type FilesystemEntry = {
+  name: string
+  path: string
+  absolute: string
+  type: "file" | "directory"
+}
+
+export type TerminalJob = {
+  id: string
+  command: string
+  cwd: string
+  sessionID: string
+  messageID: string
+  callID?: string
+  pid?: number
+  started: number
+  updated: number
+  status: string
+  running: boolean
+  exit: number | null
+  error?: string
+  stopped?: boolean
+  truncated: boolean
+  output: string
+}
+
 export type McpResource = {
   name: string
   uri: string
@@ -2512,6 +2758,10 @@ export type Event =
   | EventSuggestionDismissed
   | EventSessionCompacted
   | EventCommandExecuted
+  | EventProcessStarted
+  | EventProcessOutput
+  | EventProcessExited
+  | EventProcessUpdated
   | EventAltrucoderAgentManagerStart
   | EventVcsBranchUpdated
   | EventAltruCoderSessionsRemoteStatusChanged
@@ -3857,6 +4107,785 @@ export type ExperimentalSessionListResponses = {
 }
 
 export type ExperimentalSessionListResponse = ExperimentalSessionListResponses[keyof ExperimentalSessionListResponses]
+
+export type ExperimentalProcessListData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+    sessionID?: string
+  }
+  url: "/experimental/process"
+}
+
+export type ExperimentalProcessListResponses = {
+  /**
+   * Background processes
+   */
+  200: Array<ProcessInfo>
+}
+
+export type ExperimentalProcessListResponse = ExperimentalProcessListResponses[keyof ExperimentalProcessListResponses]
+
+export type ExperimentalProcessStartData = {
+  body?: {
+    sessionID: string
+    command: string
+    cwd?: string
+    shell?: string
+    env?: {
+      [key: string]: string
+    }
+    messageID?: string
+    callID?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/process"
+}
+
+export type ExperimentalProcessStartErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ExperimentalProcessStartError = ExperimentalProcessStartErrors[keyof ExperimentalProcessStartErrors]
+
+export type ExperimentalProcessStartResponses = {
+  /**
+   * Background process
+   */
+  200: ProcessInfo
+}
+
+export type ExperimentalProcessStartResponse =
+  ExperimentalProcessStartResponses[keyof ExperimentalProcessStartResponses]
+
+export type ExperimentalProcessCleanData = {
+  body?: {
+    sessionID?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/process/clean"
+}
+
+export type ExperimentalProcessCleanErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalProcessCleanError = ExperimentalProcessCleanErrors[keyof ExperimentalProcessCleanErrors]
+
+export type ExperimentalProcessCleanResponses = {
+  /**
+   * Background processes
+   */
+  200: Array<ProcessInfo>
+}
+
+export type ExperimentalProcessCleanResponse =
+  ExperimentalProcessCleanResponses[keyof ExperimentalProcessCleanResponses]
+
+export type ExperimentalProcessReadData = {
+  body?: never
+  path: {
+    processID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+    sessionID?: string
+  }
+  url: "/experimental/process/{processID}"
+}
+
+export type ExperimentalProcessReadErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalProcessReadError = ExperimentalProcessReadErrors[keyof ExperimentalProcessReadErrors]
+
+export type ExperimentalProcessReadResponses = {
+  /**
+   * Background process
+   */
+  200: ProcessInfo
+}
+
+export type ExperimentalProcessReadResponse = ExperimentalProcessReadResponses[keyof ExperimentalProcessReadResponses]
+
+export type ExperimentalProcessOutputData = {
+  body?: never
+  path: {
+    processID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+    sessionID?: string
+    offset?: number
+  }
+  url: "/experimental/process/{processID}/output"
+}
+
+export type ExperimentalProcessOutputErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalProcessOutputError = ExperimentalProcessOutputErrors[keyof ExperimentalProcessOutputErrors]
+
+export type ExperimentalProcessOutputResponses = {
+  /**
+   * Background process output
+   */
+  200: ProcessOutput
+}
+
+export type ExperimentalProcessOutputResponse =
+  ExperimentalProcessOutputResponses[keyof ExperimentalProcessOutputResponses]
+
+export type ExperimentalProcessWriteData = {
+  body?: {
+    sessionID?: string
+    input: string
+    newline?: boolean
+  }
+  path: {
+    processID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/process/{processID}/write"
+}
+
+export type ExperimentalProcessWriteErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalProcessWriteError = ExperimentalProcessWriteErrors[keyof ExperimentalProcessWriteErrors]
+
+export type ExperimentalProcessWriteResponses = {
+  /**
+   * Background process
+   */
+  200: ProcessInfo
+}
+
+export type ExperimentalProcessWriteResponse =
+  ExperimentalProcessWriteResponses[keyof ExperimentalProcessWriteResponses]
+
+export type ExperimentalProcessStopData = {
+  body?: {
+    sessionID?: string
+  }
+  path: {
+    processID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/process/{processID}/stop"
+}
+
+export type ExperimentalProcessStopErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalProcessStopError = ExperimentalProcessStopErrors[keyof ExperimentalProcessStopErrors]
+
+export type ExperimentalProcessStopResponses = {
+  /**
+   * Background process
+   */
+  200: ProcessInfo
+}
+
+export type ExperimentalProcessStopResponse = ExperimentalProcessStopResponses[keyof ExperimentalProcessStopResponses]
+
+export type ExperimentalAppServerCapabilitiesData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/app-server/capabilities"
+}
+
+export type ExperimentalAppServerCapabilitiesResponses = {
+  /**
+   * App-server capabilities
+   */
+  200: AppServerCapabilities
+}
+
+export type ExperimentalAppServerCapabilitiesResponse =
+  ExperimentalAppServerCapabilitiesResponses[keyof ExperimentalAppServerCapabilitiesResponses]
+
+export type ExperimentalAppServerRpcData = {
+  body?: {
+    jsonrpc: "2.0"
+    id?: string | number | null
+    method: string
+    params?: unknown
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/app-server/rpc"
+}
+
+export type ExperimentalAppServerRpcErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ExperimentalAppServerRpcError = ExperimentalAppServerRpcErrors[keyof ExperimentalAppServerRpcErrors]
+
+export type ExperimentalAppServerRpcResponses = {
+  /**
+   * App-server JSON-RPC response
+   */
+  200: AppServerRpcResponse
+}
+
+export type ExperimentalAppServerRpcResponse =
+  ExperimentalAppServerRpcResponses[keyof ExperimentalAppServerRpcResponses]
+
+export type ExperimentalThreadSubscribeData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/thread/{sessionID}/subscribe"
+}
+
+export type ExperimentalThreadSubscribeErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalThreadSubscribeError =
+  ExperimentalThreadSubscribeErrors[keyof ExperimentalThreadSubscribeErrors]
+
+export type ExperimentalThreadSubscribeResponses = {
+  /**
+   * Thread event stream
+   */
+  200: ThreadRealtimeEvent
+}
+
+export type ExperimentalThreadSubscribeResponse =
+  ExperimentalThreadSubscribeResponses[keyof ExperimentalThreadSubscribeResponses]
+
+export type ExperimentalThreadResumeData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+    limit?: number
+    before?: string
+    diff?: boolean | "true" | "false"
+  }
+  url: "/experimental/thread/{sessionID}/resume"
+}
+
+export type ExperimentalThreadResumeErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalThreadResumeError = ExperimentalThreadResumeErrors[keyof ExperimentalThreadResumeErrors]
+
+export type ExperimentalThreadResumeResponses = {
+  /**
+   * Thread resume payload
+   */
+  200: ThreadResume
+}
+
+export type ExperimentalThreadResumeResponse =
+  ExperimentalThreadResumeResponses[keyof ExperimentalThreadResumeResponses]
+
+export type ExperimentalFilesystemStatData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    workspace?: string
+    path: string
+  }
+  url: "/experimental/filesystem/stat"
+}
+
+export type ExperimentalFilesystemStatErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ExperimentalFilesystemStatError = ExperimentalFilesystemStatErrors[keyof ExperimentalFilesystemStatErrors]
+
+export type ExperimentalFilesystemStatResponses = {
+  /**
+   * Filesystem path status
+   */
+  200: FilesystemStat
+}
+
+export type ExperimentalFilesystemStatResponse =
+  ExperimentalFilesystemStatResponses[keyof ExperimentalFilesystemStatResponses]
+
+export type ExperimentalFilesystemReadData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    workspace?: string
+    path: string
+    encoding?: "utf8" | "base64"
+  }
+  url: "/experimental/filesystem/read"
+}
+
+export type ExperimentalFilesystemReadErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalFilesystemReadError = ExperimentalFilesystemReadErrors[keyof ExperimentalFilesystemReadErrors]
+
+export type ExperimentalFilesystemReadResponses = {
+  /**
+   * Filesystem file content
+   */
+  200: FilesystemRead
+}
+
+export type ExperimentalFilesystemReadResponse =
+  ExperimentalFilesystemReadResponses[keyof ExperimentalFilesystemReadResponses]
+
+export type ExperimentalFilesystemWriteData = {
+  body?: {
+    path: string
+    content: string
+    encoding?: "utf8" | "base64"
+    createDirs?: boolean
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/filesystem/write"
+}
+
+export type ExperimentalFilesystemWriteErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ExperimentalFilesystemWriteError =
+  ExperimentalFilesystemWriteErrors[keyof ExperimentalFilesystemWriteErrors]
+
+export type ExperimentalFilesystemWriteResponses = {
+  /**
+   * Written filesystem path
+   */
+  200: FilesystemStat
+}
+
+export type ExperimentalFilesystemWriteResponse =
+  ExperimentalFilesystemWriteResponses[keyof ExperimentalFilesystemWriteResponses]
+
+export type ExperimentalFilesystemMkdirData = {
+  body?: {
+    path: string
+    recursive?: boolean
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/filesystem/mkdir"
+}
+
+export type ExperimentalFilesystemMkdirErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ExperimentalFilesystemMkdirError =
+  ExperimentalFilesystemMkdirErrors[keyof ExperimentalFilesystemMkdirErrors]
+
+export type ExperimentalFilesystemMkdirResponses = {
+  /**
+   * Created filesystem directory
+   */
+  200: FilesystemStat
+}
+
+export type ExperimentalFilesystemMkdirResponse =
+  ExperimentalFilesystemMkdirResponses[keyof ExperimentalFilesystemMkdirResponses]
+
+export type ExperimentalFilesystemRemoveData = {
+  body?: {
+    path: string
+    recursive?: boolean
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/filesystem/remove"
+}
+
+export type ExperimentalFilesystemRemoveErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalFilesystemRemoveError =
+  ExperimentalFilesystemRemoveErrors[keyof ExperimentalFilesystemRemoveErrors]
+
+export type ExperimentalFilesystemRemoveResponses = {
+  /**
+   * Removed filesystem path
+   */
+  200: FilesystemRemoved
+}
+
+export type ExperimentalFilesystemRemoveResponse =
+  ExperimentalFilesystemRemoveResponses[keyof ExperimentalFilesystemRemoveResponses]
+
+export type ExperimentalFilesystemRenameData = {
+  body?: {
+    from: string
+    to: string
+    overwrite?: boolean
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/filesystem/rename"
+}
+
+export type ExperimentalFilesystemRenameErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalFilesystemRenameError =
+  ExperimentalFilesystemRenameErrors[keyof ExperimentalFilesystemRenameErrors]
+
+export type ExperimentalFilesystemRenameResponses = {
+  /**
+   * Renamed filesystem path
+   */
+  200: FilesystemStat
+}
+
+export type ExperimentalFilesystemRenameResponse =
+  ExperimentalFilesystemRenameResponses[keyof ExperimentalFilesystemRenameResponses]
+
+export type ExperimentalFilesystemListData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    workspace?: string
+    path: string
+  }
+  url: "/experimental/filesystem/list"
+}
+
+export type ExperimentalFilesystemListErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalFilesystemListError = ExperimentalFilesystemListErrors[keyof ExperimentalFilesystemListErrors]
+
+export type ExperimentalFilesystemListResponses = {
+  /**
+   * Filesystem directory entries
+   */
+  200: Array<FilesystemEntry>
+}
+
+export type ExperimentalFilesystemListResponse =
+  ExperimentalFilesystemListResponses[keyof ExperimentalFilesystemListResponses]
+
+export type ExperimentalTerminalListData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+    sessionID?: string
+  }
+  url: "/experimental/terminal"
+}
+
+export type ExperimentalTerminalListResponses = {
+  /**
+   * Background terminal jobs
+   */
+  200: Array<TerminalJob>
+}
+
+export type ExperimentalTerminalListResponse =
+  ExperimentalTerminalListResponses[keyof ExperimentalTerminalListResponses]
+
+export type ExperimentalTerminalCleanData = {
+  body?: {
+    sessionID?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/terminal/clean"
+}
+
+export type ExperimentalTerminalCleanErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalTerminalCleanError = ExperimentalTerminalCleanErrors[keyof ExperimentalTerminalCleanErrors]
+
+export type ExperimentalTerminalCleanResponses = {
+  /**
+   * Background terminal jobs
+   */
+  200: Array<TerminalJob>
+}
+
+export type ExperimentalTerminalCleanResponse =
+  ExperimentalTerminalCleanResponses[keyof ExperimentalTerminalCleanResponses]
+
+export type ExperimentalTerminalReadData = {
+  body?: never
+  path: {
+    jobID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+    sessionID?: string
+  }
+  url: "/experimental/terminal/{jobID}"
+}
+
+export type ExperimentalTerminalReadErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalTerminalReadError = ExperimentalTerminalReadErrors[keyof ExperimentalTerminalReadErrors]
+
+export type ExperimentalTerminalReadResponses = {
+  /**
+   * Background terminal job
+   */
+  200: TerminalJob
+}
+
+export type ExperimentalTerminalReadResponse =
+  ExperimentalTerminalReadResponses[keyof ExperimentalTerminalReadResponses]
+
+export type ExperimentalTerminalWriteData = {
+  body?: {
+    sessionID?: string
+    input: string
+    newline?: boolean
+  }
+  path: {
+    jobID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/terminal/{jobID}/write"
+}
+
+export type ExperimentalTerminalWriteErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalTerminalWriteError = ExperimentalTerminalWriteErrors[keyof ExperimentalTerminalWriteErrors]
+
+export type ExperimentalTerminalWriteResponses = {
+  /**
+   * Background terminal job
+   */
+  200: TerminalJob
+}
+
+export type ExperimentalTerminalWriteResponse =
+  ExperimentalTerminalWriteResponses[keyof ExperimentalTerminalWriteResponses]
+
+export type ExperimentalTerminalStopData = {
+  body?: {
+    sessionID?: string
+  }
+  path: {
+    jobID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/experimental/terminal/{jobID}/stop"
+}
+
+export type ExperimentalTerminalStopErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentalTerminalStopError = ExperimentalTerminalStopErrors[keyof ExperimentalTerminalStopErrors]
+
+export type ExperimentalTerminalStopResponses = {
+  /**
+   * Background terminal job
+   */
+  200: TerminalJob
+}
+
+export type ExperimentalTerminalStopResponse =
+  ExperimentalTerminalStopResponses[keyof ExperimentalTerminalStopResponses]
 
 export type ExperimentalResourceListData = {
   body?: never

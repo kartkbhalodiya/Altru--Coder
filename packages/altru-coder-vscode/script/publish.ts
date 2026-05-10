@@ -31,7 +31,9 @@ const all = [
   "win32-arm64",
 ]
 
-const names = process.env.VSIX_TARGETS?.split(",").map((item) => item.trim()).filter(Boolean)
+const names = process.env.VSIX_TARGETS?.split(",")
+  .map((item) => item.trim())
+  .filter(Boolean)
 const targets = names ? all.filter((target) => names.includes(target)) : all
 
 if (targets.length === 0) {

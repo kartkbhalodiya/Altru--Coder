@@ -1,5 +1,9 @@
 import { describe, it, expect } from "bun:test"
-import { loadSessions, flushPendingSessionRefresh, type SessionRefreshContext } from "../../src/altru-coder-provider-utils"
+import {
+  loadSessions,
+  flushPendingSessionRefresh,
+  type SessionRefreshContext,
+} from "../../src/altru-coder-provider-utils"
 
 // vscode mock is provided by the shared preload (tests/setup/vscode-mock.ts)
 const { AltruCoderProvider } = await import("../../src/AltruCoderProvider")

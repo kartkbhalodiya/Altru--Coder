@@ -138,7 +138,10 @@ describe("share ingest queue", () => {
     })
 
     await q.sync("s7", [
-      { type: "altru_coder_meta", data: { platform: "cli", gitUrl: "https://github.com/old/repo.git", gitBranch: "main" } },
+      {
+        type: "altru_coder_meta",
+        data: { platform: "cli", gitUrl: "https://github.com/old/repo.git", gitBranch: "main" },
+      },
     ])
     clock.now = 100
     await q.sync("s7", [

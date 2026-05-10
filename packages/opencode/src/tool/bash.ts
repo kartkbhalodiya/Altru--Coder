@@ -26,6 +26,8 @@ import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { InstanceState } from "@/effect/instance-state"
 import { Process } from "@/util/process" // altrucoder_change
+import { MessageID } from "@/session/schema" // altrucoder_change
+import { ProcessEvents } from "@/altrucoder/process/events" // altrucoder_change
 
 const MAX_METADATA_LENGTH = 30_000
 const DEFAULT_TIMEOUT = Flag.ALTRU_CODER_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
@@ -107,11 +109,18 @@ type Job = {
   child: ReturnType<typeof Process.spawn>
   command: string
   cwd: string
+  sessionID: Tool.Context["sessionID"]
+  messageID: Tool.Context["messageID"]
+  callID?: string
+  started: number
+  updated: number
   list: Chunk[]
   used: number
+  base: number
   cut: boolean
   exit?: number
   error?: string
+  stopped?: boolean
 }
 
 type BashState = {
@@ -137,6 +146,8 @@ const background: BashState = {
 }
 
 let cleanup = false
+const MAX_BACKGROUND_JOBS = 20
+const MAX_BACKGROUND_HISTORY = 40
 // altrucoder_change end
 
 export const log = Log.create({ service: "bash-tool" })
@@ -330,15 +341,27 @@ const READY = [
   /\bpress\s+(?:ctrl|control)\+c\b/i,
 ]
 
+function position(job: Job) {
+  return job.base + job.list.reduce((total, item) => total + item.text.length, 0)
+}
+
 function append(job: Job, chunk: string, keep: number) {
+  const offset = position(job)
   const size = Buffer.byteLength(chunk, "utf-8")
   job.list.push({ text: chunk, size })
   job.used += size
+  job.updated = Date.now()
   while (job.used > keep && job.list.length > 1) {
     const item = job.list.shift()
     if (!item) break
     job.used -= item.size
+    job.base += item.text.length
     job.cut = true
+  }
+  return {
+    offset,
+    nextOffset: position(job),
+    truncated: job.cut || offset < job.base,
   }
 }
 
@@ -359,6 +382,292 @@ function view(job: Job, limits: { maxLines: number; maxBytes: number }) {
 
 function ready(text: string) {
   return READY.some((pattern) => pattern.test(text))
+}
+
+function running(job: Job) {
+  return job.child.exitCode === null && job.child.signalCode === null && job.exit === undefined && !job.error
+}
+
+function status(job: Job) {
+  if (running(job)) return job.stopped ? "stopping" : "running"
+  if (job.stopped) return "stopped"
+  if (job.error) return "failed"
+  return "completed"
+}
+
+function processOutput(job: Job, chunk: string, offset: number, nextOffset: number, truncated: boolean) {
+  ProcessEvents.output({
+    processID: job.id,
+    id: job.id,
+    sessionID: job.sessionID,
+    messageID: job.messageID,
+    callID: job.callID,
+    offset,
+    nextOffset,
+    output: chunk,
+    truncated,
+    running: running(job),
+    exit: job.exit ?? job.child.exitCode ?? null,
+    status: status(job),
+    error: job.error,
+  })
+}
+
+function prune() {
+  const extra = background.jobs.size - MAX_BACKGROUND_HISTORY
+  if (extra <= 0) return
+  const done = Array.from(background.jobs.values())
+    .filter((job) => !running(job))
+    .toSorted((a, b) => a.updated - b.updated)
+    .slice(0, extra)
+  for (const job of done) {
+    background.jobs.delete(job.id)
+  }
+}
+
+function assertJob(id: string, sessionID?: Tool.Context["sessionID"]) {
+  const job = background.jobs.get(id)
+  if (!job) throw new Error(`Terminal job not found: ${id}`)
+  if (sessionID && job.sessionID !== sessionID) throw new Error(`Terminal job not found in this session: ${id}`)
+  return job
+}
+
+export namespace BashBackground {
+  export type Start = {
+    command: string
+    cwd: string
+    shell: string
+    env?: NodeJS.ProcessEnv
+    sessionID: Tool.Context["sessionID"]
+    messageID?: Tool.Context["messageID"]
+    callID?: string
+  }
+
+  export type Snapshot = {
+    id: string
+    command: string
+    cwd: string
+    sessionID: Tool.Context["sessionID"]
+    messageID: Tool.Context["messageID"]
+    callID?: string
+    pid?: number
+    started: number
+    updated: number
+    status: string
+    running: boolean
+    exit: number | null
+    error?: string
+    stopped?: boolean
+    truncated: boolean
+    output: string
+  }
+
+  export type Output = {
+    id: string
+    offset: number
+    nextOffset: number
+    output: string
+    truncated: boolean
+    running: boolean
+    exit: number | null
+    status: string
+    error?: string
+  }
+
+  export const max = MAX_BACKGROUND_JOBS
+
+  export function count() {
+    return Array.from(background.jobs.values()).filter(running).length
+  }
+
+  export function start(input: Start, limits: { maxLines: number; maxBytes: number }) {
+    registerCleanup()
+    const active = count()
+    if (active >= MAX_BACKGROUND_JOBS) {
+      throw new Error(`Too many background terminal jobs are running (${active}/${MAX_BACKGROUND_JOBS}).`)
+    }
+
+    const spec = native(input.shell, input.command)
+    const child = Process.spawn(spec.cmd, {
+      cwd: input.cwd,
+      env: input.env,
+      shell: spec.shell,
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    const job: Job = {
+      id: randomUUID(),
+      child,
+      command: input.command,
+      cwd: input.cwd,
+      sessionID: input.sessionID,
+      messageID: input.messageID ?? MessageID.ascending(),
+      callID: input.callID,
+      started: Date.now(),
+      updated: Date.now(),
+      list: [],
+      used: 0,
+      base: 0,
+      cut: false,
+    }
+    background.jobs.set(job.id, job)
+
+    ProcessEvents.started(ProcessEvents.info(snapshot(job, limits)))
+
+    const keep = limits.maxBytes * 2
+    const ingest = InstanceState.bind((chunk: Buffer | string) => {
+      const text = chunk.toString()
+      const out = append(job, text, keep)
+      processOutput(job, text, out.offset, out.nextOffset, out.truncated)
+    })
+    child.stdout?.on("data", ingest)
+    child.stderr?.on("data", ingest)
+    child.once(
+      "error",
+      InstanceState.bind((err) => {
+        job.error = err instanceof Error ? err.message : String(err)
+        job.updated = Date.now()
+        ProcessEvents.exited(ProcessEvents.info(snapshot(job, limits)))
+      }),
+    )
+    void child.exited
+      .then(
+        InstanceState.bind((code) => {
+          job.exit = code
+          job.updated = Date.now()
+          ProcessEvents.exited(ProcessEvents.info(snapshot(job, limits)))
+          prune()
+        }),
+      )
+      .catch(
+        InstanceState.bind((err) => {
+          job.error = err instanceof Error ? err.message : String(err)
+          job.updated = Date.now()
+          ProcessEvents.exited(ProcessEvents.info(snapshot(job, limits)))
+          prune()
+          log.warn("background process failed", { id: job.id, error: job.error })
+        }),
+      )
+
+    return snapshot(job, limits)
+  }
+
+  export function snapshot(job: Job, limits: { maxLines: number; maxBytes: number }): Snapshot {
+    const out = view(job, limits)
+    return {
+      id: job.id,
+      command: job.command,
+      cwd: job.cwd,
+      sessionID: job.sessionID,
+      messageID: job.messageID,
+      callID: job.callID,
+      pid: job.child.pid,
+      started: job.started,
+      updated: job.updated,
+      status: status(job),
+      running: running(job),
+      exit: job.exit ?? job.child.exitCode ?? null,
+      error: job.error,
+      stopped: job.stopped,
+      truncated: out.cut,
+      output: out.output,
+    }
+  }
+
+  export function list(limits: { maxLines: number; maxBytes: number }, sessionID?: Tool.Context["sessionID"]) {
+    prune()
+    return Array.from(background.jobs.values())
+      .filter((job) => !sessionID || job.sessionID === sessionID)
+      .toSorted((a, b) => b.started - a.started)
+      .map((job) => snapshot(job, limits))
+  }
+
+  export function read(
+    id: string,
+    limits: { maxLines: number; maxBytes: number },
+    sessionID?: Tool.Context["sessionID"],
+  ) {
+    prune()
+    return snapshot(assertJob(id, sessionID), limits)
+  }
+
+  export function output(id: string, offset: number, sessionID?: Tool.Context["sessionID"]): Output {
+    prune()
+    const job = assertJob(id, sessionID)
+    const text = raw(job)
+    const start = Math.max(offset, job.base)
+    const index = Math.max(0, start - job.base)
+    return {
+      id: job.id,
+      offset: start,
+      nextOffset: job.base + text.length,
+      output: text.slice(index),
+      truncated: job.cut || offset < job.base,
+      running: running(job),
+      exit: job.exit ?? job.child.exitCode ?? null,
+      status: status(job),
+      error: job.error,
+    }
+  }
+
+  export async function stop(
+    id: string,
+    limits: { maxLines: number; maxBytes: number },
+    sessionID?: Tool.Context["sessionID"],
+  ) {
+    const job = assertJob(id, sessionID)
+    if (running(job)) {
+      job.stopped = true
+      job.updated = Date.now()
+      ProcessEvents.updated(ProcessEvents.info(snapshot(job, limits)))
+      await Process.stop(job.child)
+    }
+    const next = snapshot(job, limits)
+    ProcessEvents.exited(ProcessEvents.info(next))
+    return next
+  }
+
+  export async function write(
+    id: string,
+    text: string,
+    limits: { maxLines: number; maxBytes: number },
+    sessionID?: Tool.Context["sessionID"],
+  ) {
+    const job = assertJob(id, sessionID)
+    if (!running(job)) throw new Error(`Terminal job is not running: ${id}`)
+
+    const pipe = job.child.stdin
+    if (!pipe || pipe.destroyed || !pipe.writable) throw new Error(`Terminal job is not writable: ${id}`)
+
+    await new Promise<void>((resolve, reject) => {
+      pipe.write(text, (err) => {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+    job.updated = Date.now()
+    const next = snapshot(job, limits)
+    ProcessEvents.updated(ProcessEvents.info(next))
+    return next
+  }
+
+  export async function clean(limits: { maxLines: number; maxBytes: number }, sessionID?: Tool.Context["sessionID"]) {
+    const jobs = Array.from(background.jobs.values()).filter((job) => !sessionID || job.sessionID === sessionID)
+    await Promise.all(
+      jobs.filter(running).map(async (job) => {
+        job.stopped = true
+        job.updated = Date.now()
+        ProcessEvents.updated(ProcessEvents.info(snapshot(job, limits)))
+        await Process.stop(job.child)
+        ProcessEvents.exited(ProcessEvents.info(snapshot(job, limits)))
+      }),
+    )
+    for (const job of jobs) {
+      background.jobs.delete(job.id)
+    }
+    return list(limits, sessionID)
+  }
 }
 
 function native(shell: string, command: string) {
@@ -585,6 +894,13 @@ export const BashTool = Tool.define<
       },
       ctx: Tool.Context,
     ) {
+      const active = BashBackground.count()
+      if (active >= MAX_BACKGROUND_JOBS) {
+        throw new Error(
+          `Too many background terminal jobs are running (${active}/${MAX_BACKGROUND_JOBS}). Use the terminal tool to list or stop jobs before starting another one.`,
+        )
+      }
+
       const limits = yield* trunc.limits()
       const keep = limits.maxBytes * 2
       const spec = native(input.shell, input.command)
@@ -592,7 +908,7 @@ export const BashTool = Tool.define<
         cwd: input.cwd,
         env: input.env,
         shell: spec.shell,
-        stdin: "ignore",
+        stdin: "pipe",
         stdout: "pipe",
         stderr: "pipe",
       })
@@ -601,28 +917,54 @@ export const BashTool = Tool.define<
         child,
         command: input.command,
         cwd: input.cwd,
+        sessionID: ctx.sessionID,
+        messageID: ctx.messageID,
+        callID: ctx.callID,
+        started: Date.now(),
+        updated: Date.now(),
         list: [],
         used: 0,
+        base: 0,
         cut: false,
       }
       background.jobs.set(job.id, job)
 
-      const ingest = (chunk: Buffer | string) => append(job, chunk.toString(), keep)
+      const snap = () => BashBackground.snapshot(job, limits)
+      ProcessEvents.started(ProcessEvents.info(snap()))
+
+      const ingest = InstanceState.bind((chunk: Buffer | string) => {
+        const text = chunk.toString()
+        const out = append(job, text, keep)
+        processOutput(job, text, out.offset, out.nextOffset, out.truncated)
+      })
       child.stdout?.on("data", ingest)
       child.stderr?.on("data", ingest)
-      child.once("error", (err) => {
-        job.error = err instanceof Error ? err.message : String(err)
-      })
-      void child.exited
-        .then((code) => {
-          job.exit = code
-          background.jobs.delete(job.id)
-        })
-        .catch((err) => {
+      child.once(
+        "error",
+        InstanceState.bind((err) => {
           job.error = err instanceof Error ? err.message : String(err)
-          background.jobs.delete(job.id)
-          log.warn("background bash job failed", { id: job.id, error: job.error })
-        })
+          job.updated = Date.now()
+          ProcessEvents.exited(ProcessEvents.info(snap()))
+        }),
+      )
+      void child.exited
+        .then(
+          InstanceState.bind((code) => {
+            job.exit = code
+            job.updated = Date.now()
+            ProcessEvents.exited(ProcessEvents.info(snap()))
+            prune()
+          }),
+        )
+        .catch(
+          InstanceState.bind((err) => {
+            job.error = err instanceof Error ? err.message : String(err)
+            job.updated = Date.now()
+            ProcessEvents.exited(ProcessEvents.info(snap()))
+            prune()
+            log.warn("background bash job failed", { id: job.id, error: job.error })
+          }),
+        )
 
       const pid = child.pid
       const emit = (status: string) =>
@@ -701,22 +1043,26 @@ export const BashTool = Tool.define<
               })
             }),
           )
-          background.jobs.delete(job.id)
+          job.stopped = true
+          job.updated = Date.now()
+          ProcessEvents.updated(ProcessEvents.info(snap()))
           break
         }
         if (event.kind === "error") {
           reason = "error"
           job.error = event.error
-          background.jobs.delete(job.id)
+          job.updated = Date.now()
           break
         }
         reason = "exit"
         code = event.exit
+        job.exit = event.exit
+        job.updated = Date.now()
         break
       }
 
       const running = reason === "ready" || reason === "timeout"
-      if (!running) background.jobs.delete(job.id)
+      if (!running) prune()
       const end = view(job, limits)
       const meta: string[] = []
       if (reason === "ready") meta.push("background command is still running; ready output was detected")
@@ -724,7 +1070,8 @@ export const BashTool = Tool.define<
         meta.push(`background command is still running after monitor timeout ${input.timeout} ms`)
       }
       if (reason === "abort") meta.push("User aborted the command")
-      if (reason === "error") meta.push(`background command failed to start or stream output: ${job.error ?? "unknown error"}`)
+      if (reason === "error")
+        meta.push(`background command failed to start or stream output: ${job.error ?? "unknown error"}`)
       if (running) meta.push(`Background job id: ${job.id}`)
       if (running && pid) meta.push(`Process id: ${pid}`)
       if (running) meta.push(stop(pid))

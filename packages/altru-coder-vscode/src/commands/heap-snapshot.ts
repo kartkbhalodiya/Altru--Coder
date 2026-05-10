@@ -1,7 +1,10 @@
 import * as vscode from "vscode"
 import type { AltruCoderConnectionService } from "../services/cli-backend/connection-service"
 
-export function registerHeapSnapshot(context: vscode.ExtensionContext, connectionService: AltruCoderConnectionService): void {
+export function registerHeapSnapshot(
+  context: vscode.ExtensionContext,
+  connectionService: AltruCoderConnectionService,
+): void {
   context.subscriptions.push(
     vscode.commands.registerCommand("altru-coder.new.takeHeapSnapshot", async () => {
       try {

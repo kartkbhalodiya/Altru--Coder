@@ -47,7 +47,11 @@ const TIMEOUT_MS = 30000
 
 function error(message: ProviderRequestInput, requestId: string): ProviderActionErrorMessage {
   const action =
-    message.type === "disconnectProvider" ? "disconnect" : message.type === "authorizeProviderOAuth" ? "authorize" : "connect"
+    message.type === "disconnectProvider"
+      ? "disconnect"
+      : message.type === "authorizeProviderOAuth"
+        ? "authorize"
+        : "connect"
   return {
     type: "providerActionError",
     requestId,

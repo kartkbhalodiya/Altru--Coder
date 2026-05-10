@@ -1,7 +1,13 @@
 import { z } from "zod"
 import { getAltruCoderUrlFromToken } from "../auth/token.js"
 import { getDefaultHeaders, buildAltruCoderHeaders } from "../headers.js"
-import { ALTRU_CODER_API_BASE, ALTRU_CODER_OPENROUTER_BASE, MODELS_FETCH_TIMEOUT_MS, PROMPTS, AI_SDK_PROVIDERS } from "./constants.js"
+import {
+  ALTRU_CODER_API_BASE,
+  ALTRU_CODER_OPENROUTER_BASE,
+  MODELS_FETCH_TIMEOUT_MS,
+  PROMPTS,
+  AI_SDK_PROVIDERS,
+} from "./constants.js"
 
 /**
  * OpenRouter model schema
@@ -74,7 +80,9 @@ export async function fetchAltruCoderModels(options?: {
   const organizationId = options?.altrucoderOrganizationId
 
   // Construct base URL
-  const defaultBaseURL = organizationId ? `${ALTRU_CODER_API_BASE}/api/organizations/${organizationId}` : ALTRU_CODER_OPENROUTER_BASE
+  const defaultBaseURL = organizationId
+    ? `${ALTRU_CODER_API_BASE}/api/organizations/${organizationId}`
+    : ALTRU_CODER_OPENROUTER_BASE
 
   const baseURL = options?.baseURL ?? defaultBaseURL
 

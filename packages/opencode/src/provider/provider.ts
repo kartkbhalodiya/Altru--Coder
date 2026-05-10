@@ -235,7 +235,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           })
       // altrucoder_change end
 
-      if (!resource && !endpoint) { // altrucoder_change
+      if (!resource && !endpoint) {
+        // altrucoder_change
         return {
           autoload: false,
           async getModel() {
@@ -1353,7 +1354,8 @@ const layer: Layer.Layer<
         // altrucoder_change start - resolve env once for patchCustomLoaderResult (azure env fallback)
         const altruEnv = yield* env.all()
         // altrucoder_change end
-        for (const [id, fn] of Object.entries({ ...custom(dep), ...altruCustomLoaders(dep) })) { // altrucoder_change
+        for (const [id, fn] of Object.entries({ ...custom(dep), ...altruCustomLoaders(dep) })) {
+          // altrucoder_change
           const providerID = ProviderID.make(id)
           if (disabled.has(providerID)) continue
           const data = database[providerID]
@@ -1420,7 +1422,8 @@ const layer: Layer.Layer<
               (providerID === ProviderID.openrouter && modelID === "openai/gpt-5-chat")
             )
               delete provider.models[modelID]
-            if (model.status === "alpha" && !Flag.ALTRU_CODER_ENABLE_EXPERIMENTAL_MODELS) delete provider.models[modelID]
+            if (model.status === "alpha" && !Flag.ALTRU_CODER_ENABLE_EXPERIMENTAL_MODELS)
+              delete provider.models[modelID]
             if (model.status === "deprecated") delete provider.models[modelID]
             if (
               (configProvider?.blacklist && configProvider.blacklist.includes(modelID)) ||

@@ -237,11 +237,13 @@ export function ClawProvider(props: { children: JSX.Element }) {
     conversations,
     hasMoreConversations,
     activeConversationId,
-    selectConversation: (conversationId) => vscode.postMessage({ type: "altru-coder-claw.selectConversation", conversationId }),
+    selectConversation: (conversationId) =>
+      vscode.postMessage({ type: "altru-coder-claw.selectConversation", conversationId }),
     createConversation: (title) => vscode.postMessage({ type: "altru-coder-claw.createConversation", title }),
     renameConversation: (conversationId, title) =>
       vscode.postMessage({ type: "altru-coder-claw.renameConversation", conversationId, title }),
-    leaveConversation: (conversationId) => vscode.postMessage({ type: "altru-coder-claw.leaveConversation", conversationId }),
+    leaveConversation: (conversationId) =>
+      vscode.postMessage({ type: "altru-coder-claw.leaveConversation", conversationId }),
     loadMoreConversations: () => vscode.postMessage({ type: "altru-coder-claw.loadMoreConversations" }),
 
     messages,

@@ -64,10 +64,12 @@ function createCtx(
             calls.global += 1
             return { data: existing }
           },
-          update: opts.configUpdate ?? (async (input: { config: Record<string, unknown> }) => {
-            calls.config.push(input)
-            return { data: input }
-          }),
+          update:
+            opts.configUpdate ??
+            (async (input: { config: Record<string, unknown> }) => {
+              calls.config.push(input)
+              return { data: input }
+            }),
         },
       },
       config: {
@@ -87,9 +89,11 @@ function createCtx(
     disposeGlobal: async () => {
       calls.dispose += 1
     },
-    fetchAndSendProviders: opts.refresh ?? (async () => {
-      calls.refresh += 1
-    }),
+    fetchAndSendProviders:
+      opts.refresh ??
+      (async () => {
+        calls.refresh += 1
+      }),
   } as unknown as Parameters<typeof saveCustomProvider>[0]
 
   return {
@@ -354,8 +358,12 @@ describe("saveCustomProvider", () => {
     )
     const updated = calls.posts.findIndex((item) => item.type === "configUpdated")
     const msg = calls.posts.find(
-      (item): item is { type: "configUpdated"; config: { provider?: Record<string, { models?: Record<string, unknown> }> } } =>
-        !!item && typeof item === "object" && (item as { type?: string }).type === "configUpdated",
+      (
+        item,
+      ): item is {
+        type: "configUpdated"
+        config: { provider?: Record<string, { models?: Record<string, unknown> }> }
+      } => !!item && typeof item === "object" && (item as { type?: string }).type === "configUpdated",
     )
 
     expect(connected).toBeGreaterThanOrEqual(0)
@@ -418,7 +426,11 @@ describe("saveCustomProvider", () => {
 
   it("acknowledges save before provider refresh completes", async () => {
     const refresh = () => new Promise<void>(() => {})
-    const { ctx, calls, setCachedConfig } = createCtx({ disabled_providers: [] }, { disabled_providers: [] }, { refresh })
+    const { ctx, calls, setCachedConfig } = createCtx(
+      { disabled_providers: [] },
+      { disabled_providers: [] },
+      { refresh },
+    )
 
     const result = await Promise.race([
       saveCustomProvider(ctx, "req", "myprovider", createProvider(), undefined, false, null, setCachedConfig).then(

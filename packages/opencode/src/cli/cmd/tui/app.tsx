@@ -919,7 +919,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         evt.preventDefault()
         evt.stopPropagation()
       }}
-      onMouseUp={Flag.ALTRU_CODER_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)}
+      onMouseUp={
+        Flag.ALTRU_CODER_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)
+      }
     >
       <Show when={Flag.ALTRU_CODER_SHOW_TTFD}>
         <TimeToFirstDraw />

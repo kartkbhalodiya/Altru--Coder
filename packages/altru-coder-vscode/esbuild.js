@@ -189,7 +189,10 @@ async function main() {
   )
 
   // Build AltruCoderClaw webview (SolidJS, standalone chat panel)
-  const altruClawCtx = await createBrowserWebviewContext("webview-ui/altru-coder-claw/index.tsx", "dist/altru-coder-claw.js")
+  const altruClawCtx = await createBrowserWebviewContext(
+    "webview-ui/altru-coder-claw/index.tsx",
+    "dist/altru-coder-claw.js",
+  )
 
   // Build Diff Viewer webview (SolidJS, reuses Agent Manager diff components)
   const diffViewerCtx = await createBrowserWebviewContext("webview-ui/diff-viewer/index.tsx", "dist/diff-viewer.js")

@@ -59,8 +59,9 @@ export namespace AltruCoderPromptFragments {
     return extra
   }
 
-  export async function memory(projectID: string) {
-    return AltruCoderMemory.system(projectID)
+  export async function memory(input: string | { projectID: string; root?: string; query?: string }) {
+    const data = typeof input === "string" ? { projectID: input } : input
+    return AltruCoderMemory.system(data.projectID, undefined, data.root, data.query)
   }
 
   export function policy() {

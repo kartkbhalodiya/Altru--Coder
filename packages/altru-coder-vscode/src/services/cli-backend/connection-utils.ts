@@ -55,6 +55,14 @@ function resolveSuggestionSessionId(event: Event): string | undefined {
     case "suggestion.dismissed":
       return event.properties.sessionID
     default:
+      if (
+        event.type === "process.started" ||
+        event.type === "process.output" ||
+        event.type === "process.exited" ||
+        event.type === "process.updated"
+      ) {
+        return event.properties.sessionID
+      }
       // session.network.* events are not yet in the SDK Event type union
       // (pending SDK regeneration). Handle them via string comparison.
       if ((event.type as string).startsWith("session.network.")) {

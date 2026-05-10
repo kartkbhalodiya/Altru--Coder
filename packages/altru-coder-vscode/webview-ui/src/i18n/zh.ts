@@ -165,7 +165,8 @@ export const dict = {
   "provider.connect.oauth.code.invalid": "授权码无效",
   "provider.connect.oauth.auto.visit.prefix": "访问 ",
   "provider.connect.oauth.auto.visit.link": "此链接",
-  "provider.connect.oauth.auto.visit.suffix": " 并输入以下代码，以连接你的帐户并在 Altru Coder 中使用 {{provider}} 模型。",
+  "provider.connect.oauth.auto.visit.suffix":
+    " 并输入以下代码，以连接你的帐户并在 Altru Coder 中使用 {{provider}} 模型。",
   "provider.connect.oauth.auto.confirmationCode": "确认码",
   "provider.connect.toast.connected.title": "{{provider}} 已连接",
   "provider.connect.toast.connected.description": "现在可以使用 {{provider}} 模型了。",
@@ -1203,7 +1204,8 @@ export const dict = {
   "settings.experimental.mcpTimeout.title": "MCP 超时（毫秒）",
   "settings.experimental.mcpTimeout.description": "MCP 服务器请求的超时时间（毫秒）",
   "settings.experimental.remote.title": "Remote 控制",
-  "settings.experimental.remote.description": "通过 Altru Coder Cloud 启用会话的 Remote 控制。这也会影响此计算机上的 CLI。",
+  "settings.experimental.remote.description":
+    "通过 Altru Coder Cloud 启用会话的 Remote 控制。这也会影响此计算机上的 CLI。",
   "settings.experimental.remote.current": "当前状态：",
   "settings.experimental.remote.startup": "启动时自动启用：",
   "settings.experimental.remote.active": "已启用",
@@ -1522,5 +1524,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 } satisfies Partial<Record<Keys, string>>

@@ -13,7 +13,10 @@ describe("indexing plugin helpers", () => {
     expect(indexingEnabled({ plugin: [INDEXING_PLUGIN], experimental: { semantic_indexing: false } })).toBe(false)
     expect(indexingEnabled({ plugin: [INDEXING_PLUGIN], experimental: { semantic_indexing: true } })).toBe(true)
     expect(
-      indexingEnabled({ plugin: ["@altru-coder/altru-coder-indexing@1.0.0"], experimental: { semantic_indexing: true } }),
+      indexingEnabled({
+        plugin: ["@altru-coder/altru-coder-indexing@1.0.0"],
+        experimental: { semantic_indexing: true },
+      }),
     ).toBe(true)
   })
 

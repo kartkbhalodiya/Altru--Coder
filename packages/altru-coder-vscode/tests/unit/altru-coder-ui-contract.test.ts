@@ -21,7 +21,10 @@ const MONOREPO_ROOT = path.resolve(import.meta.dir, "../../../..")
 const ALTRU_CODER_UI_DIR = path.join(MONOREPO_ROOT, "packages/altru-coder-ui")
 const DATA_CONTEXT_FILE = path.join(MONOREPO_ROOT, "packages/ui/src/context/data.tsx")
 const MESSAGE_PART_FILE = path.join(MONOREPO_ROOT, "packages/ui/src/components/message-part.tsx")
-const ALTRU_CODER_MESSAGE_PART_FILE = path.join(MONOREPO_ROOT, "packages/altru-coder-ui/src/components/message-part.tsx")
+const ALTRU_CODER_MESSAGE_PART_FILE = path.join(
+  MONOREPO_ROOT,
+  "packages/altru-coder-ui/src/components/message-part.tsx",
+)
 
 function check(code: string): { ok: boolean; output: string } {
   const result = Bun.spawnSync(["bun", "--conditions=browser", "-e", code], {
@@ -44,7 +47,7 @@ function check(code: string): { ok: boolean; output: string } {
  *   - TaskToolExpanded.tsx:    "task"
  *   - TaskToolExpanded.tsx uses getToolInfo() which handles all of these
  */
-const TOOL_NAMES_WE_DEPEND_ON = ["bash", "task", "read", "write", "glob", "edit", "todowrite"]
+const TOOL_NAMES_WE_DEPEND_ON = ["bash", "task", "read", "write", "glob", "edit", "todowrite", "todoread"]
 
 describe("ToolRegistry tool name contract (runtime)", () => {
   it("all tools used by altru-coder-vscode are registered in ToolRegistry", () => {

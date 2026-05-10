@@ -458,7 +458,9 @@ export async function saveCustomProvider(
     console.log(`[Altru Coder New] saveCustomProvider(${id}) acknowledged`)
 
     const globalConfig =
-      cached ?? ((await bound("custom provider global config read", ctx.client.global.config.get({ throwOnError: true }))).data ?? {})
+      cached ??
+      (await bound("custom provider global config read", ctx.client.global.config.get({ throwOnError: true }))).data ??
+      {}
     const disabledSaved = globalConfig.disabled_providers ?? []
     const existingSaved = (globalConfig.provider as Record<string, unknown> | undefined)?.[id]
     const saved = withCustomProviderDeletions(existingSaved, sanitized.value)
@@ -486,7 +488,10 @@ export async function saveCustomProvider(
         )
       }
       if (auth.mode === "clear") {
-        await bound(`custom provider auth clear (${id})`, ctx.client.auth.remove({ providerID: id }, { throwOnError: true }))
+        await bound(
+          `custom provider auth clear (${id})`,
+          ctx.client.auth.remove({ providerID: id }, { throwOnError: true }),
+        )
       }
     } catch (error) {
       console.warn(`[Altru Coder New] saveCustomProvider(${id}) auth save failed after ack:`, error)

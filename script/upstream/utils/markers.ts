@@ -237,8 +237,10 @@ function child(lines: string[], start: number) {
 
 function block(mode: Style, pad: string) {
   if (mode === "hash") return { start: `${pad}# altrucoder_change start`, end: `${pad}# altrucoder_change end` }
-  if (mode === "jsx") return { start: `${pad}{/* altrucoder_change start */}`, end: `${pad}{/* altrucoder_change end */}` }
-  if (mode === "block") return { start: `${pad}/* altrucoder_change start */`, end: `${pad}/* altrucoder_change end */` }
+  if (mode === "jsx")
+    return { start: `${pad}{/* altrucoder_change start */}`, end: `${pad}{/* altrucoder_change end */}` }
+  if (mode === "block")
+    return { start: `${pad}/* altrucoder_change start */`, end: `${pad}/* altrucoder_change end */` }
   return { start: `${pad}// altrucoder_change start`, end: `${pad}// altrucoder_change end` }
 }
 
@@ -361,7 +363,8 @@ export function annotate(file: string, clean: Clean, found: Range[]) {
 export function fresh(file: string, clean: Clean) {
   const lines = [...clean.text.lines]
   const mode = style(file)
-  const line = clean.marks.file ?? (mode === "hash" ? "# altrucoder_change - new file" : "// altrucoder_change - new file")
+  const line =
+    clean.marks.file ?? (mode === "hash" ? "# altrucoder_change - new file" : "// altrucoder_change - new file")
   const at = lines[0]?.startsWith("#!") ? 1 : 0
   lines.splice(at, 0, line)
   return join({ ...clean.text, lines })

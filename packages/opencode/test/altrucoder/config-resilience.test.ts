@@ -192,7 +192,9 @@ Broken command`,
         // Config loading should not crash
         expect(cfg).toBeDefined()
         // Warning should reference the bad file
-        expect(warns.some((w) => w.path.includes("altru-coder.json") && w.message.includes("not valid JSON"))).toBe(true)
+        expect(warns.some((w) => w.path.includes("altru-coder.json") && w.message.includes("not valid JSON"))).toBe(
+          true,
+        )
       },
     })
   })
@@ -200,7 +202,10 @@ Broken command`,
   test("collects warnings for invalid schema in .altru-coder directory config", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        await Filesystem.write(path.join(dir, ".altru-coder", "altru-coder.json"), JSON.stringify({ unknownField: true }))
+        await Filesystem.write(
+          path.join(dir, ".altru-coder", "altru-coder.json"),
+          JSON.stringify({ unknownField: true }),
+        )
       },
     })
 

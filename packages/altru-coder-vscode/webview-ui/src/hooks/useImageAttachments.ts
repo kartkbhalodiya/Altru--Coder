@@ -62,7 +62,9 @@ export function useImageAttachments() {
     // Accept file drops, VS Code URI-list drops, and internal file-path drags.
     // Do NOT accept bare text/plain here — that would intercept normal text drags.
     const acceptable =
-      types.includes("Files") || types.includes("application/vnd.code.uri-list") || types.includes(ALTRU_CODER_FILE_PATH_MIME)
+      types.includes("Files") ||
+      types.includes("application/vnd.code.uri-list") ||
+      types.includes(ALTRU_CODER_FILE_PATH_MIME)
     if (!acceptable) return
     event.preventDefault()
     setDragging(true)

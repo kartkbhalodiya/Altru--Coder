@@ -476,7 +476,8 @@ export const dict = {
   "error.chain.didYouMean": "Mente du: {{suggestions}}",
   "error.chain.modelNotFound": "Model ikke fundet: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Tjek dine konfigurations (opencode.json) udbyder/modelnavne",
-  "error.chain.mcpFailed": 'MCP-server "{{name}}" fejlede. Bemærk, Altru Coder understøtter ikke MCP-godkendelse endnu.',
+  "error.chain.mcpFailed":
+    'MCP-server "{{name}}" fejlede. Bemærk, Altru Coder understøtter ikke MCP-godkendelse endnu.',
   "error.chain.providerAuthFailed": "Udbydergodkendelse mislykkedes ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Kunne ikke initialisere udbyder "{{provider}}". Tjek legitimationsoplysninger og konfiguration.',
@@ -1581,5 +1582,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

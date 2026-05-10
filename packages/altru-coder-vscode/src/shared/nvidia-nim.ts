@@ -140,20 +140,13 @@ export const NVIDIA_NIM_MODEL_IDS = [
   "zyphra/zamba2-7b-instruct",
 ] as const
 
-const THINKING_IDS = new Set([
-  "moonshotai/kimi-k2-thinking",
-  NVIDIA_KIMI_MODEL_ID,
-])
+const THINKING_IDS = new Set(["moonshotai/kimi-k2-thinking", NVIDIA_KIMI_MODEL_ID])
 
 function name(id: string) {
   if (id === NVIDIA_KIMI_MODEL_ID) return NVIDIA_KIMI_MODEL_NAME
   return id
     .split("/")
-    .map((part) =>
-      part
-        .replace(/[._-]+/g, " ")
-        .replace(/\b\w/g, (item) => item.toUpperCase()),
-    )
+    .map((part) => part.replace(/[._-]+/g, " ").replace(/\b\w/g, (item) => item.toUpperCase()))
     .join(" / ")
 }
 

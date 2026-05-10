@@ -154,7 +154,8 @@ export const dict = {
   "provider.connect.opencodeZen.visit.prefix": "",
   "provider.connect.opencodeZen.visit.link": "https://opencode.ai/zen",
   "provider.connect.opencodeZen.visit.suffix": " adresini ziyaret ederek API anahtarınızı alın.",
-  "provider.connect.oauth.code.visit.prefix": "Hesabınızı bağlamak ve Altru Coder'da {{provider}} modellerini kullanmak için ",
+  "provider.connect.oauth.code.visit.prefix":
+    "Hesabınızı bağlamak ve Altru Coder'da {{provider}} modellerini kullanmak için ",
   "provider.connect.oauth.code.visit.link": "bu bağlantıya",
   "provider.connect.oauth.code.visit.suffix": " tıklayarak yetkilendirme kodunuzu alın.",
   "provider.connect.oauth.code.label": "{{method}} yetkilendirme kodu",
@@ -889,7 +890,8 @@ export const dict = {
   "settings.config.title": "{{scope}} Altru Coder yapılandırma dosyasını aç",
   "settings.config.placeholder":
     "Yapılandırma dosyaları sırayla birleştirilir; yüklendi olarak işaretlenen dosyalar şu anda ayarları etkiler.",
-  "settings.config.noWorkspace": "Yerel Altru Coder yapılandırma dosyasını düzenlemek için bir çalışma alanı klasörü açın.",
+  "settings.config.noWorkspace":
+    "Yerel Altru Coder yapılandırma dosyasını düzenlemek için bir çalışma alanı klasörü açın.",
   "settings.config.openFailed": "{{scope}} Altru Coder yapılandırma dosyası açılamadı: {{message}}",
   "settings.config.source.xdg": "XDG küresel yapılandırma",
   "settings.config.source.homeAltruCoder": "Home .altru-coder yapılandırması",
@@ -1144,7 +1146,8 @@ export const dict = {
     "Ayarlarınızı VS Code örnekleri arasında aktarmak için dışa veya içe aktarın.",
   "settings.aboutAltruCoder.exportSettings": "Dışa Aktar",
   "settings.aboutAltruCoder.importSettings": "İçe Aktar",
-  "settings.aboutAltruCoder.importSettings.invalidJson": "Geçersiz JSON dosyası. Lütfen geçerli bir ayar dosyası seçin.",
+  "settings.aboutAltruCoder.importSettings.invalidJson":
+    "Geçersiz JSON dosyası. Lütfen geçerli bir ayar dosyası seçin.",
   "settings.aboutAltruCoder.importSettings.invalidConfig": "Dosya geçerli Altru Coder ayarları içermiyor.",
   "settings.aboutAltruCoder.importSettings.tooLarge": "Dosya çok büyük. Ayar dosyaları 1 MB altında olmalıdır.",
   "settings.aboutAltruCoder.importSettings.newerVersion":
@@ -1392,7 +1395,8 @@ export const dict = {
   "settings.display.layout.auto": "Otomatik",
   "settings.display.layout.stretch": "Genişlet",
   "settings.display.fontSize.title": "Yazı Tipi Boyutu",
-  "settings.display.fontSize.description": "Altru Coder webview UI yazı tipi boyutunu VS Code'dan bağımsız olarak ayarlayın.",
+  "settings.display.fontSize.description":
+    "Altru Coder webview UI yazı tipi boyutunu VS Code'dan bağımsız olarak ayarlayın.",
   "settings.display.reasoningAutoCollapse.title": "Akıl yürütmeyi otomatik daralt",
   "settings.display.reasoningAutoCollapse.description":
     "Ajan yazmayı bitirdikten sonra akıl yürütme bloklarını daraltır. Manuel olarak daraltmadığınız sürece akıl yürütmenin geniş kalması için kapalı bırakın.",
@@ -1602,5 +1606,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

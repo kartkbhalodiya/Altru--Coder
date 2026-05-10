@@ -25,7 +25,11 @@ export const AltruCoderEmbeddingModelsProvider: ParentComponent = (props) => {
 
   onCleanup(unsubscribe)
 
-  return <AltruCoderEmbeddingModelsContext.Provider value={{ catalog }}>{props.children}</AltruCoderEmbeddingModelsContext.Provider>
+  return (
+    <AltruCoderEmbeddingModelsContext.Provider value={{ catalog }}>
+      {props.children}
+    </AltruCoderEmbeddingModelsContext.Provider>
+  )
 }
 
 export function useAltruCoderEmbeddingModels(): AltruCoderEmbeddingModelsContextValue {

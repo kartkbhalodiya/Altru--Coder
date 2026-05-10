@@ -112,7 +112,11 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
   if (Flag.ALTRU_CODER_WORKSPACE_ID) {
     return {
       app: app
-        .use(InstanceMiddleware(Flag.ALTRU_CODER_WORKSPACE_ID ? WorkspaceID.make(Flag.ALTRU_CODER_WORKSPACE_ID) : undefined))
+        .use(
+          InstanceMiddleware(
+            Flag.ALTRU_CODER_WORKSPACE_ID ? WorkspaceID.make(Flag.ALTRU_CODER_WORKSPACE_ID) : undefined,
+          ),
+        )
         .use(FenceMiddleware)
         .route("/", InstanceRoutes(runtime.upgradeWebSocket)),
       runtime,

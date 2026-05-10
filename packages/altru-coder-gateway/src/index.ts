@@ -9,7 +9,13 @@ export { AltruCoderAuthPlugin, default } from "./plugin.js"
 export { createAltruCoder } from "./provider.js"
 export { createAltruCoderDebug } from "./provider-debug.js"
 export { altruCustomLoader } from "./loader.js"
-export { buildAltruCoderHeaders, getEditorNameHeader, getFeatureHeader, getDefaultHeaders, getUserAgent } from "./headers.js"
+export {
+  buildAltruCoderHeaders,
+  getEditorNameHeader,
+  getFeatureHeader,
+  getDefaultHeaders,
+  getUserAgent,
+} from "./headers.js"
 
 // ============================================================================
 // Auth

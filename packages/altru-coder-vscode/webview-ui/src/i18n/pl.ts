@@ -891,7 +891,8 @@ export const dict = {
   "settings.config.title": "Otwórz plik konfiguracyjny Altru Coder ({{scope}})",
   "settings.config.placeholder":
     "Pliki konfiguracyjne są scalane po kolei; pliki oznaczone jako wczytane mają obecnie wpływ na ustawienia.",
-  "settings.config.noWorkspace": "Otwórz folder obszaru roboczego, aby edytować lokalny plik konfiguracyjny Altru Coder.",
+  "settings.config.noWorkspace":
+    "Otwórz folder obszaru roboczego, aby edytować lokalny plik konfiguracyjny Altru Coder.",
   "settings.config.openFailed": "Nie udało się otworzyć pliku konfiguracyjnego Altru Coder ({{scope}}): {{message}}",
   "settings.config.source.xdg": "Globalna konfiguracja XDG",
   "settings.config.source.homeAltruCoder": "Konfiguracja .altru-coder (Home)",
@@ -1585,5 +1586,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

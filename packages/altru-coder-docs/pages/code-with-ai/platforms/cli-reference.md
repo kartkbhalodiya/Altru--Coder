@@ -112,6 +112,17 @@ Options:
   --version  Show version number  [boolean]
 ```
 
+## altru-coder mcp-server
+
+```
+run Altru Coder as an MCP server over stdio
+
+Options:
+      --help       Show help  [boolean]
+      --version    Show version number  [boolean]
+  -C, --directory  workspace directory to serve  [string]
+```
+
 ## altru-coder [project]
 
 ```
@@ -183,7 +194,9 @@ Options:
       --port                          port for the local server (defaults to random port if no value provided)  [number]
       --variant                       model variant (provider-specific reasoning effort, e.g., high, max, minimal)  [string]
       --thinking                      show thinking blocks  [boolean] [default: false]
+      --sandbox                       sandbox policy for the run session  [string] [choices: "read-only", "workspace-write", "danger-full-access"]
       --auto                          auto-approve all permissions (for autonomous/pipeline usage)  [boolean] [default: false]
+      --ephemeral                     delete the transient run session after completion  [boolean] [default: false]
       --dangerously-skip-permissions  auto-approve permissions that are not explicitly denied (dangerous!)  [boolean] [default: false]
 ```
 

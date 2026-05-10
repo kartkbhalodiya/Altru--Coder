@@ -859,7 +859,9 @@ describe("getConfigErrorDetails", () => {
         issues: [{ code: "unrecognized_keys", keys: ["indexing"], path: [], message: 'Unrecognized key: "indexing"' }],
       },
     }
-    expect(getConfigErrorDetails(err)).toBe('File: /home/me/.config/altru-coder/altru-coder.json\n\n✖ Unrecognized key: "indexing"')
+    expect(getConfigErrorDetails(err)).toBe(
+      'File: /home/me/.config/altru-coder/altru-coder.json\n\n✖ Unrecognized key: "indexing"',
+    )
   })
 
   it("formats a multi-issue ConfigInvalidError with paths (including array indices)", () => {

@@ -1,0 +1,12 @@
+Manage background terminal jobs started by the bash tool.
+
+Use this tool after starting a long-running command with bash and `background: true`.
+
+Modes:
+- `list`: show background terminal jobs for the current session.
+- `read`: read the latest retained output for a job. Requires `jobID`.
+- `write`: send text to a running job's stdin. Requires `jobID` and `input`; set `newline: true` for Enter-style input.
+- `stop`: terminate one background job. Requires `jobID`.
+- `clean`: stop and remove all background jobs for the current session.
+
+Altru Coder can keep up to 20 background terminal jobs running at once. Use `list` before starting more jobs if you are unsure what is already running. Use `write` only for commands that are designed to read stdin; do not use it for password prompts or secrets.

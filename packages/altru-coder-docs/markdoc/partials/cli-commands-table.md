@@ -4,6 +4,7 @@
 |---|---|
 | `altru-coder acp` | start ACP (Agent Client Protocol) server |
 | `altru-coder mcp` | manage MCP (Model Context Protocol) servers |
+| `altru-coder mcp-server` | run Altru Coder as an MCP server over stdio |
 | `altru-coder [project]` | start altru-coder tui |
 | `altru-coder attach <url>` | attach to a running altru-coder server |
 | `altru-coder run [message..]` | run altru-coder with a message |

@@ -7,7 +7,11 @@
 
 import type { AltruCoderClient, Session, TextPartInput, FilePartInput } from "@altru-coder/sdk/v2/client"
 import type { CloudSessionData, EditorContext } from "../../services/cli-backend/types"
-import { getErrorMessage, sessionToWebview, mapCloudSessionMessageToWebviewMessage } from "../../altru-coder-provider-utils"
+import {
+  getErrorMessage,
+  sessionToWebview,
+  mapCloudSessionMessageToWebviewMessage,
+} from "../../altru-coder-provider-utils"
 import type { MessageFile } from "../message-files"
 
 export interface CloudSessionContext {

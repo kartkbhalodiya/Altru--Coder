@@ -164,7 +164,8 @@ export const dict = {
   "provider.connect.oauth.code.invalid": "رمز التفويض غير صالح",
   "provider.connect.oauth.auto.visit.prefix": "قم بزيارة ",
   "provider.connect.oauth.auto.visit.link": "هذا الرابط",
-  "provider.connect.oauth.auto.visit.suffix": " وأدخل الرمز أدناه لتوصيل حسابك واستخدام نماذج {{provider}} في Altru Coder.",
+  "provider.connect.oauth.auto.visit.suffix":
+    " وأدخل الرمز أدناه لتوصيل حسابك واستخدام نماذج {{provider}} في Altru Coder.",
   "provider.connect.oauth.auto.confirmationCode": "رمز التأكيد",
   "provider.connect.toast.connected.title": "تم توصيل {{provider}}",
   "provider.connect.toast.connected.description": "نماذج {{provider}} متاحة الآن للاستخدام.",
@@ -1553,5 +1554,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

@@ -22,7 +22,8 @@ export const dict = {
   "altruClaw.upgrade.description1": "Esta instancia se aprovisionó antes de que se habilitara el chat.",
   "altruClaw.upgrade.description2.before": "Usa el botón ",
   "altruClaw.upgrade.description2.bold": "Actualizar a la última versión",
-  "altruClaw.upgrade.description2.after": " en el panel de AltruCoderClaw para activar el chat en tiempo real con tu bot.",
+  "altruClaw.upgrade.description2.after":
+    " en el panel de AltruCoderClaw para activar el chat en tiempo real con tu bot.",
   "altruClaw.upgrade.openDashboard": "Abrir panel",
   "altruClaw.sidebar.title": "AltruCoderClaw",
   "altruClaw.sidebar.instance": "Instancia",

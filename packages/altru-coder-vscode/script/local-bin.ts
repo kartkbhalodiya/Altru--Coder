@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { $ } from "bun"
 import { join, relative, dirname, basename } from "node:path"
-import { chmodSync, statSync, rmSync, readdirSync, existsSync } from "node:fs"
+import { chmodSync, statSync, rmSync, readdirSync, existsSync, cpSync } from "node:fs"
 
 const forceRebuild = process.argv.includes("--force")
 
@@ -180,6 +180,13 @@ async function main() {
   const sourceBinPath = await ensureBuiltBinary()
   await $`mkdir -p ${targetBinDir}`
   await $`cp ${sourceBinPath} ${targetBinPath}`
+  const sourceSkills = join(dirname(sourceBinPath), "skills")
+  const targetSkills = join(targetBinDir, "skills")
+  if (existsSync(sourceSkills)) {
+    rmSync(targetSkills, { recursive: true, force: true })
+    cpSync(sourceSkills, targetSkills, { recursive: true })
+    log(`Copied CLI skills from ${relative(packagesDir, sourceSkills)} -> ${relative(altruVscodeDir, targetSkills)}`)
+  }
   chmodSync(targetBinPath, 0o755)
 
   // Record the CLI source version so future runs detect when a rebuild is needed

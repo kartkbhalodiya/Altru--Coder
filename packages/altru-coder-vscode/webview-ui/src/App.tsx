@@ -28,7 +28,7 @@ import { registerVscodeToolOverrides } from "./components/chat/VscodeToolOverrid
 // Override the upstream "task" tool renderer with the fully-expanded version
 // that shows child session parts inline in the VS Code sidebar.
 registerExpandedTaskTool()
-// Apply VS Code sidebar preferences to other tools (e.g. bash expanded by default).
+// Apply VS Code sidebar preferences to other tools.
 registerVscodeToolOverrides()
 import HistoryView from "./components/history/HistoryView"
 import { MigrationWizard } from "./components/migration" // legacy-migration

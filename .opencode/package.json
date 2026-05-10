@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@altru-coder/plugin": "7.2.40",
+    "@kilocode/plugin": "7.2.40"
+  }
+}

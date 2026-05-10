@@ -1148,7 +1148,8 @@ export const dict = {
   "settings.aboutAltruCoder.community": "Comunidad y soporte",
   "settings.aboutAltruCoder.feedback.prefix": "Si tienes preguntas o comentarios, abre un issue en",
   "settings.aboutAltruCoder.feedback.or": "o",
-  "settings.aboutAltruCoder.support.prefix": "Para preguntas de facturación o cuenta, contacta al Soporte al Cliente en",
+  "settings.aboutAltruCoder.support.prefix":
+    "Para preguntas de facturación o cuenta, contacta al Soporte al Cliente en",
   "settings.aboutAltruCoder.resetSettings.title": "Restablecer configuración",
   "settings.aboutAltruCoder.resetSettings.description":
     "Esto restablece únicamente las configuraciones específicas de la extensión VS Code a sus valores predeterminados. Las configuraciones compartidas con el CLI, como los modos y las reglas de aprobación automática, se almacenan en la configuración del CLI y no serán restablecidas.",
@@ -1601,5 +1602,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

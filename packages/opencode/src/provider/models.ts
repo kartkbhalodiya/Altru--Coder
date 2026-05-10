@@ -232,7 +232,9 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | HttpClie
           id: "altru-coder",
           name: "Altru Coder Gateway",
           env: ["ALTRU_CODER_API_KEY"],
-          api: ALTRU_CODER_OPENROUTER_BASE.endsWith("/") ? ALTRU_CODER_OPENROUTER_BASE : `${ALTRU_CODER_OPENROUTER_BASE}/`,
+          api: ALTRU_CODER_OPENROUTER_BASE.endsWith("/")
+            ? ALTRU_CODER_OPENROUTER_BASE
+            : `${ALTRU_CODER_OPENROUTER_BASE}/`,
           npm: "@altru-coder/altru-coder-gateway",
           models: { ...models, ...ALTRU_CODER_BUILTIN_MODELS },
         }

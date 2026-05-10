@@ -366,7 +366,9 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
                     triggerVariant="settings"
                   />
                   <Show when={state.field === prompt.key && state.error}>
-                    <span style={{ "font-size": "var(--altru-coder-font-size-12)", color: "var(--vscode-errorForeground)" }}>
+                    <span
+                      style={{ "font-size": "var(--altru-coder-font-size-12)", color: "var(--vscode-errorForeground)" }}
+                    >
                       {state.error}
                     </span>
                   </Show>

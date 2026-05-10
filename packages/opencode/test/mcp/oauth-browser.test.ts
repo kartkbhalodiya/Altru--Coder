@@ -203,7 +203,8 @@ test("BrowserOpenFailed event is NOT published when open() succeeds", async () =
 
   await Instance.provide({
     directory: tmp.path,
-    fn: async () => { // altrucoder_change
+    fn: async () => {
+      // altrucoder_change
       openShouldFail = false // altrucoder_change
 
       const events: Array<{ mcpName: string; url: string }> = []
@@ -259,7 +260,8 @@ test("open() is called with the authorization URL", async () => {
 
   await Instance.provide({
     directory: tmp.path,
-    fn: async () => { // altrucoder_change
+    fn: async () => {
+      // altrucoder_change
       openShouldFail = false // altrucoder_change
       openCalledWith = undefined
 

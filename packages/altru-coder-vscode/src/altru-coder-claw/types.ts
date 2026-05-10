@@ -297,9 +297,20 @@ export type AltruCoderClawOutMessage =
   | { type: "altru-coder-claw.status"; data: ClawStatus | null }
   | { type: "altru-coder-claw.locale"; locale: string }
   | { type: "altru-coder-claw.error"; error: string }
-  | { type: "altru-coder-claw.conversations"; conversations: ConversationListItem[]; hasMore: boolean; replace: boolean }
+  | {
+      type: "altru-coder-claw.conversations"
+      conversations: ConversationListItem[]
+      hasMore: boolean
+      replace: boolean
+    }
   | { type: "altru-coder-claw.activeConversation"; conversationId: string | null }
-  | { type: "altru-coder-claw.messages"; conversationId: string; messages: Message[]; hasMore: boolean; replace: boolean }
+  | {
+      type: "altru-coder-claw.messages"
+      conversationId: string
+      messages: Message[]
+      hasMore: boolean
+      replace: boolean
+    }
   | { type: "altru-coder-claw.messageOptimistic"; conversationId: string; message: Message }
   | { type: "altru-coder-claw.messageReplaced"; conversationId: string; pendingId: string; message: Message }
   | { type: "altru-coder-claw.messageRemoved"; conversationId: string; messageId: string }

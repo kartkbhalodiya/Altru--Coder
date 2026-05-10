@@ -18,12 +18,18 @@ export const EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG: AltruCoderEmbeddingModel
   aliases: {},
 }
 
-export function normalizeAltruCoderEmbeddingModelId(model: string | undefined, catalog = EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG) {
+export function normalizeAltruCoderEmbeddingModelId(
+  model: string | undefined,
+  catalog = EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG,
+) {
   if (!model) return undefined
   return catalog.aliases[model] ?? model
 }
 
-export function getAltruCoderEmbeddingModel(model: string | undefined, catalog = EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG) {
+export function getAltruCoderEmbeddingModel(
+  model: string | undefined,
+  catalog = EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG,
+) {
   const id = normalizeAltruCoderEmbeddingModelId(model, catalog)
   return catalog.models.find((item) => item.id === id)
 }

@@ -272,7 +272,10 @@ describe("session prompt queue", () => {
               })
               const messages = await Session.messages({ sessionID: session.id })
               const compact = messages.find((msg) => msg.parts.some((part) => part.type === "compaction"))?.info.id
-              return { compact, ids: AltruCoderSessionPromptQueue.scope(session.id, messages).map((item) => item.info.id) }
+              return {
+                compact,
+                ids: AltruCoderSessionPromptQueue.scope(session.id, messages).map((item) => item.info.id),
+              }
             }),
             Effect.succeed({ compact: undefined, ids: [] }),
           ),

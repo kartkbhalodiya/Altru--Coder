@@ -367,9 +367,10 @@ export class Service extends Context.Service<Service, Interface>()("@opencode/Co
 
 function globalConfigFile() {
   // altrucoder_change start
-  const candidates = ["altru-coder.jsonc", "altru-coder.json", "opencode.jsonc", "opencode.json", "config.json"].map((file) =>
-    // altrucoder_change end
-    path.join(Global.Path.config, file),
+  const candidates = ["altru-coder.jsonc", "altru-coder.json", "opencode.jsonc", "opencode.json", "config.json"].map(
+    (file) =>
+      // altrucoder_change end
+      path.join(Global.Path.config, file),
   )
   for (const file of candidates) {
     if (existsSync(file)) return file

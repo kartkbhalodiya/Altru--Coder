@@ -15,7 +15,7 @@ import { type AltruCoderConnectionService, ServerStartupError } from "./services
 import type { EditorContext, IndexingStatus } from "./services/cli-backend/types"
 import { FileIgnoreController } from "./services/autocomplete/shims/FileIgnoreController"
 import { ChatTextAreaAutocomplete } from "./services/autocomplete/chat-autocomplete/ChatTextAreaAutocomplete"
-import { buildWebviewHtml, getWebviewFontSize } from "./utils"
+import { getWebviewFontSize } from "./utils"
 import { saveImage } from "./altru-coder-provider/save-image"
 import {
   TelemetryProxy,
@@ -42,10 +42,8 @@ import {
   SessionStreamScheduler,
   type SessionRefreshContext,
 } from "./altru-coder-provider-utils"
-import { GitOps } from "./agent-manager/GitOps"
-import { GitStatsPoller, type LocalStats } from "./agent-manager/GitStatsPoller"
-import { diffSummary as localDiffSummary, workingTreeSummary as localWorktreeSummary } from "./agent-manager/local-diff"
-import { getWorkspaceRoot } from "./review-utils"
+import type { GitOps } from "./agent-manager/GitOps"
+import type { GitStatsPoller } from "./agent-manager/GitStatsPoller"
 import { MarketplaceService, type MarketplaceItem, type RemoveResult } from "./services/marketplace"
 import type { RemoteStatusService } from "./services/RemoteStatusService"
 import { resolveProjectDirectory } from "./project-directory"
@@ -66,6 +64,10 @@ import { fetchMessagePage, MESSAGE_PAGE_LIMIT } from "./altru-coder-provider/mes
 import { childID } from "./altru-coder-provider/task-session"
 import { handleNetworkEvent, clearNetworkWaits } from "./altru-coder-provider/network"
 import { abortSession } from "./altru-coder-provider/abort"
+import { ProcessEventBridge } from "./altru-coder-provider/process-events"
+import { browserSettingsMessage, claudeCompatSettingMessage, createStatsPolling } from "./altru-coder-provider/provider-status"
+import { createMigrationContext } from "./altru-coder-provider/migration-context"
+import { providerWebviewHtml } from "./altru-coder-provider/webview-html"
 import {
   buildAutocompleteSettingsMessage,
   routeAutocompleteMessage,
@@ -115,7 +117,10 @@ import {
   handleQuestionReject,
   fetchAndSendPendingQuestions,
 } from "./altru-coder-provider/handlers/question"
-import { fetchAndSendPendingSuggestions, routeSuggestionWebviewMessage } from "./altru-coder-provider/handlers/suggestion"
+import {
+  fetchAndSendPendingSuggestions,
+  routeSuggestionWebviewMessage,
+} from "./altru-coder-provider/handlers/suggestion"
 import { nativeTitle } from "./altru-coder-provider/native-tab-title"
 import { BuiltinQuota } from "./altru-coder-provider/builtin-quota"
 
@@ -137,17 +142,29 @@ import { configFeatures } from "./features"
 import { createAutoApproveBridge } from "./altru-coder-provider/auto-approve"
 import type { AltruCoderProviderOptions } from "./altru-coder-provider/options"
 import { fetchAltruCoderEmbeddingModelCatalog } from "@altru-coder/altru-coder-gateway"
-
 type MessageLoadMode = "replace" | "prepend" | "focus" | "reconcile"
 const mapAgent = (a: Agent) => ({
-  name: a.name, displayName: a.displayName, description: a.description,
-  mode: a.mode, native: a.native, hidden: a.hidden, color: a.color,
-  deprecated: a.deprecated, permission: a.permission, model: a.model,
+  name: a.name,
+  displayName: a.displayName,
+  description: a.description,
+  mode: a.mode,
+  native: a.native,
+  hidden: a.hidden,
+  color: a.color,
+  deprecated: a.deprecated,
+  permission: a.permission,
+  model: a.model,
 })
 
 const SESSION_SCOPED_PART_EVENTS = new Set(["message.part.updated", "message.part.delta", "message.part.removed"])
 const isSessionScopedPartEvent = (type: string) => SESSION_SCOPED_PART_EVENTS.has(type)
-const PROVIDER_ACTION_TYPES = new Set(["connectProvider", "authorizeProviderOAuth", "completeProviderOAuth", "disconnectProvider", "saveCustomProvider"])
+const PROVIDER_ACTION_TYPES = new Set([
+  "connectProvider",
+  "authorizeProviderOAuth",
+  "completeProviderOAuth",
+  "disconnectProvider",
+  "saveCustomProvider",
+])
 
 function providerAction(message: unknown): message is Record<string, unknown> {
   const type = message && typeof message === "object" ? (message as { type?: unknown }).type : undefined
@@ -200,6 +217,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
   private sessionStatusMap = new Map<string, SessionStatus["type"]>()
   /** Per-session directory overrides (e.g., worktree paths registered by AgentManagerProvider). */
   private sessionDirectories = new Map<string, string>()
+  private readonly processes = new ProcessEventBridge()
   private permissionDirectories = new Map<string, string>()
   /** Project ID for the current workspace, used to filter out sessions from other repositories. */
   private projectID: string | undefined
@@ -321,7 +339,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
   private focusSession(id?: string): void {
     this.streams.focus(id)
-    if (id) this.connectionService.registerFocused(this.instanceId, id)
+    if (id) this.connectionService.registerFocused(this.instanceId, id, this.getWorkspaceDirectory(id))
     else this.connectionService.unregisterFocused(this.instanceId)
   }
 
@@ -422,7 +440,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       console.log("[Altru Coder New] AltruCoderProvider: 👤 syncWebviewState fetching profile...")
       const profileResult = await retry(() => this.client!.altruCoder.profile())
       const profileData = profileResult.data ?? profileFromWebsiteSession(this.getWebsiteSession())
-      console.log("[Altru Coder New] AltruCoderProvider: 👤 syncWebviewState profile:", profileData ? "received" : "null")
+      console.log(
+        "[Altru Coder New] AltruCoderProvider: 👤 syncWebviewState profile:",
+        profileData ? "received" : "null",
+      )
       this.postMessage({
         type: "profileData",
         data: profileData,
@@ -472,7 +493,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       localResourceRoots: [this.extensionUri],
     }
 
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview)
+    webviewView.webview.html = providerWebviewHtml(webviewView.webview, this.extensionUri, this.connectionService.getServerInfo()?.port)
     this.setupWebviewMessageHandler(webviewView.webview)
 
     vscode.commands.executeCommand("setContext", "altru-coder.new.sidebarVisible", webviewView.visible)
@@ -501,7 +522,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       localResourceRoots: [this.extensionUri],
     }
 
-    panel.webview.html = this._getHtmlForWebview(panel.webview)
+    panel.webview.html = providerWebviewHtml(panel.webview, this.extensionUri, this.connectionService.getServerInfo()?.port)
 
     this.setupWebviewMessageHandler(panel.webview)
     this.viewStateDisposable?.dispose()
@@ -513,6 +534,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
   /** Register a session created externally and notify the webview. */
   public registerSession(session: Session): void {
+    this.trackDirectory(session.id, session.directory)
     this.setCurrentSession(session)
     this.contextSessionID = session.id
     this.trackedSessionIds.add(session.id)
@@ -525,6 +547,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
   /** Add a session ID to the tracked set without changing currentSession. */
   public trackSession(sessionId: string): void {
     this.trackedSessionIds.add(sessionId)
+    this.connectionService.registerSessionDirectory(sessionId, this.getWorkspaceDirectory(sessionId))
   }
 
   public loadMessages(sessionID: string): Promise<void> {
@@ -538,10 +561,12 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
    */
   public setSessionDirectory(sessionId: string, directory: string): void {
     this.sessionDirectories.set(sessionId, directory)
+    this.connectionService.registerSessionDirectory(sessionId, directory)
   }
 
   public clearSessionDirectory(sessionId: string): void {
     this.sessionDirectories.delete(sessionId)
+    this.connectionService.registerSessionDirectory(sessionId, this.getRootDirectory())
   }
 
   /** Exposes the session→directory map so callers outside the webview can resolve worktree paths. */
@@ -842,7 +867,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
           )
           break
         case "removeMode":
-          this.handleRemoveMode(message.name).catch((e) => console.error("[Altru Coder New] handleRemoveMode failed:", e))
+          this.handleRemoveMode(message.name).catch((e) =>
+            console.error("[Altru Coder New] handleRemoveMode failed:", e),
+          )
           break
         case "removeMcp":
           this.handleRemoveMcp(message.name).catch((e) => console.error("[Altru Coder New] handleRemoveMcp failed:", e))
@@ -871,7 +898,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
           this.fetchAndSendConfig().catch((e) => console.error("[Altru Coder New] fetchAndSendConfig failed:", e))
           break
         case "requestGlobalConfig":
-          this.fetchAndSendGlobalConfig().catch((e) => console.error("[Altru Coder New] fetchAndSendGlobalConfig failed:", e))
+          this.fetchAndSendGlobalConfig().catch((e) =>
+            console.error("[Altru Coder New] fetchAndSendGlobalConfig failed:", e),
+          )
           break
         case "requestIndexingStatus":
           this.fetchAndSendIndexingStatus().catch((e) =>
@@ -947,10 +976,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
           await this.handleUpdateSetting(message.key, message.value)
           break
         case "requestBrowserSettings":
-          this.sendBrowserSettings()
+          this.postMessage(browserSettingsMessage())
           break
         case "requestClaudeCompatSetting":
-          this.sendClaudeCompatSetting()
+          this.postMessage(claudeCompatSettingMessage())
           break
         case "requestNotificationSettings":
           this.sendNotificationSettings()
@@ -1431,7 +1460,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
           })
         }
       })
-      .catch((e: unknown) => console.error("[Altru Coder New] AltruCoderProvider: Failed to fetch session statuses:", e))
+      .catch((e: unknown) =>
+        console.error("[Altru Coder New] AltruCoderProvider: Failed to fetch session statuses:", e),
+      )
   }
 
   private async handleLoadMessages(
@@ -1523,6 +1554,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       const dir = this.sessionDirectories.get(parentSessionID)
       if (dir) {
         this.sessionDirectories.set(sessionID, dir)
+        this.connectionService.registerSessionDirectory(sessionID, dir)
       }
     }
 
@@ -1648,6 +1680,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       this.streams.drop(sessionID)
       this.syncedChildSessions.delete(sessionID)
       this.sessionDirectories.delete(sessionID)
+      this.processes.clearSession(sessionID)
       this.lastReconciledAt.delete(sessionID)
       this.connectionService.pruneSession(sessionID)
       if (this.currentSession?.id === sessionID) {
@@ -1758,7 +1791,12 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     } catch (err) {
       const rid = typeof msg.requestId === "string" ? msg.requestId : ""
       const pid = typeof msg.providerID === "string" ? msg.providerID : ""
-      const action = msg.type === "disconnectProvider" ? "disconnect" : msg.type === "authorizeProviderOAuth" ? "authorize" : "connect"
+      const action =
+        msg.type === "disconnectProvider"
+          ? "disconnect"
+          : msg.type === "authorizeProviderOAuth"
+            ? "authorize"
+            : "connect"
       console.error("[Altru Coder New] provider action failed:", err)
       if (!rid || !pid) return
       this.postMessage({
@@ -1776,11 +1814,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     const pid = typeof msg.providerID === "string" ? msg.providerID : ""
     if (!rid || !pid) return
     const action =
-      msg.type === "disconnectProvider"
-        ? "disconnect"
-        : msg.type === "authorizeProviderOAuth"
-          ? "authorize"
-          : "connect"
+      msg.type === "disconnectProvider" ? "disconnect" : msg.type === "authorizeProviderOAuth" ? "authorize" : "connect"
     const fail = (message: string) =>
       this.postMessage({
         type: "providerActionError",
@@ -2300,7 +2334,11 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
       const first = list[0]!
       const summary = list.length === 1 ? first.message : `${first.message} (and ${list.length - 1} more)`
-      console.warn("[Altru Coder New] AltruCoderProvider: showing config warnings", { from, count: list.length, path: first.path })
+      console.warn("[Altru Coder New] AltruCoderProvider: showing config warnings", {
+        from,
+        count: list.length,
+        path: first.path,
+      })
 
       const action = await vscode.window.showWarningMessage(`Config: ${summary}`, "Show Details")
       if (action === "Show Details") {
@@ -2327,7 +2365,8 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       if (this.cachedNotificationsMessage) {
         // Merge the latest dismissed IDs from globalState into the cached
         // message so that dismissals persisted while offline are honoured.
-        const persisted = this.extensionContext?.globalState.get<string[]>("altru-coder.dismissedNotificationIds", []) ?? []
+        const persisted =
+          this.extensionContext?.globalState.get<string[]>("altru-coder.dismissedNotificationIds", []) ?? []
         if (persisted.length > 0) {
           const cached = this.cachedNotificationsMessage as {
             type: string
@@ -2345,7 +2384,8 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     try {
       const { data: all } = await retry(() => this.client!.altruCoder.notifications(undefined, { throwOnError: true }))
       const notifications = all.filter((n) => !n.showIn || n.showIn.includes("extension"))
-      const existing = this.extensionContext?.globalState.get<string[]>("altru-coder.dismissedNotificationIds", []) ?? []
+      const existing =
+        this.extensionContext?.globalState.get<string[]>("altru-coder.dismissedNotificationIds", []) ?? []
       const active = new Set(notifications.map((n) => n.id))
       // Only prune stale dismissed IDs when we have a non-empty notification
       // list. An empty list may mean the API returned nothing due to being
@@ -2372,7 +2412,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     if (!this.extensionContext) return
     const existing = this.extensionContext.globalState.get<string[]>("altru-coder.dismissedNotificationIds", [])
     if (!existing.includes(notificationId)) {
-      await this.extensionContext.globalState.update("altru-coder.dismissedNotificationIds", [...existing, notificationId])
+      await this.extensionContext.globalState.update("altru-coder.dismissedNotificationIds", [
+        ...existing,
+        notificationId,
+      ])
     }
     // Update the cached message so the dismiss persists even if
     // fetchAndSendNotifications() fails (e.g. no client / API error).
@@ -2446,9 +2489,18 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
         : { ...partial, ...project, indexing: { ...(partial.indexing ?? {}), ...(project.indexing ?? {}) } }
     const cached = (this.cachedConfigMessage as { config?: unknown } | null)?.config
     const features = (this.cachedConfigMessage as { features?: unknown } | null)?.features
-    const optimistic = cached && typeof cached === "object" ? { ...(cached as Record<string, unknown>), ...patch } : patch
-    const global = this.cachedGlobalConfig && hasGlobal ? ({ ...this.cachedGlobalConfig, ...partial } as Config) : (this.cachedGlobalConfig ?? undefined)
-    const ack = { type: "configUpdated", config: optimistic, globalConfig: global, features: features ?? configFeatures(optimistic as Config) }
+    const optimistic =
+      cached && typeof cached === "object" ? { ...(cached as Record<string, unknown>), ...patch } : patch
+    const global =
+      this.cachedGlobalConfig && hasGlobal
+        ? ({ ...this.cachedGlobalConfig, ...partial } as Config)
+        : (this.cachedGlobalConfig ?? undefined)
+    const ack = {
+      type: "configUpdated",
+      config: optimistic,
+      globalConfig: global,
+      features: features ?? configFeatures(optimistic as Config),
+    }
     this.postMessage(ack)
 
     try {
@@ -2479,7 +2531,10 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
       })
       if (refreshProviders) await this.fetchAndSendProviders()
     } catch (error) {
-      console.error("[Altru Coder New] AltruCoderProvider: Config write succeeded but post-write refresh failed:", error)
+      console.error(
+        "[Altru Coder New] AltruCoderProvider: Config write succeeded but post-write refresh failed:",
+        error,
+      )
       this.postMessage(ack)
     } finally {
       this.pending--
@@ -2562,7 +2617,9 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
         }
 
         const delay = backoff(attempt, result.response?.headers)
-        console.log(`[Altru Coder New] AltruCoderProvider: Retry on ${status}, attempt ${attempt}/${MAX_RETRIES}, delay ${delay}ms`)
+        console.log(
+          `[Altru Coder New] AltruCoderProvider: Retry on ${status}, attempt ${attempt}/${MAX_RETRIES}, delay ${delay}ms`,
+        )
 
         this.postMessage({
           type: "sessionStatus",
@@ -2949,13 +3006,17 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
     await this.client.global
       .dispose()
-      .catch((e: unknown) => console.warn("[Altru Coder New] AltruCoderProvider: global.dispose() after org switch failed:", e))
+      .catch((e: unknown) =>
+        console.warn("[Altru Coder New] AltruCoderProvider: global.dispose() after org switch failed:", e),
+      )
 
     // Org switch succeeded — refresh profile and providers independently (best-effort)
     try {
       const profileResult = await this.client!.altruCoder.profile()
       // Broadcast to all webviews (sidebar, profile tab, agent manager, etc.)
-      this.connectionService.notifyProfileChanged(profileResult.data ?? profileFromWebsiteSession(this.getWebsiteSession()))
+      this.connectionService.notifyProfileChanged(
+        profileResult.data ?? profileFromWebsiteSession(this.getWebsiteSession()),
+      )
     } catch (error) {
       console.error("[Altru Coder New] AltruCoderProvider: Failed to refresh profile after org switch:", error)
       this.connectionService.notifyProfileChanged(profileFromWebsiteSession(this.getWebsiteSession()))
@@ -3077,7 +3138,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
 
     // Re-send all settings to the webview so the UI reflects the reset
     this.postMessage(buildAutocompleteSettingsMessage())
-    this.sendBrowserSettings()
+    this.postMessage(browserSettingsMessage())
     this.sendNotificationSettings()
     this.sendTimelineSetting()
     await ModelState.reset(this.client, (msg) => this.postMessage(msg))
@@ -3090,32 +3151,6 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     await this.fetchAndSendNotifications()
 
     vscode.window.showInformationMessage("Altru Coder settings have been reset to defaults.")
-  }
-
-  /**
-   * Read the current browser automation settings and push them to the webview.
-   */
-  private sendBrowserSettings(): void {
-    const config = vscode.workspace.getConfiguration("altru-coder.new.browserAutomation")
-    this.postMessage({
-      type: "browserSettingsLoaded",
-      settings: {
-        enabled: config.get<boolean>("enabled", false),
-        useSystemChrome: config.get<boolean>("useSystemChrome", true),
-        headless: config.get<boolean>("headless", false),
-      },
-    })
-  }
-
-  /**
-   * Read the current Claude Code compatibility setting and push it to the webview.
-   */
-  private sendClaudeCompatSetting(): void {
-    const enabled = vscode.workspace.getConfiguration("altru-coder.new").get<boolean>("claudeCodeCompat", false)
-    this.postMessage({
-      type: "claudeCompatSettingLoaded",
-      enabled: enabled ?? false,
-    })
   }
 
   /** Re-fetch all server-side state after an auth change. */
@@ -3145,6 +3180,8 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     // This must come first: the trackedSessionIds guard below would otherwise
     // let a foreign session through if it was accidentally tracked.
     if (isEventFromForeignProject(event, this.projectID)) return
+
+    this.processes.record(event)
 
     if (event.type === "permission.asked" && directory) {
       this.permissionDirectories.set(event.properties.id, directory)
@@ -3191,6 +3228,17 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     // message.part.* events are always session-scoped; drop if session unknown.
     if (!sessionID && isSessionScopedPartEvent(event.type)) return
     if (event.type !== "indexing.status" && sessionID && !this.trackedSessionIds.has(sessionID)) {
+      return
+    }
+
+    if (
+      event.type === "process.started" ||
+      event.type === "process.output" ||
+      event.type === "process.exited" ||
+      event.type === "process.updated"
+    ) {
+      const msg = this.processes.message(event)
+      if (msg) this.streams.push(msg)
       return
     }
 
@@ -3442,9 +3490,11 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
   private trackDirectory(sessionId: string, dir: string) {
     if (path.resolve(dir) === path.resolve(this.getRootDirectory())) {
       this.sessionDirectories.delete(sessionId)
+      this.connectionService.registerSessionDirectory(sessionId, this.getRootDirectory())
       return
     }
     this.sessionDirectories.set(sessionId, dir)
+    this.connectionService.registerSessionDirectory(sessionId, dir)
   }
 
   private noteFollowup(answers: string[][], sessionID?: string) {
@@ -3481,80 +3531,32 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     return resolveProjectDirectory(this.projectDirectory, () => this.getWorkspaceDirectory(sessionId))
   }
 
-  private _getHtmlForWebview(webview: vscode.Webview): string {
-    return buildWebviewHtml(webview, {
-      scriptUri: webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "dist", "webview.js")),
-      styleUri: webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "dist", "webview.css")),
-      iconsBaseUri: webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, "assets", "icons")),
-      title: "Altru Coder",
-      port: this.connectionService.getServerInfo()?.port,
-      extraStyles: `.container { height: 100%; display: flex; flex-direction: column; height: 100vh; border-right: 1px solid var(--border-weak-base); }`,
-    })
-  }
-
-  // legacy-migration start -------------------------------------------------------
-  // Migration handlers extracted to altru-coder-provider/handlers/migration.ts
-
   private get migrationCtx(): MigrationContext {
-    const self = this
-    return {
+    return createMigrationContext({
       client: this.client,
       extensionContext: this.extensionContext,
       postMessage: (msg) => this.postMessage(msg),
-      get cachedLegacyData() {
-        return self.cachedLegacyData
-      },
-      set cachedLegacyData(data) {
-        self.cachedLegacyData = data
-      },
-      get migrationCheckInFlight() {
-        return self.migrationCheckInFlight
-      },
-      set migrationCheckInFlight(val) {
-        self.migrationCheckInFlight = val
-      },
       refreshSessions: () => this.refreshSessions(),
       disposeGlobal: () => this.disposeGlobal(),
       broadcastComplete: () => this.connectionService.notifyMigrationComplete(),
-    }
+      getData: () => this.cachedLegacyData,
+      setData: (data) => (this.cachedLegacyData = data),
+      getBusy: () => this.migrationCheckInFlight,
+      setBusy: (value) => (this.migrationCheckInFlight = value),
+    })
   }
 
-  // legacy-migration end ---------------------------------------------------------
-
   private getMarketplace(): MarketplaceService {
-    if (this.marketplace) return this.marketplace
-    this.marketplace = new MarketplaceService()
-    return this.marketplace
+    return (this.marketplace ??= new MarketplaceService())
   }
 
   // ── Worktree stats polling (sidebar diff badge) ──────────────────
   private startStatsPolling(): void {
     this.statsPoller?.stop()
     this.statsGitOps?.dispose()
-    const git = new GitOps({ log: () => {} })
-    this.statsGitOps = git
-    this.statsPoller = new GitStatsPoller({
-      getWorktrees: () => [],
-      getWorkspaceRoot: () => getWorkspaceRoot(),
-      localDiff: (dir, base) => localDiffSummary(git, dir, base),
-      localWorktreeDiff: (dir) => localWorktreeSummary(git, dir),
-      git,
-      onStats: () => {},
-      onLocalStats: (stats: LocalStats) => {
-        const msg = {
-          type: "worktreeStatsLoaded" as const,
-          files: stats.files,
-          additions: stats.additions,
-          deletions: stats.deletions,
-        }
-        this.cachedStats = msg
-        this.postMessage(msg)
-      },
-      log: () => {},
-      hiddenIntervalMs: 60000,
-    })
-    this.statsPoller.setEnabled(true)
-    this.statsPoller.setVisible(true)
+    const next = createStatsPolling((msg) => ((this.cachedStats = msg), this.postMessage(msg)))
+    this.statsGitOps = next.git
+    this.statsPoller = next.poller
   }
 
   /**
@@ -3588,6 +3590,7 @@ export class AltruCoderProvider implements vscode.WebviewViewProvider, Telemetry
     this.trackedSessionIds.clear()
     this.syncedChildSessions.clear()
     this.sessionDirectories.clear()
+    this.processes.clear()
     this.permissionDirectories.clear()
     this.sessionStatusMap.clear()
     this.ignoreController?.dispose()

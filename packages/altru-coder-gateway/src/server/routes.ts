@@ -588,7 +588,10 @@ export function createAltruCoderRoutes(deps: AltruCoderRoutesDeps) {
 
           if (!response.ok) {
             const text = await response.text()
-            return c.json({ error: `AltruCoderClaw request failed: ${response.status} ${text}` }, response.status as any)
+            return c.json(
+              { error: `AltruCoderClaw request failed: ${response.status} ${text}` },
+              response.status as any,
+            )
           }
 
           return c.json(await response.json())

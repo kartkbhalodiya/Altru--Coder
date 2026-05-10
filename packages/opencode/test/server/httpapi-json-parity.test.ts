@@ -126,7 +126,7 @@ describe.skip("HttpApi JSON parity", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() => Bun.write(`${tmp.path}/hello.txt`, "hello\n"))
 
-          const headers = { "x-altru-coder-directory": tmp.path }
+          const headers = { "x-altru-coder-directory": tmp.path, "x-altru-coder-experimental-api": "true" }
           const legacy = app(false)
           const httpapi = app(true)
 
@@ -192,7 +192,7 @@ describe.skip("HttpApi JSON parity", () => {
     "matches legacy JSON shape for session read endpoints",
     withTmp({ git: true, config: { formatter: false, lsp: false } }, (tmp) =>
       Effect.gen(function* () {
-        const headers = { "x-altru-coder-directory": tmp.path }
+        const headers = { "x-altru-coder-directory": tmp.path, "x-altru-coder-experimental-api": "true" }
         const seeded = yield* seedSessions.pipe(Effect.provide(Session.defaultLayer))
         const legacy = app(false)
         const httpapi = app(true)

@@ -149,7 +149,10 @@ export class EventServiceClient {
     }
   }
 
-  on<N extends AltruCoderChatEventName>(event: N, handler: (ctx: string, payload: AltruCoderChatEventMap[N]) => void): () => void {
+  on<N extends AltruCoderChatEventName>(
+    event: N,
+    handler: (ctx: string, payload: AltruCoderChatEventMap[N]) => void,
+  ): () => void {
     const set = this.eventHandlers.get(event) ?? new Set<EventHandler>()
     const wrapped: EventHandler = (ctx, payload) => handler(ctx, payload as AltruCoderChatEventMap[N])
     set.add(wrapped)

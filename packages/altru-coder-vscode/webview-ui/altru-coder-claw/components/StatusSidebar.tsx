@@ -122,7 +122,9 @@ export function StatusSidebar() {
         <div class="altru-coder-claw-sidebar-section">
           <div class="altru-coder-claw-sidebar-label">{t("altruClaw.sidebar.botStatus")}</div>
           <div class="altru-coder-claw-sidebar-row">
-            <span class={`altru-coder-claw-dot ${claw.botStatus()?.online ? "altru-coder-claw-dot-online" : "altru-coder-claw-dot-offline"}`} />
+            <span
+              class={`altru-coder-claw-dot ${claw.botStatus()?.online ? "altru-coder-claw-dot-online" : "altru-coder-claw-dot-offline"}`}
+            />
             <span>{claw.botStatus()?.online ? t("altruClaw.chat.online") : t("altruClaw.chat.offline")}</span>
           </div>
         </div>

@@ -479,7 +479,8 @@ export const dict = {
   "error.chain.didYouMean": "Bedoelde je: {{suggestions}}",
   "error.chain.modelNotFound": "Model niet gevonden: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Controleer je configuratie (opencode.json) provider/model namen",
-  "error.chain.mcpFailed": 'MCP-server "{{name}}" is mislukt. Let op, Altru Coder ondersteunt nog geen MCP-authenticatie.',
+  "error.chain.mcpFailed":
+    'MCP-server "{{name}}" is mislukt. Let op, Altru Coder ondersteunt nog geen MCP-authenticatie.',
   "error.chain.providerAuthFailed": "Provider-authenticatie mislukt ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Initialiseren van provider "{{provider}}" is mislukt. Controleer referenties en configuratie.',
@@ -1133,7 +1134,8 @@ export const dict = {
   "settings.aboutAltruCoder.version.label": "Versie:",
   "settings.aboutAltruCoder.extensionName": "Altru Coder Extensie",
   "settings.aboutAltruCoder.community": "Community & Ondersteuning",
-  "settings.aboutAltruCoder.feedback.prefix": "Als je vragen of feedback hebt, voel je vrij om een issue aan te maken op",
+  "settings.aboutAltruCoder.feedback.prefix":
+    "Als je vragen of feedback hebt, voel je vrij om een issue aan te maken op",
   "settings.aboutAltruCoder.feedback.or": "of",
   "settings.aboutAltruCoder.support.prefix":
     "Voor vragen over facturering of je account, neem contact op met Klantenservice op",
@@ -1403,7 +1405,8 @@ export const dict = {
   "settings.display.layout.auto": "Auto",
   "settings.display.layout.stretch": "Uitrekken",
   "settings.display.fontSize.title": "Lettergrootte",
-  "settings.display.fontSize.description": "Pas de lettergrootte van de Altru Coder webview UI onafhankelijk van VS Code aan.",
+  "settings.display.fontSize.description":
+    "Pas de lettergrootte van de Altru Coder webview UI onafhankelijk van VS Code aan.",
   "settings.display.reasoningAutoCollapse.title": "Redenering automatisch inklappen",
   "settings.display.reasoningAutoCollapse.description":
     "Klapt redeneerblokken in nadat de agent klaar is met schrijven. Laat uitgeschakeld om redenering uitgeklapt te houden, tenzij je die handmatig inklapt.",
@@ -1613,5 +1616,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

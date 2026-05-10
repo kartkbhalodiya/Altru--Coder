@@ -25,7 +25,11 @@ import { registerDisposer } from "@/effect/instance-registry"
 import { Global } from "@opencode-ai/core/global"
 import * as Log from "@opencode-ai/core/util/log"
 import { LanceDBRuntime } from "./lancedb" // altrucoder_change
-import { indexingWithAltruCoderDefault, resolveAltruCoderIndexingAuth, type AltruCoderIndexingAuth } from "./indexing-auth" // altrucoder_change
+import {
+  indexingWithAltruCoderDefault,
+  resolveAltruCoderIndexingAuth,
+  type AltruCoderIndexingAuth,
+} from "./indexing-auth" // altrucoder_change
 
 const log = Log.create({ service: "altrucoder-indexing" })
 const missing = () => disabledIndexingStatus("Indexing plugin is not enabled for this workspace.")

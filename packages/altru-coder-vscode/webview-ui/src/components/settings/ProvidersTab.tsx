@@ -17,6 +17,7 @@ import CustomProviderDialog from "./CustomProviderDialog"
 import ProviderConnectDialog from "./ProviderConnectDialog"
 import ProviderSelectDialog from "./ProviderSelectDialog"
 import NvidiaNimDialog from "./NvidiaNimDialog"
+import OpenRouterDialog from "./OpenRouterDialog"
 import { disabledProviderOptions, providersWithAltruCoderFallback, visibleConnectedIds } from "./provider-visibility"
 import { ALTRU_CODER_PROVIDER_ID, isCustomProviderPackage } from "../../../../src/shared/provider-model"
 import { NVIDIA_NIM_PROVIDER_ID } from "../../../../src/shared/nvidia-nim"
@@ -93,6 +94,14 @@ const ProvidersTab: Component = () => {
   function editProvider(item: Provider) {
     const cfg = config().provider?.[item.id]
     if (!cfg) return
+    if (item.id === "openrouter") {
+      dialog.show(() => <OpenRouterDialog existing={{ providerID: item.id, name: item.name, config: cfg }} />)
+      return
+    }
+    if (item.id === NVIDIA_NIM_PROVIDER_ID) {
+      dialog.show(() => <NvidiaNimDialog existing={{ providerID: item.id, name: item.name, config: cfg }} />)
+      return
+    }
     dialog.show(() => <CustomProviderDialog existing={{ providerID: item.id, name: item.name, config: cfg }} />)
   }
 
@@ -139,6 +148,10 @@ const ProvidersTab: Component = () => {
   function openPreset(item: (typeof PROVIDER_PRESETS)[number]) {
     if (item.id === NVIDIA_NIM_PROVIDER_ID) {
       dialog.show(() => <NvidiaNimDialog />)
+      return
+    }
+    if (item.id === "openrouter") {
+      dialog.show(() => <OpenRouterDialog />)
       return
     }
     dialog.show(() => <CustomProviderDialog preset={item} />)

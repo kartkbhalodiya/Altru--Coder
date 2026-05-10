@@ -24,7 +24,15 @@ import { selectedForeground, useTheme } from "@tui/context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 // altrucoder_change start
-import type { AssistantMessage, Part, Provider, ToolPart, UserMessage, TextPart, ReasoningPart } from "@altru-coder/sdk/v2"
+import type {
+  AssistantMessage,
+  Part,
+  Provider,
+  ToolPart,
+  UserMessage,
+  TextPart,
+  ReasoningPart,
+} from "@altru-coder/sdk/v2"
 // altrucoder_change end
 import { useLocal } from "@tui/context/local"
 import { Locale } from "@/util/locale"

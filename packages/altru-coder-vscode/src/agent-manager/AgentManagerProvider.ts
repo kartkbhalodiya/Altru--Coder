@@ -423,7 +423,7 @@ export class AgentManagerProvider implements Disposable {
 
     if (m.type === "loadMessages") {
       this.activeSessionId = m.sessionID
-      this.connectionService.registerFocused("agent-manager", m.sessionID)
+      this.connectionService.registerFocused("agent-manager", m.sessionID, this.directoryFor(m.sessionID))
       this.terminalManager.syncOnSessionSwitch(m.sessionID)
       this.prBridge.poller.setActiveWorktreeId(this.state?.getSession(m.sessionID)?.worktreeId ?? undefined)
       return msg
@@ -450,6 +450,7 @@ export class AgentManagerProvider implements Disposable {
     }
 
     if (m.type === "agentManager.openSessions") {
+      for (const id of m.sessionIDs) this.connectionService.registerSessionDirectory(id, this.directoryFor(id))
       this.connectionService.registerOpen("agent-manager", m.sessionIDs)
       return null
     }
@@ -1511,6 +1512,10 @@ export class AgentManagerProvider implements Disposable {
 
   private getRoot(): string | undefined {
     return this.host.workspacePath()
+  }
+
+  private directoryFor(sessionId: string): string {
+    return this.getStateManager()?.directoryFor(sessionId) ?? this.getRoot() ?? process.cwd()
   }
 
   private getWorktreeManager(): WorktreeManager | undefined {

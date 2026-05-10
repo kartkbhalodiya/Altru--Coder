@@ -35,7 +35,7 @@ import { convertToMentionPath } from "../../utils/path-mentions"
 import { usePromptHistory } from "../../hooks/usePromptHistory"
 import { WandSparkles } from "@altru-coder/altru-coder-ui/lucide"
 import { fileName, dirName, buildHighlightSegments, atEnd, isPromptBusy } from "./prompt-input-utils"
-import type { ReviewComment, TextPart } from "../../types/messages"
+import type { AutoApproveMode, ReviewComment, TextPart } from "../../types/messages"
 import { formatReviewCommentsMarkdown } from "../../utils/review-comment-markdown"
 import { pendingDraftKey, scopeDraftKey, sessionDraftKey } from "../../utils/prompt-drafts"
 import { isAltruCoderBuiltinModel } from "../../../../src/shared/provider-model"
@@ -44,6 +44,103 @@ import { isAltruCoderBuiltinModel } from "../../../../src/shared/provider-model"
 const drafts = new Map<string, string>()
 const reviewDrafts = new Map<string, ReviewComment[]>()
 const imageDrafts = new Map<string, ImageAttachment[]>()
+const fileDrafts = new Map<string, AttachedFile[]>()
+const MODES: Array<{ mode: AutoApproveMode; label: string; description: string }> = [
+  { mode: "default", label: "Default", description: "Normal read, write, and tool permissions." },
+  { mode: "workspace", label: "All approve", description: "Approve all prompts inside this folder." },
+  { mode: "bypass", label: "Bypass", description: "Approve anything in any folder." },
+]
+const TEXT_EXTS = new Set([
+  "bat",
+  "c",
+  "cc",
+  "conf",
+  "cpp",
+  "cs",
+  "css",
+  "csv",
+  "env",
+  "go",
+  "h",
+  "hpp",
+  "html",
+  "java",
+  "js",
+  "json",
+  "jsx",
+  "kt",
+  "kts",
+  "log",
+  "md",
+  "mjs",
+  "php",
+  "ps1",
+  "py",
+  "rb",
+  "rs",
+  "scss",
+  "sh",
+  "sql",
+  "svg",
+  "toml",
+  "ts",
+  "tsx",
+  "txt",
+  "xml",
+  "yaml",
+  "yml",
+])
+const TEXT_NAMES = new Set(["dockerfile", "makefile", "license", "readme", ".env", ".gitignore"])
+
+interface AttachedFile {
+  id: string
+  filename: string
+  mime: string
+  dataUrl: string
+}
+
+function isAutoApproveMode(value: unknown): value is AutoApproveMode {
+  return value === "default" || value === "workspace" || value === "bypass"
+}
+
+function ext(file: File) {
+  const i = file.name.lastIndexOf(".")
+  if (i === -1) return ""
+  return file.name.slice(i + 1).toLowerCase()
+}
+
+function mime(file: File) {
+  const lower = file.name.toLowerCase()
+  if (TEXT_NAMES.has(lower) || TEXT_EXTS.has(ext(file))) return "text/plain"
+  return file.type || "application/octet-stream"
+}
+
+function dataurl(raw: string, type: string) {
+  if (raw.startsWith("data:;base64,")) return `data:${type};base64,${raw.slice("data:;base64,".length)}`
+  return raw
+}
+
+function read(file: File): Promise<AttachedFile> {
+  const type = mime(file)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error ?? new Error(`Failed to read ${file.name || "file"}`))
+    reader.onload = () => {
+      const raw = typeof reader.result === "string" ? reader.result : ""
+      if (!raw) {
+        reject(new Error(`Failed to read ${file.name || "file"}`))
+        return
+      }
+      resolve({
+        id: crypto.randomUUID(),
+        filename: file.name || "file",
+        mime: type,
+        dataUrl: dataurl(raw, type),
+      })
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 function mergeReviewComments(current: ReviewComment[], incoming: ReviewComment[]): ReviewComment[] {
   if (incoming.length === 0) return current
@@ -115,25 +212,37 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     pendingDraftKey(props.pendingSessionID ?? session.draftSessionID()) ??
     "new"
   const draftKey = () => scopeDraftKey(boxKey(), rawKey())
-  const saveDraft = (key: string, next: string, comments: ReviewComment[], imgs: ImageAttachment[]) => {
+  const saveDraft = (
+    key: string,
+    next: string,
+    comments: ReviewComment[],
+    imgs: ImageAttachment[],
+    docs: AttachedFile[],
+  ) => {
     if (next) drafts.set(key, next)
     else drafts.delete(key)
     if (comments.length > 0) reviewDrafts.set(key, comments)
     else reviewDrafts.delete(key)
     if (imgs.length > 0) imageDrafts.set(key, imgs)
     else imageDrafts.delete(key)
+    if (docs.length > 0) fileDrafts.set(key, docs)
+    else fileDrafts.delete(key)
   }
   const readDraft = () => ({
     text: text().trim(),
     comments: reviewComments(),
     images: imageAttach.images(),
+    files: files(),
   })
 
   const [text, setText] = createSignal("")
   const [reviewComments, setReviewComments] = createSignal<ReviewComment[]>([])
   const [enhancing, setEnhancing] = createSignal(false)
   const [enhanceRequest, setEnhanceRequest] = createSignal<string | null>(null)
-  const [autoApprove, setAutoApprove] = createSignal(false)
+  const [autoApproveMode, setAutoApproveMode] = createSignal<AutoApproveMode>("default")
+  const [autoApproveOpen, setAutoApproveOpen] = createSignal(false)
+  const [attachOpen, setAttachOpen] = createSignal(false)
+  const [files, setFiles] = createSignal<AttachedFile[]>([])
   let enhanceCounter = 0
   let preEnhanceText: string | null = null
 
@@ -206,26 +315,46 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   let highlightRef: HTMLDivElement | undefined
   let dropdownRef: HTMLDivElement | undefined
   let slashDropdownRef: HTMLDivElement | undefined
+  let autoApproveRef: HTMLDivElement | undefined
+  let attachRef: HTMLDivElement | undefined
+  let imageInputRef: HTMLInputElement | undefined
+  let fileInputRef: HTMLInputElement | undefined
+  const closeAutoApprove = (event: MouseEvent) => {
+    const target = event.target
+    if (target instanceof Node && autoApproveRef?.contains(target)) return
+    setAutoApproveOpen(false)
+  }
+  const closeAttach = (event: MouseEvent) => {
+    const target = event.target
+    if (target instanceof Node && attachRef?.contains(target)) return
+    setAttachOpen(false)
+  }
+  window.addEventListener("mousedown", closeAutoApprove)
+  window.addEventListener("mousedown", closeAttach)
+  onCleanup(() => {
+    window.removeEventListener("mousedown", closeAutoApprove)
+    window.removeEventListener("mousedown", closeAttach)
+  })
+
   // Save/restore input text when switching sessions.
   // Uses `on()` to track only draftKey — avoids re-running on every keystroke.
   createEffect(
     on(draftKey, (key, prev) => {
       if (prev !== undefined && prev !== key) {
-        saveDraft(prev, untrack(text), untrack(reviewComments), untrack(imageAttach.images))
+        saveDraft(prev, untrack(text), untrack(reviewComments), untrack(imageAttach.images), untrack(files))
       }
       const draft = drafts.get(key) ?? ""
       const pending = reviewDrafts.get(key) ?? []
       setText(draft)
       setReviewComments(pending)
       imageAttach.replace(imageDrafts.get(key) ?? [])
+      setFiles(fileDrafts.get(key) ?? [])
       setEnhancing(false)
       preEnhanceText = null
       history.reset()
       if (textareaRef) {
         textareaRef.value = draft
-        // Reset height then adjust
-        textareaRef.style.height = "auto"
-        textareaRef.style.height = `${Math.min(textareaRef.scrollHeight, 200)}px`
+        adjustHeight()
       }
       window.dispatchEvent(new Event("focusPrompt"))
     }),
@@ -279,10 +408,11 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const draft = text().trim()
     const comments = reviewComments()
     const imgs = imageAttach.images()
+    const docs = files()
     session.clearCurrentSession()
     // After clearing, draftKey() points to the "new" bucket — save there
     // so the session-switch effect restores the prompt in the new-task view.
-    saveDraft(draftKey(), draft, comments, imgs)
+    saveDraft(draftKey(), draft, comments, imgs, docs)
   }
   window.addEventListener("newTaskRequest", onNewTaskRequest)
   onCleanup(() => window.removeEventListener("newTaskRequest", onNewTaskRequest))
@@ -304,7 +434,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const draft = captured.get(id)
     captured.delete(id)
     if (!draft) return
-    saveDraft(scopeDraftKey(box, sessionDraftKey(sid)), draft.text, draft.comments, draft.images)
+    saveDraft(scopeDraftKey(box, sessionDraftKey(sid)), draft.text, draft.comments, draft.images, draft.files)
   }
   window.addEventListener("agentManagerApplyDraft", onAgentManagerApplyDraft)
   onCleanup(() => window.removeEventListener("agentManagerApplyDraft", onAgentManagerApplyDraft))
@@ -328,7 +458,8 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
   const isBusy = () => isPromptBusy(session.status(), !!props.suggesting?.(), !!props.questioning?.())
   const isDisabled = () => !server.isConnected()
-  const hasInput = () => text().trim().length > 0 || imageAttach.images().length > 0 || reviewComments().length > 0
+  const hasInput = () =>
+    text().trim().length > 0 || imageAttach.images().length > 0 || files().length > 0 || reviewComments().length > 0
   const quotaBlocked = () => {
     const selection = session.selected(sid())
     const quota = session.altruBuiltinQuota()
@@ -355,12 +486,57 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         return language.t("prompt.placeholder.default")
     }
   }
+  const autoApprove = () => autoApproveMode() !== "default"
+  const autoApproveTitle = () => MODES.find((item) => item.mode === autoApproveMode())?.label ?? "Default"
+  const chooseAutoApprove = (mode: AutoApproveMode) => {
+    setAutoApproveOpen(false)
+    vscode.postMessage({ type: "setAutoApproveMode", mode })
+  }
 
   const unsubAutoApprove = vscode.onMessage((message) => {
     if (message.type === "autoApproveState") {
-      setAutoApprove(message.active)
+      setAutoApproveMode(isAutoApproveMode(message.mode) ? message.mode : message.active ? "workspace" : "default")
     }
   })
+
+  const restoreFailed = (failed: import("../../types/messages").SendMessageFailedMessage) => {
+    const target = scopeDraftKey(
+      boxKey(),
+      sessionDraftKey(failed.sessionID) ?? pendingDraftKey(failed.draftID) ?? "new",
+    )
+    if (target !== draftKey() || text().trim() || imageAttach.images().length > 0 || files().length > 0) return
+    if (failed.text) {
+      setText(failed.text)
+      if (textareaRef) {
+        textareaRef.value = failed.text
+        adjustHeight()
+        textareaRef.focus()
+      }
+    }
+    const images = (failed.files ?? [])
+      .filter((f) => f.mime.startsWith("image/") && f.url.startsWith("data:"))
+      .map((f) => ({
+        id: crypto.randomUUID(),
+        filename: f.filename ?? "image",
+        mime: f.mime,
+        dataUrl: f.url,
+      }))
+    if (images.length > 0) {
+      imageAttach.replace(images)
+      imageDrafts.set(target, images)
+    }
+    const docs = (failed.files ?? [])
+      .filter((f) => !f.mime.startsWith("image/") && f.url.startsWith("data:"))
+      .map((f) => ({
+        id: crypto.randomUUID(),
+        filename: f.filename ?? "file",
+        mime: f.mime,
+        dataUrl: f.url,
+      }))
+    if (docs.length === 0) return
+    setFiles(docs)
+    fileDrafts.set(target, docs)
+  }
 
   const unsubscribe = vscode.onMessage((message) => {
     if (message.type === "setChatBoxMessage") {
@@ -386,7 +562,8 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     }
 
     if (message.type === "appendReviewComments") {
-      const empty = !text().trim() && reviewComments().length === 0 && imageAttach.images().length === 0
+      const empty =
+        !text().trim() && reviewComments().length === 0 && imageAttach.images().length === 0 && files().length === 0
       const merged = mergeReviewComments(reviewComments(), message.comments)
       replaceReviewComments(merged)
       if (message.autoSend && empty && !isDisabled() && !props.blocked?.()) {
@@ -403,35 +580,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     }
 
     if (message.type === "sendMessageFailed") {
-      const failed = message as import("../../types/messages").SendMessageFailedMessage
-      // Only restore draft if the failure is for the current session and the
-      // input is empty (user hasn't started typing something new).
-      const target = scopeDraftKey(
-        boxKey(),
-        sessionDraftKey(failed.sessionID) ?? pendingDraftKey(failed.draftID) ?? "new",
-      )
-      if (target === draftKey() && !text().trim() && imageAttach.images().length === 0) {
-        if (failed.text) {
-          setText(failed.text)
-          if (textareaRef) {
-            textareaRef.value = failed.text
-            adjustHeight()
-            textareaRef.focus()
-          }
-        }
-        const images = (failed.files ?? [])
-          .filter((f) => f.mime.startsWith("image/") && f.url.startsWith("data:"))
-          .map((f) => ({
-            id: crypto.randomUUID(),
-            filename: f.filename ?? "image",
-            mime: f.mime,
-            dataUrl: f.url,
-          }))
-        if (images.length > 0) {
-          imageAttach.replace(images)
-          imageDrafts.set(target, images)
-        }
-      }
+      restoreFailed(message as import("../../types/messages").SendMessageFailedMessage)
     }
 
     if (message.type === "sessionCreated" && message.draftID) {
@@ -440,12 +589,15 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       const draft = drafts.get(target)
       const pending = reviewDrafts.get(target)
       const imgs = imageDrafts.get(target)
+      const docs = fileDrafts.get(target)
       if (draft !== undefined) drafts.set(next, draft)
       if (pending) reviewDrafts.set(next, pending)
       if (imgs) imageDrafts.set(next, imgs)
+      if (docs) fileDrafts.set(next, docs)
       drafts.delete(target)
       reviewDrafts.delete(target)
       imageDrafts.delete(target)
+      fileDrafts.delete(target)
       if (!session.currentSessionID() && (props.pendingSessionID ?? session.draftSessionID()) === message.draftID) {
         session.setDraftSessionID(message.session.id)
       }
@@ -480,7 +632,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
   onCleanup(() => {
     // Persist current draft before unmounting
-    saveDraft(draftKey(), text(), reviewComments(), imageAttach.images())
+    saveDraft(draftKey(), text(), reviewComments(), imageAttach.images(), files())
     unsubAutoApprove()
     unsubscribe()
   })
@@ -521,10 +673,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     }
   }
 
-  const adjustHeight = () => {
+  function adjustHeight() {
     if (!textareaRef) return
+    const style = getComputedStyle(textareaRef)
+    const min = Number.parseFloat(style.minHeight) || 64
+    const max = Number.parseFloat(style.maxHeight) || 200
     textareaRef.style.height = "auto"
-    textareaRef.style.height = `${Math.min(textareaRef.scrollHeight, 200)}px`
+    const size = textareaRef.value ? textareaRef.scrollHeight : min
+    textareaRef.style.height = `${Math.min(Math.max(size, min), max)}px`
   }
 
   const handlePaste = (e: ClipboardEvent) => {
@@ -536,6 +692,54 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       adjustHeight()
       syncHighlightScroll()
     })
+  }
+
+  const addFiles = async (items: File[]) => {
+    if (items.length === 0) return
+    const settled = await Promise.allSettled(items.map(read))
+    const docs = settled.flatMap((item) => (item.status === "fulfilled" ? [item.value] : []))
+    if (docs.length > 0) setFiles((prev) => [...prev, ...docs])
+    const failed = settled.find((item) => item.status === "rejected")
+    if (!failed || failed.status !== "rejected") return
+    const reason = failed.reason instanceof Error ? failed.reason.message : String(failed.reason)
+    showToast({ variant: "error", title: "Failed to attach file", description: reason })
+  }
+
+  const handleImageSelect = (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement
+    const items = Array.from(target.files ?? [])
+    for (const item of items) imageAttach.add(item)
+    target.value = ""
+    setAttachOpen(false)
+    textareaRef?.focus()
+  }
+
+  const handleFileSelect = (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement
+    const items = Array.from(target.files ?? [])
+    target.value = ""
+    setAttachOpen(false)
+    void addFiles(items)
+    textareaRef?.focus()
+  }
+
+  const removeFile = (id: string) => {
+    setFiles((prev) => prev.filter((file) => file.id !== id))
+  }
+
+  const toggleAttach = () => {
+    if (isDisabled()) return
+    setAttachOpen(!attachOpen())
+  }
+
+  const pickImages = () => {
+    setAttachOpen(false)
+    imageInputRef?.click()
+  }
+
+  const pickFiles = () => {
+    setAttachOpen(false)
+    fileInputRef?.click()
   }
 
   const handleInput = (e: InputEvent) => {
@@ -622,6 +826,12 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       ghost.dismiss()
       return
     }
+    if (e.key === "Escape" && attachOpen()) {
+      e.preventDefault()
+      e.stopPropagation()
+      setAttachOpen(false)
+      return
+    }
     if (e.key === "Escape" && isBusy()) {
       e.preventDefault()
       e.stopPropagation()
@@ -685,22 +895,25 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       setText("")
       clearReviewComments()
       imageAttach.clear()
+      setFiles([])
       mention.closeMention()
       slash.close()
       drafts.delete(draftKey())
       reviewDrafts.delete(draftKey())
       imageDrafts.delete(draftKey())
+      fileDrafts.delete(draftKey())
       if (textareaRef) textareaRef.style.height = "auto"
       matched.action()
       return
     }
 
     const imgs = imageAttach.images()
+    const docs = files()
     const pending = reviewComments()
     const review = pending.length > 0 ? formatReviewCommentsMarkdown(pending) : ""
     const message = draft && review ? `${review}\n\n${draft}` : draft || review
     if (
-      (!message && imgs.length === 0) ||
+      (!message && imgs.length === 0 && docs.length === 0) ||
       isDisabled() ||
       terminal.pending() ||
       git.pending() ||
@@ -711,6 +924,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
     const mentionFiles = mention.parseFileAttachments(draft)
     const imgFiles = imgs.map((img) => ({ mime: img.mime, url: img.dataUrl, filename: img.filename }))
+    const docFiles = docs.map((file) => ({ mime: file.mime, url: file.dataUrl, filename: file.filename }))
     const pendingId = props.pendingSessionID ?? session.draftSessionID()
     const id = sid()
     const sel = session.selected(id)
@@ -730,6 +944,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const allFiles = [
       ...mentionFiles,
       ...imgFiles,
+      ...docFiles,
       ...(terminalFile ? [terminalFile] : []),
       ...(gitFile ? [gitFile] : []),
     ]
@@ -750,11 +965,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     setText("")
     clearReviewComments()
     imageAttach.clear()
+    setFiles([])
     mention.closeMention()
     slash.close()
     drafts.delete(key)
     reviewDrafts.delete(key)
     imageDrafts.delete(key)
+    fileDrafts.delete(key)
 
     if (textareaRef) textareaRef.style.height = "auto"
   }
@@ -767,6 +984,25 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       onDragLeave={imageAttach.handleDragLeave}
       onDrop={imageAttach.handleDrop}
     >
+      <input
+        ref={imageInputRef}
+        class="prompt-attachment-input"
+        type="file"
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        multiple
+        onChange={handleImageSelect}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+      <input
+        ref={fileInputRef}
+        class="prompt-attachment-input"
+        type="file"
+        multiple
+        onChange={handleFileSelect}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
       <Show when={reviewComments().length > 0}>
         <div class="prompt-review-comments">
           <div class="prompt-review-comments-header">
@@ -925,11 +1161,11 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           </Show>
         </div>
       </Show>
-      <Show when={imageAttach.images().length > 0}>
-        <div class="image-attachments">
+      <Show when={imageAttach.images().length > 0 || files().length > 0}>
+        <div class="prompt-attachments">
           <For each={imageAttach.images()}>
             {(img) => (
-              <div class="image-attachment">
+              <div class="prompt-image-attachment">
                 <img
                   src={img.dataUrl}
                   alt={img.filename}
@@ -942,9 +1178,25 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                   type="button"
                   class="image-attachment-remove"
                   onClick={() => imageAttach.remove(img.id)}
-                  aria-label="Remove image"
+                  aria-label={language.t("prompt.attachment.remove")}
                 >
-                  ×
+                  x
+                </button>
+              </div>
+            )}
+          </For>
+          <For each={files()}>
+            {(file) => (
+              <div class="prompt-file-attachment" title={file.filename}>
+                <FileIcon node={{ path: file.filename, type: "file" }} />
+                <span class="prompt-file-attachment-name">{file.filename}</span>
+                <button
+                  type="button"
+                  class="prompt-file-attachment-remove"
+                  onClick={() => removeFile(file.id)}
+                  aria-label={language.t("prompt.attachment.remove")}
+                >
+                  x
                 </button>
               </div>
             )}
@@ -952,6 +1204,46 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         </div>
       </Show>
       <div class="prompt-input-wrapper">
+        <div class="prompt-attach-menu" ref={attachRef}>
+          <Tooltip value={language.t("prompt.action.attach")} placement="top">
+            <Button
+              variant="ghost"
+              size="small"
+              class="prompt-attach-button"
+              onClick={toggleAttach}
+              aria-disabled={isDisabled()}
+              aria-label={language.t("prompt.action.attach")}
+              aria-haspopup="menu"
+              aria-expanded={attachOpen()}
+            >
+              <Icon name="paperclip" size="small" />
+            </Button>
+          </Tooltip>
+          <Show when={attachOpen()}>
+            <div class="prompt-attach-popover" role="menu">
+              <button
+                type="button"
+                role="menuitem"
+                class="prompt-attach-option"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={pickImages}
+              >
+                <Icon name="photo" size="small" />
+                <span>{language.t("prompt.action.attachImage")}</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                class="prompt-attach-option"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={pickFiles}
+              >
+                <Icon name="folder" size="small" />
+                <span>{language.t("prompt.action.attachFiles")}</span>
+              </button>
+            </div>
+          </Show>
+        </div>
         <div class="prompt-input-ghost-wrapper">
           <div class="prompt-input-highlight-overlay" ref={highlightRef} aria-hidden="true">
             <Index each={buildHighlightSegments(text(), highlightMentions())}>
@@ -991,20 +1283,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           <ModelSelector sessionID={sid} />
           <AltruBuiltinQuotaIndicator sessionID={sid} />
           <ThinkingSelector sessionID={sid} />
-          <Show when={session.hasModelOverride(sid())}>
-            <Tooltip value={language.t("prompt.action.resetModel")} placement="top">
-              <Button
-                variant="ghost"
-                size="small"
-                onClick={() => session.clearModelOverride(sid())}
-                aria-label={language.t("prompt.action.resetModel")}
-              >
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z" />
-                </svg>
-              </Button>
-            </Tooltip>
-          </Show>
         </div>
         <div class="prompt-input-hint-actions">
           <Show when={features().indexing}>
@@ -1033,29 +1311,42 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
               </Button>
             </Tooltip>
           </Show>
-          <Tooltip
-            value={
-              autoApprove()
-                ? language.t("prompt.action.autoApprove.enabled")
-                : language.t("prompt.action.autoApprove.disabled")
-            }
-            placement="top"
-          >
-            <Button
-              variant="ghost"
-              size="small"
-              onClick={() => vscode.postMessage({ type: "toggleAutoApprove" })}
-              aria-label={
-                autoApprove()
-                  ? language.t("prompt.action.autoApprove.disable")
-                  : language.t("prompt.action.autoApprove.enable")
-              }
-              aria-pressed={autoApprove()}
-              class={`prompt-auto-approve-button ${autoApprove() ? "prompt-auto-approve-button--active" : ""}`}
-            >
-              <Icon name="shield" size="small" />
-            </Button>
-          </Tooltip>
+          <div class="prompt-auto-approve-menu" ref={autoApproveRef}>
+            <Tooltip value={`Auto approve: ${autoApproveTitle()}`} placement="top">
+              <Button
+                variant="ghost"
+                size="small"
+                onClick={() => setAutoApproveOpen(!autoApproveOpen())}
+                aria-label={`Auto approve: ${autoApproveTitle()}`}
+                aria-haspopup="menu"
+                aria-expanded={autoApproveOpen()}
+                aria-pressed={autoApprove()}
+                class={`prompt-auto-approve-button prompt-auto-approve-button--${autoApproveMode()}`}
+              >
+                <Icon name="shield" size="small" />
+              </Button>
+            </Tooltip>
+            <Show when={autoApproveOpen()}>
+              <div class="prompt-auto-approve-popover" role="menu">
+                <For each={MODES}>
+                  {(item) => (
+                    <button
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={autoApproveMode() === item.mode}
+                      data-active={autoApproveMode() === item.mode ? "true" : undefined}
+                      class="prompt-auto-approve-option"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => chooseAutoApprove(item.mode)}
+                    >
+                      <span class="prompt-auto-approve-option-title">{item.label}</span>
+                      <span class="prompt-auto-approve-option-description">{item.description}</span>
+                    </button>
+                  )}
+                </For>
+              </div>
+            </Show>
+          </div>
           <Tooltip value={language.t("prompt.action.enhance")} placement="top">
             <Button
               variant="ghost"

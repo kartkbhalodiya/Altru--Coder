@@ -625,7 +625,11 @@ export async function transformAllPackageJson(options: PackageJsonOptions = {}):
         }
 
         // Preserve Altru Coder's test runner scripts for packages/opencode
-        if (path === "packages/opencode/package.json" && altruScripts?.test && pkg.scripts?.test !== altruScripts.test) {
+        if (
+          path === "packages/opencode/package.json" &&
+          altruScripts?.test &&
+          pkg.scripts?.test !== altruScripts.test
+        ) {
           pkg.scripts = pkg.scripts || {}
           pkg.scripts.test = altruScripts.test
           changes.push(`scripts.test: preserved Altru Coder's test runner script`)

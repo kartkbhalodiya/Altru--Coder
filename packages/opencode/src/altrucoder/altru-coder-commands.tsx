@@ -150,7 +150,9 @@ export function registerAltruCoderCommands(useSDK: () => UseSDK) {
           const { profile, balance, currentOrgId } = response.data
 
           // Show profile dialog with clickable usage link
-          dialog.replace(() => <DialogAltruCoderProfile profile={profile} balance={balance} currentOrgId={currentOrgId} />)
+          dialog.replace(() => (
+            <DialogAltruCoderProfile profile={profile} balance={balance} currentOrgId={currentOrgId} />
+          ))
         } catch (error) {
           dialog.replace(() => <DialogAlert title="Error" message={`Failed to fetch profile: ${error}`} />)
         }

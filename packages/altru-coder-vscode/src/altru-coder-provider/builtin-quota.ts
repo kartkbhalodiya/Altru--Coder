@@ -84,29 +84,31 @@ export class BuiltinQuota {
 
   async record(info: unknown): Promise<BuiltinQuotaSnapshot | undefined> {
     const result = { changed: false }
-    this.chain = this.chain.catch(() => undefined).then(async () => {
-      if (!record(info)) return
-      const providerID = typeof info.providerID === "string" ? info.providerID : undefined
-      const modelID = typeof info.modelID === "string" ? info.modelID : undefined
-      const id = typeof info.id === "string" ? info.id : undefined
-      if (info.role !== "assistant" || !id || !isAltruCoderBuiltinModel(providerID, modelID)) return
+    this.chain = this.chain
+      .catch(() => undefined)
+      .then(async () => {
+        if (!record(info)) return
+        const providerID = typeof info.providerID === "string" ? info.providerID : undefined
+        const modelID = typeof info.modelID === "string" ? info.modelID : undefined
+        const id = typeof info.id === "string" ? info.id : undefined
+        if (info.role !== "assistant" || !id || !isAltruCoderBuiltinModel(providerID, modelID)) return
 
-      const count = total(info.tokens)
-      if (count <= 0) return
+        const count = total(info.tokens)
+        if (count <= 0) return
 
-      const current = clean(this.state.get(KEY))
-      const prior = current.messages[id] ?? 0
-      const delta = Math.max(0, count - prior)
-      if (delta === 0) return
+        const current = clean(this.state.get(KEY))
+        const prior = current.messages[id] ?? 0
+        const delta = Math.max(0, count - prior)
+        if (delta === 0) return
 
-      const next = {
-        started: current.started || Date.now(),
-        used: current.used + delta,
-        messages: { ...current.messages, [id]: count },
-      }
-      await this.state.update(KEY, next)
-      result.changed = true
-    })
+        const next = {
+          started: current.started || Date.now(),
+          used: current.used + delta,
+          messages: { ...current.messages, [id]: count },
+        }
+        await this.state.update(KEY, next)
+        result.changed = true
+      })
 
     await this.chain
     if (!result.changed) return undefined

@@ -38,7 +38,10 @@ async function getModels() {
   if (!res.ok) throw new Error(`Fetch models failed ${res.status}: ${await res.text()}`)
   const json = await res.json()
   const list = Array.isArray(json.data) ? json.data : []
-  const ids = list.map((item) => item.id).filter(Boolean).sort()
+  const ids = list
+    .map((item) => item.id)
+    .filter(Boolean)
+    .sort()
   const filtered = MODEL_FILTER ? ids.filter((id) => id.toLowerCase().includes(MODEL_FILTER.toLowerCase())) : ids
   return LIMIT > 0 ? filtered.slice(0, LIMIT) : filtered
 }

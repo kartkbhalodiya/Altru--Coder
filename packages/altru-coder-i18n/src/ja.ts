@@ -2,7 +2,8 @@ export const dict = {
   // Altru Coder Gateway provider translations
   "provider.connect.altruCoderGateway.line1":
     "Altru Coder Gatewayは、コーディングエージェント向けに厳選された信頼性の高い最適化モデルへのアクセスを提供します。",
-  "provider.connect.altruCoderGateway.line2": "1つのAPIキーで、Claude、GPT、Gemini、GLMなどのモデルにアクセスできます。",
+  "provider.connect.altruCoderGateway.line2":
+    "1つのAPIキーで、Claude、GPT、Gemini、GLMなどのモデルにアクセスできます。",
   "provider.connect.altruCoderGateway.visit.prefix": "",
   "provider.connect.altruCoderGateway.visit.link": "altru-coder.ai",
   "provider.connect.altruCoderGateway.visit.suffix": " にアクセスしてAPIキーを取得してください。",

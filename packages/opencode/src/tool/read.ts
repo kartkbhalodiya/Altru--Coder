@@ -49,7 +49,8 @@ export const ReadTool = Tool.define(
     const lsp = yield* LSP.Service
     const scope = yield* Scope.Scope
 
-    const miss = Effect.fn("ReadTool.miss")(function* (filepath: string) {
+    // altrucoder_change start - missing exploratory reads should inform the model without aborting the turn
+    const miss = Effect.fn("ReadTool.miss")(function* (filepath: string, title: string, recover: boolean) {
       const dir = path.dirname(filepath)
       const base = path.basename(filepath)
       const items = yield* fs.readDirectory(dir).pipe(
@@ -65,14 +66,30 @@ export const ReadTool = Tool.define(
         Effect.catch(() => Effect.succeed([] as string[])),
       )
 
-      if (items.length > 0) {
-        return yield* Effect.fail(
-          new Error(`File not found: ${filepath}\n\nDid you mean one of these?\n${items.join("\n")}`),
-        )
-      }
+      const msg = [
+        `File not found: ${filepath}`,
+        ...(items.length > 0 ? ["", "Did you mean one of these?", ...items] : []),
+      ].join("\n")
 
-      return yield* Effect.fail(new Error(`File not found: ${filepath}`))
+      if (!recover) return yield* Effect.fail(new Error(msg))
+
+      const output = [`<path>${filepath}</path>`, "<type>missing</type>", "<content>", msg, "</content>"].join("\n")
+
+      const preview = items.length > 0 ? `File not found. Suggestions:\n${items.join("\n")}` : "File not found."
+
+      return {
+        title,
+        output,
+        metadata: {
+          preview,
+          truncated: false,
+          missing: true,
+          suggestions: items,
+          loaded: [],
+        },
+      }
     })
+    // altrucoder_change end
 
     const list = Effect.fn("ReadTool.list")(function* (filepath: string) {
       const items = yield* fs.readDirectoryEntries(filepath)
@@ -233,7 +250,11 @@ export const ReadTool = Tool.define(
         metadata: {},
       })
 
-      if (!stat) return yield* miss(filepath)
+      if (!stat) {
+        const rel = path.relative(instance.worktree, filepath)
+        const local = rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel))
+        return yield* miss(filepath, title, local) // altrucoder_change
+      }
 
       if (stat.type === "Directory") {
         const items = yield* list(filepath)

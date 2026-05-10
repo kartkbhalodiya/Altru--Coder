@@ -121,7 +121,9 @@ describe("buildTriggerLabel", () => {
 
   it("returns modelID for altru-coder gateway raw selection", () => {
     const raw = { providerID: "altru-coder", modelID: "altru-coder-auto/frontier" }
-    expect(buildTriggerLabel(undefined, undefined, undefined, raw, false, "", true, labels)).toBe("altru-coder-auto/frontier")
+    expect(buildTriggerLabel(undefined, undefined, undefined, raw, false, "", true, labels)).toBe(
+      "altru-coder-auto/frontier",
+    )
   })
 
   it("returns providerID / modelID for non-altru-coder raw selection", () => {

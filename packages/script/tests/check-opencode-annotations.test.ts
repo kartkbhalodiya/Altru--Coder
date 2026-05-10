@@ -875,7 +875,13 @@ describe("checkLine — additional patterns", () => {
 
   test("real-world TUI routes — line between marker and code should be uncovered", () => {
     // A common mistake: putting code on a different line from the marker
-    const text = ["{/* altrucoder_change start */}", "", "<AltruCoderIndexing />", "", "{/* altrucoder_change end */}"].join("\n")
+    const text = [
+      "{/* altrucoder_change start */}",
+      "",
+      "<AltruCoderIndexing />",
+      "",
+      "{/* altrucoder_change end */}",
+    ].join("\n")
     // Empty lines (2, 4) are skipped
     expect(check(text, [3])).toEqual([])
     // All non-empty lines (1, 3, 5) are covered

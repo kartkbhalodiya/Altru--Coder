@@ -56,7 +56,9 @@ export const MemoryTool = Tool.define<typeof Parameters, MemoryMetadata, never>(
           })
 
           if (params.mode === "search") {
-            const records = yield* Effect.promise(() => AltruCoderMemory.search(state.project.id, params.query ?? "", limit))
+            const records = yield* Effect.promise(() =>
+              AltruCoderMemory.search(state.project.id, params.query ?? "", limit),
+            )
             return {
               title: `Memory search: ${params.query ?? ""}`,
               output: AltruCoderMemory.format(records),
@@ -78,12 +80,9 @@ export const MemoryTool = Tool.define<typeof Parameters, MemoryMetadata, never>(
             const result = yield* Effect.promise(() => AltruCoderMemory.consolidate(state.project.id, limit))
             return {
               title: "Memory consolidated",
-              output: [
-                result.summary,
-                "",
-                `Summary: ${result.summaryPath}`,
-                `Raw memories: ${result.rawPath}`,
-              ].join("\n"),
+              output: [result.summary, "", `Summary: ${result.summaryPath}`, `Raw memories: ${result.rawPath}`].join(
+                "\n",
+              ),
               metadata: {
                 count: result.count,
                 rawPath: result.rawPath,

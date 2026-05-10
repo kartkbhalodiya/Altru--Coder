@@ -108,6 +108,7 @@ export const PermissionDock: Component<{
 
   const title = () =>
     fromChild() ? language.t("notification.permission.titleSubagent") : language.t("notification.permission.title")
+  const tool = () => resolveLabel(props.request.toolName, language.t)
 
   const focusPrompt = () => requestAnimationFrame(() => window.dispatchEvent(new Event("focusPrompt")))
 
@@ -188,9 +189,15 @@ export const PermissionDock: Component<{
         header={
           <div data-slot="permission-row" data-variant="header">
             <span data-slot="permission-icon">
-              <Icon name="warning" size="small" />
+              <Icon name="shield" size="small" />
             </span>
-            <div data-slot="permission-header-title">{title()}</div>
+            <div data-slot="permission-header-copy">
+              <div data-slot="permission-header-title">{title()}</div>
+              <div data-slot="permission-header-subtitle">
+                <span data-slot="permission-tool">{tool()}</span>
+                <Show when={props.request.message}>{(msg) => <span data-slot="permission-message">{msg()}</span>}</Show>
+              </div>
+            </div>
           </div>
         }
         footer={
@@ -280,27 +287,11 @@ export const PermissionDock: Component<{
         </Show>
 
         <div data-slot="permission-actions">
-          <Button
-            variant="primary"
-            size="small"
-            onClick={() => {
-              const { approved, denied } = collectRules()
-              props.onDecide("once", approved, denied)
-            }}
-            disabled={props.responding}
-          >
-            {language.t("ui.permission.run")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="small"
-            onClick={() => {
-              const { approved, denied } = collectRules()
-              props.onDecide("reject", approved, denied)
-            }}
-            disabled={props.responding}
-          >
+          <Button variant="ghost" size="small" onClick={() => submit("reject")} disabled={props.responding}>
             {language.t("ui.permission.deny")}
+          </Button>
+          <Button variant="primary" size="small" onClick={() => submit("once")} disabled={props.responding}>
+            {language.t("ui.permission.run")}
           </Button>
         </div>
       </DockPrompt>

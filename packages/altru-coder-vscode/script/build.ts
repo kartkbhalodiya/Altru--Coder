@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { $ } from "bun"
 import { join } from "node:path"
-import { existsSync, mkdirSync, rmSync, chmodSync } from "node:fs"
+import { existsSync, mkdirSync, rmSync, chmodSync, cpSync } from "node:fs"
 
 const packageJsonPath = join(import.meta.dir, "..", "package.json")
 const packageJson = await Bun.file(packageJsonPath).json()
@@ -35,7 +35,9 @@ const all = [
   { target: "win32-arm64", cliDir: "@altru-coder/cli-windows-arm64", binary: "altru-coder.exe" },
 ]
 
-const names = process.env.VSIX_TARGETS?.split(",").map((item) => item.trim()).filter(Boolean)
+const names = process.env.VSIX_TARGETS?.split(",")
+  .map((item) => item.trim())
+  .filter(Boolean)
 const targets = names ? all.filter((item) => names.includes(item.target)) : all
 
 if (targets.length === 0) {
@@ -98,6 +100,13 @@ for (const config of targets) {
 
   console.log(`  📥 Copying binary from ${config.cliDir}/bin/${config.binary}...`)
   await $`cp ${sourceBinary} ${targetBinary}`
+  const sourceSkills = join(cliDistDir, config.cliDir, "bin", "skills")
+  const targetSkills = join(binDir, "skills")
+  if (existsSync(sourceSkills)) {
+    rmSync(targetSkills, { recursive: true, force: true })
+    cpSync(sourceSkills, targetSkills, { recursive: true })
+    console.log(`  Copied CLI skill packs into ${targetSkills}`)
+  }
 
   if (config.binary !== "altru-coder.exe") {
     chmodSync(targetBinary, 0o755)

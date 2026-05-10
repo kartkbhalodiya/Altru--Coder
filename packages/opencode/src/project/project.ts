@@ -281,7 +281,8 @@ export const layer: Layer.Layer<
             time: { created: Date.now(), updated: Date.now() },
           }
 
-      if (Flag.ALTRU_CODER_EXPERIMENTAL_ICON_DISCOVERY) yield* discover(existing).pipe(Effect.ignore, Effect.forkIn(scope))
+      if (Flag.ALTRU_CODER_EXPERIMENTAL_ICON_DISCOVERY)
+        yield* discover(existing).pipe(Effect.ignore, Effect.forkIn(scope))
 
       const result: Info = {
         ...existing,

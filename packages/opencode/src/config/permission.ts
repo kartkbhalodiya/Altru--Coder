@@ -39,6 +39,7 @@ const InputObject = Schema.StructWithRest(
     doom_loop: Schema.optional(Action),
     skill: Schema.optional(Rule),
     agent_manager: Schema.optional(Rule), // altrucoder_change
+    terminal: Schema.optional(Rule), // altrucoder_change
   }),
   [Schema.Record(Schema.String, Rule)],
 )

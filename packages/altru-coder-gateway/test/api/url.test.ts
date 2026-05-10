@@ -8,7 +8,9 @@ describe("Altru Coder API URL resolvers", () => {
   })
 
   test("normalizes root API base overrides", () => {
-    expect(resolveAltruCoderGatewayBaseUrl({ baseURL: "https://example.test" })).toBe("https://example.test/api/gateway/")
+    expect(resolveAltruCoderGatewayBaseUrl({ baseURL: "https://example.test" })).toBe(
+      "https://example.test/api/gateway/",
+    )
     expect(resolveAltruCoderOpenRouterBaseUrl({ baseURL: "https://example.test/" })).toBe(
       "https://example.test/api/openrouter/",
     )
@@ -39,14 +41,14 @@ describe("Altru Coder API URL resolvers", () => {
   })
 
   test("prefers token-derived URL when token contains one", () => {
-    expect(resolveAltruCoderGatewayBaseUrl({ baseURL: "https://fallback.test", token: "https://token.test:opaque" })).toBe(
-      "https://token.test/api/gateway/",
-    )
+    expect(
+      resolveAltruCoderGatewayBaseUrl({ baseURL: "https://fallback.test", token: "https://token.test:opaque" }),
+    ).toBe("https://token.test/api/gateway/")
   })
 
   test("resolves child endpoint URLs", () => {
-    expect(new URL("embedding-models", resolveAltruCoderGatewayBaseUrl({ baseURL: "https://example.test" })).toString()).toBe(
-      "https://example.test/api/gateway/embedding-models",
-    )
+    expect(
+      new URL("embedding-models", resolveAltruCoderGatewayBaseUrl({ baseURL: "https://example.test" })).toString(),
+    ).toBe("https://example.test/api/gateway/embedding-models")
   })
 })

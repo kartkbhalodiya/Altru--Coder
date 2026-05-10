@@ -155,7 +155,9 @@ const DeviceAuthCard: Component<DeviceAuthCardProps> = (props) => {
         <Card>
           <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
             <Spinner style={{ width: "14px", height: "14px" }} />
-            <span style={{ "font-size": "var(--altru-coder-font-size-13)", color: "var(--vscode-descriptionForeground)" }}>
+            <span
+              style={{ "font-size": "var(--altru-coder-font-size-13)", color: "var(--vscode-descriptionForeground)" }}
+            >
               {language.t("deviceAuth.status.initiating")}
             </span>
           </div>

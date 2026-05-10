@@ -1,4 +1,4 @@
-import type { ProviderPreset } from './types'
+import type { ProviderPreset } from "./types"
 
 export const GooglePreset: ProviderPreset = {
   id: "google",
@@ -7,13 +7,25 @@ export const GooglePreset: ProviderPreset = {
   note: "Select Gemini models from the built-in Cline registry through Google's OpenAI-compatible endpoint.",
   fetch: false,
   models: [
+    { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", reasoning: true },
     { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview", reasoning: true },
+    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash Lite", reasoning: true },
+    { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview", reasoning: true },
+    { id: "gemini-3.1-flash-image-preview", name: "Gemini 3.1 Flash Image Preview", reasoning: true },
     { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview", reasoning: true },
+    { id: "gemini-3-pro-image-preview", name: "Gemini 3 Pro Image Preview", reasoning: true },
+    { id: "gemini-3-flash", name: "Gemini 3 Flash", reasoning: true },
     { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview", reasoning: true },
     { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", reasoning: true },
+    { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", reasoning: true },
+    { id: "gemini-2.5-flash-lite-preview-09-2025", name: "Gemini 2.5 Flash Lite Preview 09 2025", reasoning: true },
     { id: "gemini-2.5-flash-lite-preview-06-17", name: "Gemini 2.5 Flash Lite Preview 06 17", reasoning: true },
     { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", reasoning: true },
+    { id: "gemini-2.5-flash-preview-09-2025", name: "Gemini 2.5 Flash Preview 09 2025", reasoning: true },
+    { id: "gemini-2.5-flash-image", name: "Gemini 2.5 Flash Image", reasoning: true },
+    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
     { id: "gemini-2.0-flash-001", name: "Gemini 2.0 Flash 001" },
+    { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash Lite" },
     { id: "gemini-2.0-flash-lite-preview-02-05", name: "Gemini 2.0 Flash Lite Preview 02 05" },
     { id: "gemini-2.0-pro-exp-02-05", name: "Gemini 2.0 Pro Exp 02 05" },
     { id: "gemini-2.0-flash-thinking-exp-01-21", name: "Gemini 2.0 Flash Thinking Exp 01 21" },

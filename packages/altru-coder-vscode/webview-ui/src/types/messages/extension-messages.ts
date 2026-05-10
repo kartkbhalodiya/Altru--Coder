@@ -12,6 +12,7 @@ import type { ModelSelection, Provider, ProviderAuthState } from "./providers"
 import type { AgentInfo, SkillInfo, SlashCommandInfo } from "./agents"
 import type { BrowserSettings, Config, FeatureFlags, IndexingStatus, AltruCoderEmbeddingModelCatalog } from "./config"
 import type { AltruCoderNotification, ProfileData } from "./profile"
+import type { AutoApproveMode } from "./webview-messages"
 import type {
   AgentManagerApplyWorktreeDiffConflict,
   AgentManagerApplyWorktreeDiffStatus,
@@ -558,6 +559,7 @@ export interface AgentManagerKeybindingsMessage {
 export interface AutoApproveStateMessage {
   type: "autoApproveState"
   active: boolean
+  mode: AutoApproveMode
 }
 
 // Multi-version creation progress (extension → webview)

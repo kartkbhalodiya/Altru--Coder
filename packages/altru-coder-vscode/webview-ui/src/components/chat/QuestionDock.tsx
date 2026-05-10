@@ -301,10 +301,16 @@ export const QuestionDock: Component<{ request: QuestionRequest }> = (props) => 
       {/* Single unified header row — always visible */}
       <div data-slot="question-dock-header" onClick={toggleCollapse}>
         <div data-slot="question-dock-header-content">
-          <div data-slot="question-header-title">{summary()}</div>
-          <Show when={store.collapsed}>
-            <div data-slot="question-collapsed-preview">{questionText()}</div>
-          </Show>
+          <span data-slot="question-icon">
+            <Icon name="help" size="small" />
+          </span>
+          <div data-slot="question-header-copy">
+            <div data-slot="question-header-title">{language.t("notification.question.title")}</div>
+            <div data-slot="question-header-summary">{summary()}</div>
+            <Show when={store.collapsed}>
+              <div data-slot="question-collapsed-preview">{questionText()}</div>
+            </Show>
+          </div>
         </div>
         <div data-slot="question-header-actions" onClick={(e: MouseEvent) => e.stopPropagation()}>
           <Show when={!store.collapsed && !single()}>

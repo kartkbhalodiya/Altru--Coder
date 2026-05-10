@@ -100,11 +100,16 @@ export class AltruCoderClawProvider implements vscode.Disposable {
       return
     }
 
-    const panel = vscode.window.createWebviewPanel(AltruCoderClawProvider.viewType, "AltruCoderClaw", vscode.ViewColumn.One, {
-      enableScripts: true,
-      retainContextWhenHidden: true,
-      localResourceRoots: [this.uri],
-    })
+    const panel = vscode.window.createWebviewPanel(
+      AltruCoderClawProvider.viewType,
+      "AltruCoderClaw",
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [this.uri],
+      },
+    )
 
     this.attach(panel)
   }

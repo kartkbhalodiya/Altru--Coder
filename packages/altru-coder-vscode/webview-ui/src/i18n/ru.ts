@@ -775,7 +775,8 @@ export const dict = {
   "settings.indexing.provider.title": "Провайдер эмбеддингов",
   "settings.indexing.provider.description": "Выберите провайдера для генерации эмбеддингов при семантическом поиске.",
   "settings.indexing.altruCoderModel.title": "Предустановка модели Altru Coder",
-  "settings.indexing.altruCoderModel.description": "Выберите поддерживаемую модель эмбеддингов, размещенную в Altru Coder.",
+  "settings.indexing.altruCoderModel.description":
+    "Выберите поддерживаемую модель эмбеддингов, размещенную в Altru Coder.",
   "settings.indexing.altruCoderSignIn.title": "Требуется вход в Altru Coder",
   "settings.indexing.altruCoderSignIn.description": "Войдите в Altru Coder, чтобы использовать размещенные эмбеддинги.",
   "settings.indexing.model.title": "Модель эмбеддингов",
@@ -1585,5 +1586,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

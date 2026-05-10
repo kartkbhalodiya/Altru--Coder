@@ -8,7 +8,12 @@ function session(id: string): Session {
 }
 
 function result(path: string): CreateWorktreeResult {
-  return { path, branch: "altru-coder/test", parentBranch: "main", startPointSource: "fallback" } as CreateWorktreeResult
+  return {
+    path,
+    branch: "altru-coder/test",
+    parentBranch: "main",
+    startPointSource: "fallback",
+  } as CreateWorktreeResult
 }
 
 function deps(overrides: Partial<ToolDeps> = {}): ToolDeps {
@@ -30,7 +35,10 @@ function deps(overrides: Partial<ToolDeps> = {}): ToolDeps {
     getPanel: () => panel as never,
     openPanel: mock(() => calls.push("openPanel")),
     waitReady: mock(async () => calls.push("waitReady")),
-    createWorktree: mock(async () => ({ worktree: { id: "wt-1" }, result: result("/repo/.altru-coder/worktrees/wt-1") })),
+    createWorktree: mock(async () => ({
+      worktree: { id: "wt-1" },
+      result: result("/repo/.altru-coder/worktrees/wt-1"),
+    })),
     cleanupWorktree: mock(async () => calls.push("cleanupWorktree")),
     setup: mock(async () => calls.push("setup")),
     createSessionInWorktree: mock(async () => session("s-wt")),

@@ -1,6 +1,10 @@
 import { describe, it, expect } from "bun:test"
 import { MessageV2 } from "../../src/session/message-v2"
-import { ALTRU_CODER_ERROR_CODES, isAltruCoderError, parseAltruCoderErrorCode } from "../../src/altrucoder/altru-coder-errors"
+import {
+  ALTRU_CODER_ERROR_CODES,
+  isAltruCoderError,
+  parseAltruCoderErrorCode,
+} from "../../src/altrucoder/altru-coder-errors"
 import { SessionRetry } from "../../src/session/retry"
 import { NamedError } from "@opencode-ai/core/util/error"
 

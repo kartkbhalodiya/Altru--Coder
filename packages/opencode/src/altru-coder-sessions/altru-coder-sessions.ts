@@ -131,11 +131,14 @@ export namespace AltruCoderSessions {
     })
   }
 
-  const shareDisabled = process.env["ALTRU_CODER_DISABLE_SHARE"] === "true" || process.env["ALTRU_CODER_DISABLE_SHARE"] === "1"
+  const shareDisabled =
+    process.env["ALTRU_CODER_DISABLE_SHARE"] === "true" || process.env["ALTRU_CODER_DISABLE_SHARE"] === "1"
   const ingestDisabled =
-    process.env["ALTRU_CODER_DISABLE_SESSION_INGEST"] === "true" || process.env["ALTRU_CODER_DISABLE_SESSION_INGEST"] === "1"
+    process.env["ALTRU_CODER_DISABLE_SESSION_INGEST"] === "true" ||
+    process.env["ALTRU_CODER_DISABLE_SESSION_INGEST"] === "1"
   const debugIngest =
-    process.env["ALTRU_CODER_DEBUG_SESSION_INGEST"] === "true" || process.env["ALTRU_CODER_DEBUG_SESSION_INGEST"] === "1"
+    process.env["ALTRU_CODER_DEBUG_SESSION_INGEST"] === "true" ||
+    process.env["ALTRU_CODER_DEBUG_SESSION_INGEST"] === "1"
 
   const ingest = IngestQueue.create({
     getShare: async (sessionId) => get(sessionId).catch(() => undefined),
@@ -317,7 +320,9 @@ export namespace AltruCoderSessions {
 
       const valid = await authValid(token)
       if (valid === false) {
-        throw new Error("Unable to enable remote: invalid or expired Altru Coder credentials. Run `altru-coder auth login`.")
+        throw new Error(
+          "Unable to enable remote: invalid or expired Altru Coder credentials. Run `altru-coder auth login`.",
+        )
       }
       if (valid === undefined) throw new Error("Unable to enable remote: failed to verify Altru Coder credentials.")
 

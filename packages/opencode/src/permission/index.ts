@@ -23,6 +23,8 @@ import { Identifier } from "@/id/id" // altrucoder_change
 import { drainCovered } from "@/altrucoder/permission/drain" // altrucoder_change
 import { ReadPermission } from "@/altrucoder/permission/read" // altrucoder_change
 import { ExternalDirectoryPermission } from "@/altrucoder/permission/external-directory" // altrucoder_change
+import { PermissionGuardian } from "@/altrucoder/permission/guardian" // altrucoder_change
+import { SandboxPolicy } from "@/altrucoder/sandbox/policy" // altrucoder_change
 
 const log = Log.create({ service: "permission" })
 
@@ -252,6 +254,30 @@ export const layer = Layer.effect(
 
       // altrucoder_change start — force "ask" for config file edits
       const isProtected = ConfigProtection.isRequest(request)
+      const sandbox = SandboxPolicy.active(ruleset, approved, local)
+      const sandboxDecision = sandbox
+        ? SandboxPolicy.review({
+            mode: sandbox,
+            request,
+            context: yield* InstanceState.context,
+            protected: isProtected,
+          })
+        : undefined
+      if (sandboxDecision?.action === "deny") {
+        return yield* new DeniedError({
+          ruleset: [
+            {
+              permission: request.permission,
+              pattern: sandboxDecision.pattern ?? "*",
+              action: "deny",
+              reason: sandboxDecision.reason,
+              source: "sandbox",
+              mode: sandbox,
+            },
+          ],
+        })
+      }
+      if (sandboxDecision?.action === "allow") return
       // altrucoder_change end
 
       for (const pattern of request.patterns) {
@@ -268,12 +294,39 @@ export const layer = Layer.effect(
           })
         }
         // altrucoder_change start — override "allow" to "ask" for config paths
-        if (rule.action === "allow" && !isProtected) continue
+        if (rule.action === "allow" && !isProtected && sandboxDecision?.action !== "ask") continue
         // altrucoder_change end
         needsAsk = true
       }
 
       if (!needsAsk) return
+
+      // altrucoder_change start - Guardian auto-review for real tool-call permission prompts
+      if (PermissionGuardian.enabled(request)) {
+        const ctx = yield* InstanceState.context
+        const decision = PermissionGuardian.review({ request, context: ctx, protected: isProtected })
+        log.info("guardian reviewed permission", {
+          permission: request.permission,
+          action: decision.action,
+          reason: decision.reason,
+          pattern: decision.pattern,
+        })
+        if (decision.action === "allow") return
+        if (decision.action === "deny") {
+          return yield* new DeniedError({
+            ruleset: [
+              {
+                permission: request.permission,
+                pattern: decision.pattern ?? "*",
+                action: "deny",
+                reason: decision.reason,
+                source: "guardian",
+              },
+            ],
+          })
+        }
+      }
+      // altrucoder_change end
 
       const id = request.id ?? PermissionID.ascending()
       // altrucoder_change start — inject disableAlways metadata for config paths

@@ -126,7 +126,10 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // altrucoder_change start - also load tui.json from .altru-coder/.altrucoder
   const dirs = unique(directories).filter(
     (dir) =>
-      dir.endsWith(".altru-coder") || dir.endsWith(".altrucoder") || dir.endsWith(".opencode") || dir === Flag.ALTRU_CODER_CONFIG_DIR,
+      dir.endsWith(".altru-coder") ||
+      dir.endsWith(".altrucoder") ||
+      dir.endsWith(".opencode") ||
+      dir === Flag.ALTRU_CODER_CONFIG_DIR,
   )
   // altrucoder_change end
 

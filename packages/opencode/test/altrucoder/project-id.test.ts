@@ -149,7 +149,10 @@ describe("project-id", () => {
         git: true,
         init: async (dir) => {
           await fs.mkdir(path.join(dir, ".altru-coder"), { recursive: true })
-          await Bun.write(path.join(dir, ".altru-coder", "config.json"), JSON.stringify({ project: { id: "new-project" } }))
+          await Bun.write(
+            path.join(dir, ".altru-coder", "config.json"),
+            JSON.stringify({ project: { id: "new-project" } }),
+          )
           await fs.mkdir(path.join(dir, ".altrucoder"), { recursive: true })
           await Bun.write(
             path.join(dir, ".altrucoder", "config.json"),

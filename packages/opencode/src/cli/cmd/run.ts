@@ -28,6 +28,7 @@ import { TodoWriteTool } from "../../tool/todo"
 import { Locale } from "@/util/locale"
 import { importCloudSession, validateCloudFork } from "@/altrucoder/cloud-session" // altrucoder_change
 import { AppRuntime } from "@/effect/app-runtime"
+import { SandboxPolicy } from "@/altrucoder/sandbox/policy" // altrucoder_change
 
 type ToolProps<T> = {
   input: Tool.InferParameters<T>
@@ -289,10 +290,22 @@ export const RunCommand = cmd({
           describe: "show thinking blocks",
           default: false,
         })
+        // altrucoder_change start - Codex-style run sandbox policy
+        .option("sandbox", {
+          type: "string",
+          describe: "sandbox policy for the run session",
+          choices: SandboxPolicy.modes,
+        })
+        // altrucoder_change end
         // altrucoder_change start - auto approve all permissions
         .option("auto", {
           type: "boolean",
           describe: "auto-approve all permissions (for autonomous/pipeline usage)",
+          default: false,
+        })
+        .option("ephemeral", {
+          type: "boolean",
+          describe: "delete the transient run session after completion",
           default: false,
         })
         // altrucoder_change end
@@ -353,12 +366,27 @@ export const RunCommand = cmd({
       UI.error("--fork requires --continue or --session")
       process.exit(1)
     }
+    if (args.ephemeral && (args.continue || args.session || args.fork)) {
+      UI.error("--ephemeral can only be used for a new run session")
+      process.exit(1)
+    }
+    if (args.ephemeral && args.share) {
+      UI.error("--ephemeral cannot be combined with --share")
+      process.exit(1)
+    }
     // altrucoder_change start
     const cloudForkError = validateCloudFork(args)
     if (cloudForkError) {
       UI.error(cloudForkError)
       process.exit(1)
     }
+    // altrucoder_change end
+
+    // altrucoder_change start - attach sandbox policy rules to run sessions
+    const sandbox = (() => {
+      if (args["dangerously-skip-permissions"]) return "danger-full-access"
+      return SandboxPolicy.parse(args.sandbox)
+    })()
     // altrucoder_change end
 
     const rules: Permission.Ruleset = [
@@ -377,6 +405,7 @@ export const RunCommand = cmd({
         action: "deny",
         pattern: "*",
       },
+      ...(sandbox ? SandboxPolicy.rules(sandbox) : []), // altrucoder_change
     ]
 
     function title() {
@@ -456,6 +485,25 @@ export const RunCommand = cmd({
 
       const events = await sdk.event.subscribe()
       let error: string | undefined
+
+      async function cleanup(id: string) {
+        if (!args.ephemeral) return
+        await sdk.session.delete({ sessionID: id }).catch((err) => {
+          const msg = err instanceof Error ? err.message : String(err)
+          if (args.format === "json") {
+            process.stdout.write(
+              JSON.stringify({ type: "ephemeral_delete_error", timestamp: Date.now(), sessionID: id, error: msg }) +
+                EOL,
+            )
+            return
+          }
+          UI.println(
+            UI.Style.TEXT_WARNING_BOLD + "!",
+            UI.Style.TEXT_NORMAL + ` failed to delete ephemeral session: ${msg}`,
+          )
+        })
+        emit("ephemeral_deleted", {})
+      }
 
       async function loop() {
         const toggles = new Map<string, boolean>()
@@ -566,6 +614,7 @@ export const RunCommand = cmd({
             event.properties.sessionID === sessionID &&
             event.properties.status.type === "idle"
           ) {
+            await cleanup(sessionID)
             break
           }
 

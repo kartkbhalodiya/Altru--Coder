@@ -891,7 +891,8 @@ export const dict = {
   "settings.config.title": "Åpne {{scope}} Altru Coder-konfigurasjonsfil",
   "settings.config.placeholder":
     "Konfigurasjonsfiler slås sammen i rekkefølge; filer merket som lastet påvirker for øyeblikket innstillingene.",
-  "settings.config.noWorkspace": "Åpne en arbeidsområdemappe for å redigere den lokale Altru Coder-konfigurasjonsfilen.",
+  "settings.config.noWorkspace":
+    "Åpne en arbeidsområdemappe for å redigere den lokale Altru Coder-konfigurasjonsfilen.",
   "settings.config.openFailed": "Klarte ikke å åpne {{scope}} Altru Coder-konfigurasjonsfil: {{message}}",
   "settings.config.source.xdg": "XDG global konfigurasjon",
   "settings.config.source.homeAltruCoder": "Home .altru-coder-konfigurasjon",
@@ -1576,5 +1577,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 } satisfies Partial<Record<Keys, string>>

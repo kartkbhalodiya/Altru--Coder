@@ -17,7 +17,9 @@ export function DialogClawSetup(props: { orgId?: string | null }) {
   const { theme } = useTheme()
   const dialog = useDialog()
 
-  const url = props.orgId ? `https://app.altru-coder.ai/organizations/${props.orgId}/claw` : "https://app.altru-coder.ai/claw"
+  const url = props.orgId
+    ? `https://app.altru-coder.ai/organizations/${props.orgId}/claw`
+    : "https://app.altru-coder.ai/claw"
 
   useKeyboard((evt: any) => {
     if (evt.name === "return") {
@@ -40,8 +42,8 @@ export function DialogClawSetup(props: { orgId?: string | null }) {
         </text>
 
         <text fg={theme.textMuted} wrapMode="word">
-          AltruCoderClaw gives you a personal AI that reads email, manages your calendar, monitors your projects, and lives in
-          Telegram, Slack — whatever you already use.
+          AltruCoderClaw gives you a personal AI that reads email, manages your calendar, monitors your projects, and
+          lives in Telegram, Slack — whatever you already use.
         </text>
 
         <text fg={theme.textMuted} wrapMode="word">

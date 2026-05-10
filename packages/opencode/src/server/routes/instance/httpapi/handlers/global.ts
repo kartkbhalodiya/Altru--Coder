@@ -88,11 +88,13 @@ export const globalHandlers = HttpApiBuilder.group(RootHttpApi, "global", (handl
       yield* Effect.sync(() => {
         setTimeout(() => {
           Effect.runFork(
-            config.invalidate(false).pipe(
-              Effect.catch((error) =>
-                Effect.sync(() => console.warn("[Altru Coder] global config invalidation failed:", error)),
+            config
+              .invalidate(false)
+              .pipe(
+                Effect.catch((error) =>
+                  Effect.sync(() => console.warn("[Altru Coder] global config invalidation failed:", error)),
+                ),
               ),
-            ),
           )
         }, 0)
       })

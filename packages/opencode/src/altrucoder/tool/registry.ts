@@ -3,6 +3,7 @@ import { CodebaseSearchTool } from "../../tool/warpgrep"
 import { RecallTool } from "../../tool/recall"
 import { AgentManagerTool } from "./agent-manager"
 import { MemoryTool } from "./memory"
+import { TerminalTool } from "./terminal"
 import * as Tool from "../../tool/tool"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { Effect } from "effect"
@@ -22,14 +23,15 @@ export namespace AltruCoderToolRegistry {
       const recall = yield* RecallTool
       const manager = yield* AgentManagerTool
       const memory = yield* MemoryTool
-      return { codebase, recall, manager, memory }
+      const terminal = yield* TerminalTool
+      return { codebase, recall, manager, memory, terminal }
     })
   }
 
   /** Finalize Altru Coder-specific tools into Tool.Defs. Call this inside the InstanceState state Effect —
    * it has no Service deps beyond what Tool.init itself needs. */
   export function build(
-    tools: { codebase: Tool.Info; recall: Tool.Info; manager: Tool.Info; memory: Tool.Info },
+    tools: { codebase: Tool.Info; recall: Tool.Info; manager: Tool.Info; memory: Tool.Info; terminal: Tool.Info },
     deps: Deps,
   ) {
     return Effect.gen(function* () {
@@ -38,6 +40,7 @@ export namespace AltruCoderToolRegistry {
         recall: Tool.init(tools.recall),
         manager: Tool.init(tools.manager),
         memory: Tool.init(tools.memory),
+        terminal: Tool.init(tools.terminal),
       })
       const semantic = yield* semanticTool(deps)
       return { ...base, semantic }
@@ -79,7 +82,14 @@ export namespace AltruCoderToolRegistry {
 
   /** Altru Coder-specific tools to append to the builtin list */
   export function extra(
-    tools: { codebase: Tool.Def; semantic?: Tool.Def; recall: Tool.Def; manager: Tool.Def; memory?: Tool.Def },
+    tools: {
+      codebase: Tool.Def
+      semantic?: Tool.Def
+      recall: Tool.Def
+      manager: Tool.Def
+      memory?: Tool.Def
+      terminal?: Tool.Def
+    },
     cfg: { experimental?: { codebase_search?: boolean; agent_manager_tool?: boolean } },
   ): Tool.Def[] {
     return [
@@ -87,6 +97,7 @@ export namespace AltruCoderToolRegistry {
       ...(tools.semantic ? [tools.semantic] : []),
       tools.recall,
       ...(tools.memory ? [tools.memory] : []),
+      ...(tools.terminal ? [tools.terminal] : []),
       // The extension is the only client that can consume the Agent Manager start event.
       ...(Flag.ALTRU_CODER_CLIENT === "vscode" && cfg.experimental?.agent_manager_tool === true ? [tools.manager] : []),
     ]

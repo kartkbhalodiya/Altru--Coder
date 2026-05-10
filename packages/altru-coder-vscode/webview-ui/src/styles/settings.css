@@ -4,9 +4,7 @@
   height: 100%;
   overflow: hidden;
   color: var(--vscode-foreground);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 180px),
-    var(--vscode-editor-background);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 180px), var(--vscode-editor-background);
   container-type: inline-size;
 }
 
@@ -166,7 +164,9 @@
     var(--glass-hover, var(--vscode-list-hoverBackground));
 }
 
-.settings-view [data-component="tabs"][data-variant="settings"] [data-slot="tabs-trigger-wrapper"]:has([data-selected]) {
+.settings-view
+  [data-component="tabs"][data-variant="settings"]
+  [data-slot="tabs-trigger-wrapper"]:has([data-selected]) {
   border-color: var(--glass-border-strong, var(--vscode-focusBorder));
   color: var(--text-strong, var(--vscode-foreground));
   background:
@@ -182,7 +182,11 @@
   padding: 12px !important;
   color: var(--text-base, var(--vscode-foreground));
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-bg, var(--vscode-editor-background)) 62%, transparent), transparent 180px),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--glass-bg, var(--vscode-editor-background)) 62%, transparent),
+      transparent 180px
+    ),
     transparent !important;
 }
 
@@ -403,7 +407,11 @@
 .settings-view [data-component="input"][data-variant="normal"] [data-slot="input-input"]::placeholder,
 .settings-view input::placeholder,
 .settings-view textarea::placeholder {
-  color: color-mix(in srgb, var(--vscode-input-placeholderForeground, var(--vscode-descriptionForeground)) 78%, #ffffff 22%) !important;
+  color: color-mix(
+    in srgb,
+    var(--vscode-input-placeholderForeground, var(--vscode-descriptionForeground)) 78%,
+    #ffffff 22%
+  ) !important;
 }
 
 .settings-view [data-component="select"] [data-slot="select-select-trigger"]:hover,
@@ -472,11 +480,47 @@
   gap: 14px;
 }
 
+.provider-model-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: calc(100vh - 112px);
+  min-height: 0;
+  padding: 0 20px 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.provider-model-picker,
+.custom-provider-section--models {
+  position: relative;
+  z-index: 20;
+  isolation: isolate;
+}
+
+.provider-model-dropdown {
+  position: relative;
+  z-index: 40;
+}
+
+.provider-model-api,
+.custom-provider-section--api {
+  position: relative;
+  z-index: 1;
+}
+
+.provider-model-list {
+  max-height: min(260px, 36vh) !important;
+  overflow-y: auto !important;
+}
+
 .custom-provider-section,
 .custom-provider-fetch-picker {
   box-sizing: border-box;
   min-width: 0;
-  border: 1px solid var(--glass-border, color-mix(in srgb, var(--border-weak-base, var(--vscode-panel-border)) 70%, #ffffff 20%)) !important;
+  border: 1px solid
+    var(--glass-border, color-mix(in srgb, var(--border-weak-base, var(--vscode-panel-border)) 70%, #ffffff 20%)) !important;
   border-radius: var(--glass-radius, 8px) !important;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 46%),
@@ -730,7 +774,11 @@
   top: 0;
   z-index: 1;
   padding-top: 2px;
-  background: linear-gradient(180deg, var(--vscode-editorWidget-background, var(--vscode-editor-background)), transparent);
+  background: linear-gradient(
+    180deg,
+    var(--vscode-editorWidget-background, var(--vscode-editor-background)),
+    transparent
+  );
 }
 
 .provider-picker-search {

@@ -22,7 +22,8 @@ export const dict = {
   "altruClaw.upgrade.description1": "Denne instansen ble klargjort før chat ble aktivert.",
   "altruClaw.upgrade.description2.before": "Bruk ",
   "altruClaw.upgrade.description2.bold": "Oppgrader til nyeste",
-  "altruClaw.upgrade.description2.after": "-knappen på AltruCoderClaw-dashbordet for å aktivere sanntidschat med boten din.",
+  "altruClaw.upgrade.description2.after":
+    "-knappen på AltruCoderClaw-dashbordet for å aktivere sanntidschat med boten din.",
   "altruClaw.upgrade.openDashboard": "Åpne dashbord",
   "altruClaw.sidebar.title": "AltruCoderClaw",
   "altruClaw.sidebar.instance": "Instans",

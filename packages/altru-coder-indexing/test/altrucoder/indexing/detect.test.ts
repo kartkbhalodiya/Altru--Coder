@@ -26,7 +26,9 @@ describe("indexing plugin detection", () => {
     expect(normalizePluginName("file:///tmp/node_modules/@altru-coder/altru-coder-indexing/index.js")).toBe(
       "@altru-coder/altru-coder-indexing",
     )
-    expect(normalizePluginName("file:///tmp/repo/packages/altru-coder-indexing/src/index.ts")).toBe("@altru-coder/altru-coder-indexing")
+    expect(normalizePluginName("file:///tmp/repo/packages/altru-coder-indexing/src/index.ts")).toBe(
+      "@altru-coder/altru-coder-indexing",
+    )
   })
 
   test("detects supported indexing plugin specifiers", () => {
@@ -54,7 +56,10 @@ describe("indexing plugin detection", () => {
 
   test("detects indexing plugin in merged plugin lists", () => {
     expect(
-      hasIndexingPlugin(["@altru-coder/altru-coder-gateway", "file:///tmp/node_modules/@altru-coder/altru-coder-indexing/index.js"]),
+      hasIndexingPlugin([
+        "@altru-coder/altru-coder-gateway",
+        "file:///tmp/node_modules/@altru-coder/altru-coder-indexing/index.js",
+      ]),
     ).toBe(true)
   })
 })

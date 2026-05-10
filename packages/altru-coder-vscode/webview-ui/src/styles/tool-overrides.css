@@ -1,16 +1,954 @@
 /* ============================================
-   Todo tool — align checkboxes with icon in header
+   VS Code-native chat and tool polish
    ============================================ */
 
-[data-component="todos"] {
-  padding: 12px;
+html[data-theme="altru-coder-vscode"] {
+  --altru-tool-line: color-mix(in srgb, var(--vscode-descriptionForeground, #8b949e) 34%, transparent);
+  --altru-tool-line-active: color-mix(in srgb, var(--vscode-focusBorder, #007fd4) 72%, transparent);
+  --altru-tool-row-hover: color-mix(in srgb, var(--vscode-list-hoverBackground, #2a2d2e) 54%, transparent);
+  --altru-tool-panel: color-mix(in srgb, var(--vscode-editorWidget-background, #252526) 82%, transparent);
+  --altru-tool-border: color-mix(in srgb, var(--vscode-panel-border, #3a3a3a) 72%, transparent);
 }
 
-/* ============================================
-   Task Tool (sub-agent, v1.0.25 style)
-   tool-output scrollable container size override
-   ============================================ */
+html[data-theme="altru-coder-vscode"] .container,
+html[data-theme="altru-coder-vscode"] .chat-view,
+html[data-theme="altru-coder-vscode"] .chat-messages-wrapper,
+html[data-theme="altru-coder-vscode"] .chat-messages,
+html[data-theme="altru-coder-vscode"] .message-list-container,
+html[data-theme="altru-coder-vscode"] .message-list {
+  background: var(--vscode-editor-background) !important;
+  background-image: none !important;
+}
 
-[data-component="tool-output"][data-scrollable]:has([data-component="task-tools"]) {
+html[data-theme="altru-coder-vscode"] .message-list {
+  padding: 10px 12px;
+  scrollbar-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.45)) transparent;
+}
+
+html[data-theme="altru-coder-vscode"] .message-list-content {
+  gap: 8px;
+}
+
+html[data-theme="altru-coder-vscode"] .vscode-session-turn {
+  gap: 8px;
+  padding: 0 2px 10px;
+}
+
+html[data-theme="altru-coder-vscode"] .vscode-session-turn-assistant {
+  gap: 8px;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="assistant-message"] {
+  color: var(--vscode-foreground);
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="text-part"] {
+  margin-top: 8px !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="text-part"] [data-component="markdown"] {
+  color: var(--vscode-foreground) !important;
+  line-height: 1.48;
+}
+
+html[data-theme="altru-coder-vscode"] .chat-input {
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-container {
+  --prompt-input-radius: 10px;
+  --prompt-input-inner-radius: 9px;
+  --prompt-input-min-height: 64px;
+  margin: 10px;
+  background: var(--vscode-input-background, var(--vscode-editorWidget-background)) !important;
+  border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-container::before {
+  display: none;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-container:focus-within {
+  border-color: var(--vscode-focusBorder, #007fd4) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder, #007fd4) 45%, transparent) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input,
+html[data-theme="altru-coder-vscode"] .prompt-input-highlight-overlay {
+  min-height: var(--prompt-input-min-height);
   max-height: 200px;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input {
+  color: var(--vscode-input-foreground, var(--vscode-foreground)) !important;
+  caret-color: var(--vscode-input-foreground, var(--vscode-foreground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input:placeholder-shown {
+  height: var(--prompt-input-min-height) !important;
+  overflow-y: hidden;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input::placeholder {
+  color: var(--vscode-input-placeholderForeground, var(--vscode-descriptionForeground)) !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-highlight-overlay,
+html[data-theme="altru-coder-vscode"]
+  .prompt-input-highlight-overlay
+  > span:not(.prompt-input-file-mention):not(.prompt-input-ghost-text) {
+  color: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-highlight-overlay > .prompt-input-file-mention {
+  color: var(--vscode-textLink-foreground, #3794ff) !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-highlight-overlay > .prompt-input-ghost-text {
+  color: var(--vscode-editorGhostText-foreground, var(--vscode-descriptionForeground)) !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-hint {
+  gap: 6px;
+  padding: 6px 8px 8px;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors [data-component="button"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 5px;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors [data-component="button"]:hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-actions [data-component="button"]:hover:not(:disabled) {
+  background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-actions [data-component="button"] {
+  border-radius: 5px;
+}
+
+html[data-theme="altru-coder-vscode"] .scroll-to-bottom-button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--vscode-panel-border) !important;
+  background: var(--vscode-editorWidget-background, var(--vscode-button-secondaryBackground)) !important;
+  color: var(--vscode-foreground) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .scroll-to-bottom-button [data-component="icon"] {
+  --icon-base: var(--vscode-foreground);
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="user-message"] [data-slot="user-message-text"],
+html[data-theme="altru-coder-vscode"] [data-component="user-message"] [data-slot="user-message-attachment"] {
+  background: var(--vscode-input-background, var(--vscode-editorWidget-background)) !important;
+  border: 1px solid var(--vscode-panel-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .vscode-session-turn,
+html[data-theme="altru-coder-vscode"] .vscode-session-turn-assistant {
+  gap: 8px;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] {
+  opacity: 0.62;
+  border: 1px solid var(--vscode-panel-border) !important;
+  border-left: 2px solid color-mix(in srgb, var(--vscode-descriptionForeground, #8b949e) 46%, transparent) !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"]:hover,
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"]:focus-within {
+  opacity: 0.86;
+  background: color-mix(in srgb, var(--vscode-list-hoverBackground, #2a2d2e) 35%, transparent) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="collapsible-trigger"] {
+  min-height: 32px;
+  padding: 7px 9px !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="reasoning-part"]
+  [data-slot="collapsible-trigger"][aria-expanded="true"] {
+  border-bottom: 1px solid var(--vscode-panel-border) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-content"] {
+  padding: 0 10px 10px !important;
+}
+
+/* Compact activity-row treatment for read, grep, shell, write, patch, and MCP tools. */
+html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-part-type="tool"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 1px 0;
+  padding-left: 6px;
+  border: 0 !important;
+  border-left: 2px solid var(--altru-tool-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]:has(
+    [data-slot="collapsible-trigger"][aria-expanded="true"]
+  ) {
+  border-left-color: var(--altru-tool-line-active) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-part-type="tool"][data-tool="bash"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"][data-tool-name="bash"] {
+  --altru-tool-line: color-mix(in srgb, var(--vscode-terminal-ansiGreen, #73c991) 44%, transparent);
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]:has(
+    > [data-component="tool-part-wrapper"][data-part-type="tool"]
+  ) {
+  margin: 0;
+  padding-left: 0;
+  border-left: 0 !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="collapsible"].tool-collapsible {
+  gap: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-trigger"] {
+  min-height: 30px;
+  height: auto !important;
+  padding: 0 4px !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-trigger"][aria-expanded="true"] {
+  border-bottom: 0 !important;
+  background: var(--altru-tool-row-hover) !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-trigger"]:hover {
+  background: var(--altru-tool-row-hover) !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="collapsible-arrow"] {
+  opacity: 0.72 !important;
+  width: 16px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-trigger"] {
+  min-height: 30px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="basic-tool-tool-trigger-content"] {
+  gap: 6px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="basic-tool-icon"] {
+  width: 15px;
+  height: 15px;
+  color: var(--vscode-descriptionForeground, var(--icon-weak));
+  opacity: 0.86;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="basic-tool-tool-info-main"] {
+  align-items: center;
+  gap: 6px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="basic-tool-tool-title"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="message-part-title-text"] {
+  color: var(--vscode-foreground, var(--text-strong)) !important;
+  font-size: var(--altru-coder-font-size-12) !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="basic-tool-tool-subtitle"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="message-part-title-filename"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="message-part-directory-inline"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="message-part-meta-line"] {
+  color: var(--vscode-descriptionForeground, var(--text-weak)) !important;
+  font-size: var(--altru-coder-font-size-12) !important;
+  line-height: 18px !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="bash-output"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="exa-tool-output"] {
+  margin: 3px 0 7px 18px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--altru-tool-border) !important;
+  border-radius: 6px !important;
+  background: var(--altru-tool-panel) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable] {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="tool-output"][data-scrollable]:has([data-component="task-tools"]) {
+  max-height: 200px;
+  padding: 0 !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="bash-output"]
+  [data-slot="bash-scroll"] {
+  max-height: 220px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="bash-output"]
+  [data-slot="bash-pre"] {
+  padding: 0 !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-component="bash-output"]
+  [data-slot="bash-pre"]
+  code,
+html[data-theme="altru-coder-vscode"] [data-slot="shell-expanded-output-text"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-output"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-row"] {
+  color: var(--vscode-terminal-foreground, var(--vscode-foreground)) !important;
+  font-size: var(--altru-coder-font-size-12);
+  line-height: 18px;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="bash-command-line"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]
+  [data-slot="bash-prompt"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-shell"] [data-slot="shell-expanded-command"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-command"] {
+  color: var(--vscode-terminal-ansiGreen, #73c991) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-results"] {
+  width: 100%;
+  min-width: 0;
+  margin: 1px 0;
+  padding-left: 6px;
+  border: 0 !important;
+  border-left: 2px solid color-mix(in srgb, var(--vscode-terminal-ansiGreen, #73c991) 44%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-results"] [data-slot="shell-rolling-header"] {
+  min-height: 30px;
+  padding: 0 4px !important;
+  border-radius: 5px;
+  background: transparent !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="shell-rolling-results"]
+  [data-slot="shell-rolling-header"]:hover {
+  background: var(--altru-tool-row-hover) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="shell-expanded-shell"],
+html[data-theme="altru-coder-vscode"] [data-component="shell-rolling-results"] [data-slot="shell-rolling-preview"],
+html[data-theme="altru-coder-vscode"] [data-component="context-tool-expanded-list"],
+html[data-theme="altru-coder-vscode"]
+  [data-component="assistant-part-item"][data-kind="context"]
+  [data-component="rolling-results"] {
+  margin: 3px 0 7px 18px !important;
+  border: 1px solid var(--altru-tool-border) !important;
+  border-radius: 6px !important;
+  background: var(--altru-tool-panel) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="task-tools"] {
+  padding: 6px 8px !important;
+  gap: 4px !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-slot="task-tool-item"],
+html[data-theme="altru-coder-vscode"] [data-component="task-tool-card"] {
+  min-width: 0;
+  padding: 4px 6px !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-component="todos"] {
+  padding: 8px 10px;
+}
+
+/* Final VS Code-native pass. Keep this after glass.css so broad glass rules cannot
+   reintroduce glossy gradients inside prompts, dialogs, settings, or chat cards. */
+html[data-theme="altru-coder-vscode"] {
+  --glass-bg: var(--vscode-editor-background, #1f1f1f);
+  --glass-bg-strong: var(--vscode-editorWidget-background, #252526);
+  --glass-bg-soft: var(--vscode-input-background, #3c3c3c);
+  --glass-hover: var(--vscode-list-hoverBackground, #2a2d2e);
+  --glass-active: var(--vscode-list-activeSelectionBackground, #04395e);
+  --glass-border: var(--vscode-panel-border, #3a3a3a);
+  --glass-border-strong: var(--vscode-focusBorder, #007fd4);
+  --glass-shadow: none;
+  --glass-shadow-soft: none;
+  --glass-blur: none;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="card"],
+html[data-theme="altru-coder-vscode"] [data-component="dialog"] [data-slot="dialog-content"],
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"],
+html[data-theme="altru-coder-vscode"] [data-component="dropdown-menu-content"],
+html[data-theme="altru-coder-vscode"] [data-component="dropdown-menu-sub-content"],
+html[data-theme="altru-coder-vscode"] [data-component="context-menu-content"],
+html[data-theme="altru-coder-vscode"] [data-component="context-menu-sub-content"],
+html[data-theme="altru-coder-vscode"] [data-component="toast"],
+html[data-theme="altru-coder-vscode"] .model-selector-popover,
+html[data-theme="altru-coder-vscode"] .provider-connect-code,
+html[data-theme="altru-coder-vscode"] .settings-save-bar,
+html[data-theme="altru-coder-vscode"] .settings-header,
+html[data-theme="altru-coder-vscode"] .settings-view [data-component="tabs"][data-variant="settings"] [data-slot="tabs-list"],
+html[data-theme="altru-coder-vscode"] .settings-view [data-component="card"],
+html[data-theme="altru-coder-vscode"] .custom-provider-section,
+html[data-theme="altru-coder-vscode"] .custom-provider-fetch-picker,
+html[data-theme="altru-coder-vscode"] .history-view-header,
+html[data-theme="altru-coder-vscode"] .history-view-tabs,
+html[data-theme="altru-coder-vscode"] .cloud-session-repo-filter,
+html[data-theme="altru-coder-vscode"] .cloud-session-load-more-btn,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-card,
+html[data-theme="altru-coder-vscode"] .prompt-review-comments,
+html[data-theme="altru-coder-vscode"] .prompt-review-chip,
+html[data-theme="altru-coder-vscode"] .prompt-review-modal-snippet,
+html[data-theme="altru-coder-vscode"] .am-sidebar,
+html[data-theme="altru-coder-vscode"] .am-detail,
+html[data-theme="altru-coder-vscode"] .am-tab-bar,
+html[data-theme="altru-coder-vscode"] .am-empty-state,
+html[data-theme="altru-coder-vscode"] .am-setup-card,
+html[data-theme="altru-coder-vscode"] .am-readonly-banner,
+html[data-theme="altru-coder-vscode"] .am-not-git-notice,
+html[data-theme="altru-coder-vscode"] .am-diff-panel-wrapper,
+html[data-theme="altru-coder-vscode"] .am-review-host,
+html[data-theme="altru-coder-vscode"] .am-shortcuts,
+html[data-theme="altru-coder-vscode"] .am-confirm,
+html[data-theme="altru-coder-vscode"] .am-default-base-branch,
+html[data-theme="altru-coder-vscode"] .am-review-toolbar,
+html[data-theme="altru-coder-vscode"] .am-review-tree-wrapper,
+html[data-theme="altru-coder-vscode"] .diff-viewer-notice,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-card,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-chat-header,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-input-wrap,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-sidebar,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-convlist,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-reply-preview,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-bot .altru-coder-claw-msg-bubble,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-other .altru-coder-claw-msg-bubble,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-reaction-pill,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-toolbar,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-reactionpick {
+  border-color: var(--vscode-panel-border, #3a3a3a) !important;
+  background: var(--vscode-editorWidget-background, var(--vscode-editor-background)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="dialog-overlay"] {
+  background: color-mix(in srgb, var(--vscode-editor-background, #1f1f1f) 54%, rgba(0, 0, 0, 0.52)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="input"][data-variant="normal"] [data-slot="input-wrapper"],
+html[data-theme="altru-coder-vscode"] [data-component="text-field"] input,
+html[data-theme="altru-coder-vscode"] [data-component="text-field"] textarea,
+html[data-theme="altru-coder-vscode"] input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+html[data-theme="altru-coder-vscode"] textarea,
+html[data-theme="altru-coder-vscode"] select,
+html[data-theme="altru-coder-vscode"] .provider-picker-search,
+html[data-theme="altru-coder-vscode"] .am-worktree-rename-input,
+html[data-theme="altru-coder-vscode"] .am-section-group-rename,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-input,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-sidebar-titleinput,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-convitem-renameinput,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-edit-input {
+  border-color: var(--vscode-input-border, var(--vscode-panel-border, #3a3a3a)) !important;
+  background: var(--vscode-input-background, var(--vscode-editorWidget-background)) !important;
+  background-image: none !important;
+  color: var(--vscode-input-foreground, var(--vscode-foreground)) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"],
+html[data-theme="altru-coder-vscode"] [data-component="icon-button"],
+html[data-theme="altru-coder-vscode"] .history-tab-btn,
+html[data-theme="altru-coder-vscode"] .message-list-load-older,
+html[data-theme="altru-coder-vscode"] .scroll-to-bottom-button,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-action-btn,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-primary-btn,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-back-link,
+html[data-theme="altru-coder-vscode"] .am-local-item,
+html[data-theme="altru-coder-vscode"] .am-worktree-item,
+html[data-theme="altru-coder-vscode"] .am-item,
+html[data-theme="altru-coder-vscode"] .am-tab,
+html[data-theme="altru-coder-vscode"] .am-section-group-header,
+html[data-theme="altru-coder-vscode"] .am-worktree-create,
+html[data-theme="altru-coder-vscode"] .am-split-menu [data-slot="dropdown-menu-item"],
+html[data-theme="altru-coder-vscode"] .am-ctx-menu [data-slot="context-menu-item"],
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-convitem,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-iconbtn,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-iconbtn-sm,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-scrollbtn,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-action-secondary,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-msg-reactionpick-btn {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"][data-variant="primary"],
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-primary-btn {
+  border-color: var(--vscode-button-border, transparent) !important;
+  background: var(--vscode-button-background, #0e639c) !important;
+  color: var(--vscode-button-foreground, #ffffff) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"][data-variant="primary"]:hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-primary-btn:hover:not(:disabled) {
+  background: var(--vscode-button-hoverBackground, #1177bb) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"][data-variant="secondary"] {
+  border: 1px solid var(--vscode-button-border, var(--vscode-panel-border, transparent)) !important;
+  background: var(--vscode-button-secondaryBackground, transparent) !important;
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"][data-variant="secondary"]:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"][data-variant="ghost"],
+html[data-theme="altru-coder-vscode"] [data-component="icon-button"],
+html[data-theme="altru-coder-vscode"] .history-tab-btn,
+html[data-theme="altru-coder-vscode"] .message-list-load-older,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-action-btn,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-back-link {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--vscode-foreground, inherit) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="button"][data-variant="ghost"]:hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] [data-component="icon-button"]:hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] .history-tab-btn:hover,
+html[data-theme="altru-coder-vscode"] .message-list-load-older:hover,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-action-btn:hover,
+html[data-theme="altru-coder-vscode"] .altru-coder-notifications-back-link:hover {
+  background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .history-tab-btn--active,
+html[data-theme="altru-coder-vscode"] .am-local-item-active,
+html[data-theme="altru-coder-vscode"] .am-worktree-item-active,
+html[data-theme="altru-coder-vscode"] .am-item-active,
+html[data-theme="altru-coder-vscode"] .am-tab-active,
+html[data-theme="altru-coder-vscode"] .am-tab-diff-btn-active,
+html[data-theme="altru-coder-vscode"] .altru-coder-claw-convitem-active {
+  border-color: var(--vscode-focusBorder, #007fd4) !important;
+  background: var(--vscode-list-activeSelectionBackground, var(--vscode-list-hoverBackground)) !important;
+  color: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="question-dock"],
+html[data-theme="altru-coder-vscode"] [data-component="dock-prompt"][data-kind="permission"] {
+  background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="dock-prompt"][data-kind="permission"] [data-dock-surface],
+html[data-theme="altru-coder-vscode"] [data-component="question-dock"] [data-slot="question-option"],
+html[data-theme="altru-coder-vscode"] [data-component="question-dock"] [data-slot="custom-input-form"],
+html[data-theme="altru-coder-vscode"] [data-component="question-dock"] [data-slot="review-item"],
+html[data-theme="altru-coder-vscode"] [data-component="dock-prompt"][data-kind="permission"] [data-slot="permission-command"],
+html[data-theme="altru-coder-vscode"] [data-component="dock-prompt"][data-kind="permission"] [data-slot="permission-diff"],
+html[data-theme="altru-coder-vscode"] [data-component="dock-prompt"][data-kind="permission"] [data-slot="permission-diff-header"],
+html[data-theme="altru-coder-vscode"] [data-component="dock-prompt"][data-kind="permission"] [data-slot="permission-rules-section"] {
+  background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  [data-component="question-dock"]
+  [data-slot="question-option"]:hover:not([data-picked="true"]),
+html[data-theme="altru-coder-vscode"]
+  [data-component="dock-prompt"][data-kind="permission"]
+  [data-slot="permission-rule-row"]:hover,
+html[data-theme="altru-coder-vscode"]
+  [data-component="dock-prompt"][data-kind="permission"]
+  [data-slot="permission-rules-header"]:hover {
+  background: var(--vscode-list-hoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input,
+html[data-theme="altru-coder-vscode"] .prompt-input-highlight-overlay {
+  border-color: transparent !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-preview,
+html[data-theme="altru-coder-vscode"] .model-selector-search-wrapper,
+html[data-theme="altru-coder-vscode"] .model-selector-list,
+html[data-theme="altru-coder-vscode"] .mode-switcher-list,
+html[data-theme="altru-coder-vscode"] .thinking-selector-list {
+  background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item:hover,
+html[data-theme="altru-coder-vscode"] .model-selector-item.selected,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item:hover,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item:focus-visible,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item:hover {
+  background: var(--vscode-list-hoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item.active,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item.selected,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item.selected {
+  border-color: var(--vscode-focusBorder, #007fd4) !important;
+  background: var(--vscode-list-activeSelectionBackground, var(--vscode-list-hoverBackground)) !important;
+  color: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground)) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger {
+  border-color: var(--vscode-button-border, var(--vscode-panel-border, transparent)) !important;
+  background: var(--vscode-button-secondaryBackground, transparent) !important;
+  background-image: none !important;
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger:hover {
+  border-color: var(--vscode-focusBorder, var(--vscode-panel-border)) !important;
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-indexing-button,
+html[data-theme="altru-coder-vscode"] .prompt-auto-approve-button {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-indexing-button:hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] .prompt-auto-approve-button:hover:not(:disabled) {
+  background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-auto-approve-button--workspace::after,
+html[data-theme="altru-coder-vscode"] .prompt-auto-approve-button--bypass::after {
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-auto-approve-popover {
+  border-color: var(--vscode-widget-border, var(--vscode-panel-border)) !important;
+  background: var(--vscode-dropdown-background, var(--vscode-editorWidget-background)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors [data-component="button"]:has(.model-selector-trigger-label),
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors [data-component="button"]:has(.thinking-selector-trigger-label),
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors .mode-switcher-trigger,
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.model-selector-trigger-label),
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.thinking-selector-trigger-label),
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger {
+  min-height: 24px !important;
+  max-width: 178px !important;
+  padding: 2px 7px !important;
+  border: 1px solid transparent !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--vscode-foreground, inherit) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  .prompt-input-hint-selectors
+  [data-component="button"]:has(.model-selector-trigger-label):hover:not(:disabled),
+html[data-theme="altru-coder-vscode"]
+  .prompt-input-hint-selectors
+  [data-component="button"]:has(.thinking-selector-trigger-label):hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors .mode-switcher-trigger:hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.model-selector-trigger-label):hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.thinking-selector-trigger-label):hover:not(:disabled),
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger:hover:not(:disabled) {
+  border-color: var(--vscode-toolbar-hoverOutline, var(--vscode-panel-border, transparent)) !important;
+  background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"]
+  .prompt-input-hint-selectors
+  [data-component="button"]:has(.model-selector-trigger-label)[aria-expanded="true"],
+html[data-theme="altru-coder-vscode"]
+  .prompt-input-hint-selectors
+  [data-component="button"]:has(.thinking-selector-trigger-label)[aria-expanded="true"],
+html[data-theme="altru-coder-vscode"] .prompt-input-hint-selectors .mode-switcher-trigger[aria-expanded="true"],
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.model-selector-trigger-label)[aria-expanded="true"],
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.thinking-selector-trigger-label)[aria-expanded="true"],
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger[aria-expanded="true"] {
+  border-color: var(--vscode-focusBorder, var(--vscode-panel-border)) !important;
+  background: var(--vscode-toolbar-activeBackground, var(--vscode-list-activeSelectionBackground)) !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-trigger-label,
+html[data-theme="altru-coder-vscode"] .thinking-selector-trigger-label,
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger-label {
+  color: inherit !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-trigger-chevron,
+html[data-theme="altru-coder-vscode"] [data-component="button"]:has(.thinking-selector-trigger-label) svg,
+html[data-theme="altru-coder-vscode"] .mode-switcher-trigger svg {
+  color: var(--vscode-descriptionForeground, currentColor) !important;
+  opacity: 0.85 !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"]:has(.model-selector-body),
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"]:has(.mode-switcher-list),
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"]:has(.thinking-selector-list) {
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, #3a3a3a)) !important;
+  border-radius: 4px !important;
+  background: var(--vscode-dropdown-background, var(--vscode-editorWidget-background, #252526)) !important;
+  background-image: none !important;
+  color: var(--vscode-dropdown-foreground, var(--vscode-foreground)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden !important;
+}
+
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"]:has(.model-selector-body) [data-slot="popover-body"],
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"]:has(.mode-switcher-list) [data-slot="popover-body"],
+html[data-theme="altru-coder-vscode"] [data-component="popover-content"]:has(.thinking-selector-list) [data-slot="popover-body"] {
+  padding: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-search-wrapper {
+  padding: 6px !important;
+  border-bottom: 1px solid var(--vscode-panel-border, #3a3a3a) !important;
+  background: var(--vscode-dropdown-background, var(--vscode-editorWidget-background)) !important;
+  background-image: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-search {
+  min-height: 26px !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-list,
+html[data-theme="altru-coder-vscode"] .mode-switcher-list,
+html[data-theme="altru-coder-vscode"] .thinking-selector-list {
+  padding: 4px !important;
+  border-radius: 0 !important;
+  background: var(--vscode-dropdown-background, var(--vscode-editorWidget-background)) !important;
+  background-image: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item {
+  min-height: 26px !important;
+  margin: 0 !important;
+  padding: 5px 7px !important;
+  border: 1px solid transparent !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--vscode-dropdown-foreground, var(--vscode-foreground)) !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .mode-switcher-item {
+  gap: 1px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item:hover,
+html[data-theme="altru-coder-vscode"] .model-selector-item.selected,
+html[data-theme="altru-coder-vscode"] .model-selector-item.keyboard-focused,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item:hover,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item:focus-visible,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item:hover,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item:focus-visible {
+  border-color: transparent !important;
+  background: var(--vscode-list-hoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
+  background-image: none !important;
+  outline: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item.active,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item.selected,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item.selected {
+  border-color: var(--vscode-focusBorder, #007fd4) !important;
+  background: var(--vscode-list-activeSelectionBackground, var(--vscode-list-hoverBackground)) !important;
+  background-image: none !important;
+  color: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground)) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .model-selector-item-name,
+html[data-theme="altru-coder-vscode"] .mode-switcher-item-name,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item-name {
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="altru-coder-vscode"] .mode-switcher-item.selected .mode-switcher-item-name,
+html[data-theme="altru-coder-vscode"] .thinking-selector-item.selected .thinking-selector-item-name {
+  font-weight: 500 !important;
+}
+
+html[data-theme="altru-coder-vscode"] .mode-switcher-item-desc,
+html[data-theme="altru-coder-vscode"] .model-selector-group-label,
+html[data-theme="altru-coder-vscode"] .model-selector-item-provider-tag {
+  color: var(--vscode-descriptionForeground, inherit) !important;
+  text-shadow: none !important;
 }

@@ -4,7 +4,8 @@ import os from "os"
 import path from "path"
 import { Config } from "@/config/config"
 import { Shell } from "../../src/shell/shell"
-import { BashTool } from "../../src/tool/bash"
+import { BashBackground, BashTool } from "../../src/tool/bash"
+import { TerminalTool } from "../../src/altrucoder/tool/terminal"
 import { Instance } from "../../src/project/instance"
 import { Filesystem } from "@/util/filesystem"
 import { tmpdir } from "../fixture/fixture"
@@ -31,6 +32,10 @@ function initBash() {
   return runtime.runPromise(BashTool.pipe(Effect.flatMap((info) => info.init())))
 }
 
+function initTerminal() {
+  return runtime.runPromise(TerminalTool.pipe(Effect.flatMap((info) => info.init())))
+}
+
 const ctx = {
   sessionID: SessionID.make("ses_test"),
   messageID: MessageID.make(""),
@@ -41,6 +46,7 @@ const ctx = {
   metadata: () => Effect.void,
   ask: () => Effect.void,
 }
+const bgLimits = { maxLines: Truncate.MAX_LINES, maxBytes: Truncate.MAX_BYTES }
 
 Shell.acceptable.reset()
 const quote = (text: string) => `"${text}"`
@@ -1153,23 +1159,27 @@ describe("tool.bash abort", () => {
         const command = js(
           "console.log(String.fromCharCode(114,101,97,100,121,32,105,110,32,49,32,109,115)); setInterval(() => {}, 1000)",
         )
-        const result = await Effect.runPromise(
-          bash.execute(
-            {
-              command,
-              description: "Start ready background command",
-              background: true,
-              timeout: 5_000,
-            },
-            ctx,
-          ),
-        )
-        expect(result.output).toContain("ready in 1 ms")
-        expect(result.output).toContain("background command is still running")
-        expect(result.metadata.exit).toBe(null)
-        expect(result.metadata.background).toBe(true)
-        expect(result.metadata.running).toBe(true)
-        expect(result.metadata.ready).toBe(true)
+        try {
+          const result = await Effect.runPromise(
+            bash.execute(
+              {
+                command,
+                description: "Start ready background command",
+                background: true,
+                timeout: 5_000,
+              },
+              ctx,
+            ),
+          )
+          expect(result.output).toContain("ready in 1 ms")
+          expect(result.output).toContain("background command is still running")
+          expect(result.metadata.exit).toBe(null)
+          expect(result.metadata.background).toBe(true)
+          expect(result.metadata.running).toBe(true)
+          expect(result.metadata.ready).toBe(true)
+        } finally {
+          await BashBackground.clean(bgLimits, ctx.sessionID)
+        }
       },
     })
   }, 15_000)
@@ -1180,26 +1190,162 @@ describe("tool.bash abort", () => {
       fn: async () => {
         const bash = await initBash()
         const command = js("console.log(String.fromCharCode(98,111,111,116,105,110,103)); setInterval(() => {}, 1000)")
+        try {
+          const result = await Effect.runPromise(
+            bash.execute(
+              {
+                command,
+                description: "Start slow background command",
+                background: true,
+                timeout: 3_000,
+              },
+              ctx,
+            ),
+          )
+          expect(result.output).toContain("booting")
+          expect(result.output).toContain("background command is still running after monitor timeout")
+          expect(result.metadata.exit).toBe(null)
+          expect(result.metadata.background).toBe(true)
+          expect(result.metadata.running).toBe(true)
+          expect(result.metadata.ready).toBe(false)
+        } finally {
+          await BashBackground.clean(bgLimits, ctx.sessionID)
+        }
+      },
+    })
+  }, 15_000)
+
+  test("terminal tool reads retained completed background output", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await initBash()
+        const terminal = await initTerminal()
         const result = await Effect.runPromise(
           bash.execute(
             {
-              command,
-              description: "Start slow background command",
+              command: js("console.log(String.fromCharCode(100,111,110,101,45,98,97,99,107,103,114,111,117,110,100))"),
+              description: "Run completed background command",
               background: true,
-              timeout: 3_000,
+              timeout: 5_000,
             },
             ctx,
           ),
         )
-        expect(result.output).toContain("booting")
-        expect(result.output).toContain("background command is still running after monitor timeout")
-        expect(result.metadata.exit).toBe(null)
-        expect(result.metadata.background).toBe(true)
-        expect(result.metadata.running).toBe(true)
-        expect(result.metadata.ready).toBe(false)
+        const id = (result.metadata as { jobID?: string }).jobID
+        expect(id).toBeDefined()
+        if (!id) throw new Error("expected background job id")
+
+        try {
+          const read = await Effect.runPromise(terminal.execute({ mode: "read", jobID: id }, ctx))
+          expect(read.output).toContain("done-background")
+          expect(read.metadata.jobID).toBe(id)
+          expect(read.metadata.running).toBe(false)
+
+          const listed = await Effect.runPromise(terminal.execute({ mode: "list" }, ctx))
+          expect(listed.output).toContain(id)
+        } finally {
+          await BashBackground.clean(bgLimits, ctx.sessionID)
+        }
       },
     })
   }, 15_000)
+
+  test("terminal tool writes stdin to a running background job", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await initBash()
+        const terminal = await initTerminal()
+        const command = js(
+          "console.log(String.fromCharCode(114,101,97,100,121,32,105,110,32,49,32,109,115)); process.stdin.setEncoding(String.fromCharCode(117,116,102,56)); process.stdin.on(String.fromCharCode(100,97,116,97), (data) => process.stdout.write(String.fromCharCode(101,99,104,111,58) + data)); setInterval(() => {}, 1000)",
+        )
+        try {
+          const result = await Effect.runPromise(
+            bash.execute(
+              {
+                command,
+                description: "Start writable background command",
+                background: true,
+                timeout: 5_000,
+              },
+              ctx,
+            ),
+          )
+          const id = (result.metadata as { jobID?: string }).jobID
+          expect(id).toBeDefined()
+          if (!id) throw new Error("expected background job id")
+          expect(result.metadata.running).toBe(true)
+
+          const write = await Effect.runPromise(
+            terminal.execute({ mode: "write", jobID: id, input: "ping", newline: true }, ctx),
+          )
+          expect(write.metadata.jobID).toBe(id)
+          expect(write.metadata.written).toBe(5)
+
+          await new Promise((resolve) => setTimeout(resolve, 300))
+          const read = await Effect.runPromise(terminal.execute({ mode: "read", jobID: id }, ctx))
+          expect(read.output).toContain("echo:ping")
+        } finally {
+          await BashBackground.clean(bgLimits, ctx.sessionID)
+        }
+      },
+    })
+  }, 15_000)
+
+  test("terminal tool lists and cleans multiple running background jobs", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await initBash()
+        const terminal = await initTerminal()
+        const command = js(
+          "console.log(String.fromCharCode(114,101,97,100,121,32,105,110,32,49,32,109,115)); setInterval(() => {}, 1000)",
+        )
+        try {
+          const first = await Effect.runPromise(
+            bash.execute(
+              {
+                command,
+                description: "Start first terminal job",
+                background: true,
+                timeout: 5_000,
+              },
+              ctx,
+            ),
+          )
+          const second = await Effect.runPromise(
+            bash.execute(
+              {
+                command,
+                description: "Start second terminal job",
+                background: true,
+                timeout: 5_000,
+              },
+              ctx,
+            ),
+          )
+          const firstID = (first.metadata as { jobID?: string }).jobID
+          const secondID = (second.metadata as { jobID?: string }).jobID
+          expect(firstID).toBeDefined()
+          expect(secondID).toBeDefined()
+          if (!firstID || !secondID) throw new Error("expected background job ids")
+
+          const listed = await Effect.runPromise(terminal.execute({ mode: "list" }, ctx))
+          expect(listed.metadata.count).toBeGreaterThanOrEqual(2)
+          expect(listed.output).toContain(firstID)
+          expect(listed.output).toContain(secondID)
+
+          const cleaned = await Effect.runPromise(terminal.execute({ mode: "clean" }, ctx))
+          expect(cleaned.metadata.count).toBeGreaterThanOrEqual(2)
+          const empty = await Effect.runPromise(terminal.execute({ mode: "list" }, ctx))
+          expect(empty.output).toContain("No background terminal jobs")
+        } finally {
+          await BashBackground.clean(bgLimits, ctx.sessionID)
+        }
+      },
+    })
+  }, 20_000)
   // altrucoder_change end
 })
 

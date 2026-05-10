@@ -473,7 +473,8 @@ export const dict = {
   "error.chain.didYouMean": "もしかして: {{suggestions}}",
   "error.chain.modelNotFound": "モデルが見つかりません: {{provider}}/{{model}}",
   "error.chain.checkConfig": "config (opencode.json) のプロバイダー/モデル名を確認してください",
-  "error.chain.mcpFailed": 'MCPサーバー "{{name}}" が失敗しました。注意: Altru CoderはまだMCP認証をサポートしていません。',
+  "error.chain.mcpFailed":
+    'MCPサーバー "{{name}}" が失敗しました。注意: Altru CoderはまだMCP認証をサポートしていません。',
   "error.chain.providerAuthFailed": "プロバイダー認証に失敗しました ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'プロバイダー "{{provider}}" の初期化に失敗しました。認証情報と設定を確認してください。',
@@ -776,7 +777,8 @@ export const dict = {
   "settings.indexing.altruCoderModel.title": "Altru Coderモデルプリセット",
   "settings.indexing.altruCoderModel.description": "サポートされているAltru Coderホスト型埋め込みモデルを選択します。",
   "settings.indexing.altruCoderSignIn.title": "Altru Coderへのサインインが必要です",
-  "settings.indexing.altruCoderSignIn.description": "ホスト型埋め込みを使用するにはAltru Coderにサインインしてください。",
+  "settings.indexing.altruCoderSignIn.description":
+    "ホスト型埋め込みを使用するにはAltru Coderにサインインしてください。",
   "settings.indexing.provider.title": "埋め込みプロバイダー",
   "settings.indexing.providerField.description": "プロバイダー固有の接続設定。",
   "settings.indexing.qdrantApiKey.description": "QdrantインスタンスのオプションのAPIキー。",
@@ -919,7 +921,8 @@ export const dict = {
   "settings.config.title": "{{scope}}のAltru Coder構成ファイルを開く",
   "settings.config.placeholder":
     "構成ファイルは順番にマージされます。読み込み済みとしてマークされているファイルが現在設定に影響しています。",
-  "settings.config.noWorkspace": "ローカルのAltru Coder構成ファイルを編集するには、ワークスペースフォルダーを開いてください。",
+  "settings.config.noWorkspace":
+    "ローカルのAltru Coder構成ファイルを編集するには、ワークスペースフォルダーを開いてください。",
   "settings.config.openFailed": "{{scope}}のAltru Coder構成ファイルを開けませんでした: {{message}}",
   "settings.config.source.xdg": "XDGグローバル構成",
   "settings.config.source.homeAltruCoder": "Homeの.altru-coder構成",
@@ -1146,7 +1149,8 @@ export const dict = {
   "settings.aboutAltruCoder.importSettings.invalidJson":
     "無効な JSON ファイルです。有効な設定ファイルを選択してください。",
   "settings.aboutAltruCoder.importSettings.invalidConfig": "ファイルに有効な Altru Coder の設定が含まれていません。",
-  "settings.aboutAltruCoder.importSettings.tooLarge": "ファイルが大きすぎます。設定ファイルは 1 MB 以下にしてください。",
+  "settings.aboutAltruCoder.importSettings.tooLarge":
+    "ファイルが大きすぎます。設定ファイルは 1 MB 以下にしてください。",
   "settings.aboutAltruCoder.importSettings.newerVersion":
     "このファイルはより新しいバージョンの Altru Coder からエクスポートされたものです。一部の設定が無視される場合があります。",
   "settings.aboutAltruCoder.importSettings.success":
@@ -1575,5 +1579,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

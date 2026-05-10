@@ -1,12 +1,25 @@
 import { describe, expect, it } from "bun:test"
 import * as vscode from "vscode"
-import { registerToggleAutoApprove, type AutoApproveController } from "../../src/commands/toggle-auto-approve"
+import {
+  registerToggleAutoApprove,
+  type AutoApproveController,
+  type AutoApproveMode,
+  type AutoApproveState,
+} from "../../src/commands/toggle-auto-approve"
 import { createAutoApproveBridge } from "../../src/altru-coder-provider/auto-approve"
 import type { Event, AltruCoderClient } from "@altru-coder/sdk/v2/client"
 import type { AltruCoderConnectionService } from "../../src/services/cli-backend/connection-service"
 
 type ConfigEvent = { affectsConfiguration(key: string): boolean }
-type Permission = { id: string }
+type Reply = "once" | "always" | "reject"
+type Permission = {
+  id: string
+  sessionID: string
+  permission: string
+  patterns: string[]
+  always: string[]
+  metadata: Record<string, unknown>
+}
 
 function defer<T>() {
   const state = {} as { resolve: (value: T) => void; reject: (err: unknown) => void }
@@ -17,31 +30,39 @@ function defer<T>() {
   return { promise, resolve: state.resolve, reject: state.reject }
 }
 
-function config(initial: boolean, info: Record<string, unknown> = {}) {
+function config(initial: boolean | AutoApproveMode, info: Record<string, unknown> = {}) {
   const handlers: Array<(event: ConfigEvent) => void> = []
   const updates: Array<{ key: string; value: unknown; target: unknown }> = []
   const messages: string[] = []
   const commands = new Map<string, (...args: unknown[]) => unknown>()
-  const state = { active: initial }
+  const state = { mode: typeof initial === "string" ? initial : initial ? "workspace" : "default" }
   const api = vscode as unknown as {
     workspace: {
       getConfiguration: (section?: string) => {
-        get: <T>(key: string, fallback?: T) => T | boolean
+        get: <T>(key: string, fallback?: T) => T | boolean | string
         inspect: <T>(key: string) => Record<string, unknown> | undefined
         update: (key: string, value: unknown, target: unknown) => Promise<void>
       }
       onDidChangeConfiguration: (listener: (event: ConfigEvent) => void) => { dispose(): void }
     }
-    window: { showInformationMessage: (message: string) => Promise<undefined> }
+    window: {
+      showInformationMessage: (message: string) => Promise<undefined>
+      showWarningMessage: (message: string) => Promise<undefined>
+    }
     commands: { registerCommand: (command: string, callback: (...args: unknown[]) => unknown) => { dispose(): void } }
   }
 
   api.workspace.getConfiguration = () => ({
-    get: (_key, fallback) => state.active ?? fallback,
+    get: (key, fallback) => {
+      if (key === "mode") return state.mode
+      if (key === "enabled") return state.mode !== "default"
+      return fallback as string | boolean | undefined
+    },
     inspect: () => info,
     update: async (key, value, target) => {
       updates.push({ key, value, target })
-      state.active = Boolean(value)
+      if (key === "mode" && typeof value === "string") state.mode = value as AutoApproveMode
+      if (key === "enabled" && typeof value === "boolean" && state.mode === "default" && value) state.mode = "workspace"
     },
   })
   api.workspace.onDidChangeConfiguration = (listener) => {
@@ -57,6 +78,10 @@ function config(initial: boolean, info: Record<string, unknown> = {}) {
     messages.push(message)
     return undefined
   }
+  api.window.showWarningMessage = async (message) => {
+    messages.push(message)
+    return undefined
+  }
   api.commands.registerCommand = (command, callback) => {
     commands.set(command, callback)
     return { dispose: () => undefined }
@@ -67,9 +92,12 @@ function config(initial: boolean, info: Record<string, unknown> = {}) {
     messages,
     commands,
     set active(value: boolean) {
-      state.active = value
+      state.mode = value ? "workspace" : "default"
     },
-    emit(key = "altru-coder.new.autoApprove.enabled") {
+    set mode(value: AutoApproveMode) {
+      state.mode = value
+    },
+    emit(key = "altru-coder.new.autoApprove.mode") {
       for (const handler of handlers) handler({ affectsConfiguration: (name) => name === key })
     },
   }
@@ -105,51 +133,69 @@ function connection(client: AltruCoderClient | null) {
 
 function client(opts: {
   list?: (dir: string) => Promise<{ data: Permission[] }>
-  reply?: (args: { requestID: string; directory: string; reply: "once" }) => Promise<unknown>
+  reply?: (args: { requestID: string; directory: string; reply: Reply }) => Promise<unknown>
+  allow?: (args: { requestID?: string; directory: string; enable: boolean }) => Promise<unknown>
 }) {
   return {
     permission: {
       list: async (args: { directory: string }) => opts.list?.(args.directory) ?? { data: [] },
-      reply: async (args: { requestID: string; directory: string; reply: "once" }) => opts.reply?.(args),
+      reply: async (args: { requestID: string; directory: string; reply: Reply }) => opts.reply?.(args),
+      allowEverything: async (args: { requestID?: string; directory: string; enable: boolean }) => opts.allow?.(args),
     },
   } as unknown as AltruCoderClient
 }
 
-function asked(id: string, sessionID = "ses_1") {
-  return { type: "permission.asked", properties: { id, sessionID } } as Event
+function perm(id: string, permission = "bash", patterns = ["*"], sessionID = "ses_1"): Permission {
+  return { id, sessionID, permission, patterns, always: patterns, metadata: {} }
+}
+
+function asked(id: string, sessionID = "ses_1", permission = "bash", patterns = ["*"]) {
+  return { type: "permission.asked", properties: perm(id, permission, patterns, sessionID) } as Event
 }
 
 describe("registerToggleAutoApprove", () => {
   it("restores persisted state, follows config changes, and persists toggles to the closest configured scope", async () => {
     const env = config(true, { workspaceValue: false })
     const replies: unknown[] = []
-    const conn = connection(client({ reply: async (args) => replies.push(args) }))
+    const bypass: unknown[] = []
+    const conn = connection(
+      client({ reply: async (args) => replies.push(args), allow: async (args) => bypass.push(args) }),
+    )
     const ctrl = registerToggleAutoApprove(
       context(),
       conn.svc,
       (session) => `/repo/${session}`,
       () => ["/repo"],
     )
-    const changes: boolean[] = []
-    ctrl.onChange((active) => changes.push(active))
+    const changes: AutoApproveState[] = []
+    ctrl.onChange((state) => changes.push(state))
 
     expect(ctrl.active()).toBe(true)
+    expect(ctrl.mode()).toBe("workspace")
     conn.emit(asked("perm_1"))
-    expect(replies).toEqual([{ requestID: "perm_1", directory: "/repo/ses_1", reply: "once" }])
+    expect(replies).toEqual([{ requestID: "perm_1", directory: "/repo/ses_1", reply: "always" }])
 
     env.active = false
     env.emit()
     expect(ctrl.active()).toBe(false)
-    expect(changes).toEqual([false])
+    expect(changes).toEqual([{ active: false, mode: "default" }])
 
     conn.emit(asked("perm_2"))
     expect(replies).toHaveLength(1)
 
     await ctrl.toggle()
     expect(ctrl.active()).toBe(true)
-    expect(changes).toEqual([false, true])
-    expect(env.updates).toEqual([{ key: "enabled", value: true, target: vscode.ConfigurationTarget.Workspace }])
-    expect(env.messages).toContain("Auto-approve enabled")
+    expect(ctrl.mode()).toBe("workspace")
+    expect(changes).toEqual([
+      { active: false, mode: "default" },
+      { active: true, mode: "workspace" },
+    ])
+    expect(env.updates).toEqual([
+      { key: "mode", value: "workspace", target: vscode.ConfigurationTarget.Workspace },
+      { key: "enabled", value: true, target: vscode.ConfigurationTarget.Workspace },
+    ])
+    expect(bypass).toContainEqual({ directory: "/repo", enable: false })
+    expect(env.messages).toContain("Auto-approve inside workspace enabled")
   })
 
   it("cancels pending permission drains when disabled during an enable generation", async () => {
@@ -166,7 +212,7 @@ describe("registerToggleAutoApprove", () => {
             started.resolve()
             return gate.promise
           }
-          return { data: [{ id: "perm_other" }] }
+          return { data: [perm("perm_other")] }
         },
         reply: async (args) => replies.push(args),
       }),
@@ -181,12 +227,38 @@ describe("registerToggleAutoApprove", () => {
     const enable = ctrl.toggle()
     await started.promise
     const disable = ctrl.toggle()
-    gate.resolve({ data: [{ id: "perm_1" }] })
+    gate.resolve({ data: [perm("perm_1")] })
     await Promise.all([enable, disable])
 
     expect(ctrl.active()).toBe(false)
     expect(dirs).toEqual(["/one"])
     expect(replies).toEqual([])
+  })
+
+  it("uses bypass mode for unrestricted approval and leaves outside-folder prompts alone in workspace mode", async () => {
+    config(false)
+    const replies: unknown[] = []
+    const bypass: unknown[] = []
+    const conn = connection(
+      client({ reply: async (args) => replies.push(args), allow: async (args) => bypass.push(args) }),
+    )
+    const ctrl = registerToggleAutoApprove(
+      context(),
+      conn.svc,
+      (session) => `/repo/${session}`,
+      () => ["/repo"],
+    )
+
+    await ctrl.setMode("workspace")
+    conn.emit(asked("outside", "ses_1", "external_directory", ["C:/outside/*"]))
+    expect(replies).toEqual([])
+
+    await ctrl.setMode("bypass")
+    expect(ctrl.mode()).toBe("bypass")
+    expect(bypass).toContainEqual({ directory: "/repo", enable: true })
+
+    conn.emit(asked("outside", "ses_1", "external_directory", ["C:/outside/*"]))
+    expect(bypass).toContainEqual({ requestID: "outside", directory: "/repo/ses_1", enable: true })
   })
 })
 
@@ -194,14 +266,20 @@ describe("createAutoApproveBridge", () => {
   it("syncs initial state, consumes toggle requests, forwards unrelated messages, and disposes listeners", async () => {
     const posts: unknown[] = []
     const forwarded: unknown[] = []
-    const listeners = new Set<(active: boolean) => void>()
-    const state = { active: false }
+    const listeners = new Set<(state: AutoApproveState) => void>()
+    const state = { mode: "default" as AutoApproveMode }
     const ctrl: AutoApproveController = {
-      active: () => state.active,
+      active: () => state.mode !== "default",
+      mode: () => state.mode,
+      setMode: async (mode) => {
+        state.mode = mode
+        for (const listener of listeners) listener({ active: state.mode !== "default", mode: state.mode })
+        return state.mode
+      },
       toggle: async () => {
-        state.active = !state.active
-        for (const listener of listeners) listener(state.active)
-        return state.active
+        state.mode = state.mode === "default" ? "workspace" : "default"
+        for (const listener of listeners) listener({ active: state.mode !== "default", mode: state.mode })
+        return state.mode !== "default"
       },
       onChange(listener) {
         listeners.add(listener)
@@ -220,18 +298,20 @@ describe("createAutoApproveBridge", () => {
     expect(await bridge.handle({ type: "webviewReady" })).toEqual({ type: "forwarded" })
     expect(await bridge.handle({ type: "requestAutoApproveState" })).toBeNull()
     expect(await bridge.handle({ type: "toggleAutoApprove" })).toBeNull()
+    expect(await bridge.handle({ type: "setAutoApproveMode", mode: "bypass" })).toBeNull()
     expect(await bridge.handle({ type: "other" })).toEqual({ type: "forwarded" })
 
     expect(posts).toEqual([
-      { type: "autoApproveState", active: false },
-      { type: "autoApproveState", active: false },
-      { type: "autoApproveState", active: true },
+      { type: "autoApproveState", active: false, mode: "default" },
+      { type: "autoApproveState", active: false, mode: "default" },
+      { type: "autoApproveState", active: true, mode: "workspace" },
+      { type: "autoApproveState", active: true, mode: "bypass" },
     ])
     expect(forwarded).toEqual([{ type: "webviewReady" }, { type: "other" }])
 
     bridge.dispose()
-    state.active = false
-    for (const listener of listeners) listener(state.active)
-    expect(posts).toHaveLength(3)
+    state.mode = "default"
+    for (const listener of listeners) listener({ active: false, mode: state.mode })
+    expect(posts).toHaveLength(4)
   })
 })

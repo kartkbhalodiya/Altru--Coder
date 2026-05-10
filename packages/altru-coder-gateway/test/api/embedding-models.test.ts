@@ -1,5 +1,8 @@
 import { describe, expect, mock, test } from "bun:test"
-import { EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG, fetchAltruCoderEmbeddingModelCatalog } from "../../src/api/embedding-models"
+import {
+  EMPTY_ALTRU_CODER_EMBEDDING_MODEL_CATALOG,
+  fetchAltruCoderEmbeddingModelCatalog,
+} from "../../src/api/embedding-models"
 
 describe("fetchAltruCoderEmbeddingModelCatalog", () => {
   test("fetches catalog from Altru Coder Gateway", async () => {

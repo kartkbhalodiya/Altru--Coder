@@ -709,7 +709,11 @@ export const layer: Layer.Layer<
               SessionRetry.policy({
                 parse,
                 // altrucoder_change start
-                ...AltruCoderSessionProcessor.retryOpts({ sessionID: ctx.sessionID, abort: ac.signal, set: status.set }),
+                ...AltruCoderSessionProcessor.retryOpts({
+                  sessionID: ctx.sessionID,
+                  abort: ac.signal,
+                  set: status.set,
+                }),
                 // altrucoder_change end
                 set: (info) =>
                   status.set(ctx.sessionID, {

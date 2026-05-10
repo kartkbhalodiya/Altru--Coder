@@ -13,12 +13,7 @@ export class AltruCoderEmbedder implements IEmbedder {
   private readonly embedder: OpenAICompatibleEmbedder
   private readonly model: string
 
-  constructor(input: {
-    apiKey: string
-    baseUrl?: string
-    organizationId?: string
-    modelId?: string
-  }) {
+  constructor(input: { apiKey: string; baseUrl?: string; organizationId?: string; modelId?: string }) {
     if (!input.apiKey) throw new Error("Altru Coder API key is required for embedding.")
 
     if (!input.modelId) throw new Error("Altru Coder embedding model is required.")

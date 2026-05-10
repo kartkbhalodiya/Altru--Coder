@@ -133,7 +133,9 @@ Actual description here.`
       const workflows = await withHome(tmp.path, () => WorkflowsMigrator.discoverWorkflows(path.join(tmp.path, "repo")))
 
       expect(
-        workflows.some((w) => w.source === "global" && w.path.includes(path.join(".altru-coder", "workflows", "global.md"))),
+        workflows.some(
+          (w) => w.source === "global" && w.path.includes(path.join(".altru-coder", "workflows", "global.md")),
+        ),
       ).toBe(true)
     })
   })

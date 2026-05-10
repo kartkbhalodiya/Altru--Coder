@@ -84,21 +84,25 @@ describe("indexing feature detection", () => {
   it("requires experimental.semantic_indexing when indexing plugin is present", () => {
     expect(configFeatures({ plugin: ["altru-coder-indexing"] }).indexing).toBe(false)
     expect(configFeatures({ plugin: ["altru-coder-indexing"], experimental: {} }).indexing).toBe(false)
-    expect(configFeatures({ plugin: ["altru-coder-indexing"], experimental: { semantic_indexing: false } }).indexing).toBe(
-      false,
-    )
+    expect(
+      configFeatures({ plugin: ["altru-coder-indexing"], experimental: { semantic_indexing: false } }).indexing,
+    ).toBe(false)
   })
 
   it("detects supported indexing plugin specifiers when experimental.semantic_indexing is true", () => {
-    expect(configFeatures({ plugin: ["altru-coder-indexing"], experimental: { semantic_indexing: true } }).indexing).toBe(true)
+    expect(
+      configFeatures({ plugin: ["altru-coder-indexing"], experimental: { semantic_indexing: true } }).indexing,
+    ).toBe(true)
     expect(
       configFeatures({ plugin: ["altru-coder-indexing@1.2.3"], experimental: { semantic_indexing: true } }).indexing,
     ).toBe(true)
     expect(
-      configFeatures({ plugin: ["@altru-coder/altru-coder-indexing"], experimental: { semantic_indexing: true } }).indexing,
+      configFeatures({ plugin: ["@altru-coder/altru-coder-indexing"], experimental: { semantic_indexing: true } })
+        .indexing,
     ).toBe(true)
     expect(
-      configFeatures({ plugin: ["@altru-coder/altru-coder-indexing@1.2.3"], experimental: { semantic_indexing: true } }).indexing,
+      configFeatures({ plugin: ["@altru-coder/altru-coder-indexing@1.2.3"], experimental: { semantic_indexing: true } })
+        .indexing,
     ).toBe(true)
     expect(
       configFeatures({

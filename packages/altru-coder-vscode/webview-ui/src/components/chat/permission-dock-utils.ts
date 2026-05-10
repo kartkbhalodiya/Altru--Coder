@@ -42,6 +42,7 @@ export const TOOL_LABEL_KEYS: Record<string, string> = {
   task: "ui.permission.toolLabel.task",
   skill: "ui.permission.toolLabel.skill",
   lsp: "ui.permission.toolLabel.lsp",
+  terminal: "ui.permission.toolLabel.terminal",
 }
 
 export type PatternDescription = { kind: "single"; text: string } | { kind: "multi"; title: string; paths: string[] }

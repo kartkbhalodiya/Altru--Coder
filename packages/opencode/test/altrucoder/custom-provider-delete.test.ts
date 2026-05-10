@@ -196,10 +196,7 @@ describe("Config.updateGlobal — custom provider save without instance context"
           },
         },
       }
-      const result = await Config.updateGlobal(
-        config,
-        { dispose: false, invalidate: false },
-      )
+      const result = await Config.updateGlobal(config, { dispose: false, invalidate: false })
 
       expect(result.provider?.myprovider).toBeDefined()
       const text = await fs.readFile(path.join(tmp.path, "altru-coder.jsonc"), "utf8")

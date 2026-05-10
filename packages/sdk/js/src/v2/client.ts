@@ -43,7 +43,9 @@ function rewrite(request: Request, values: { directory?: string; workspace?: str
   return next
 }
 
-export function createAltruCoderClient(config?: Config & { directory?: string; experimental_workspaceID?: string }) {
+export function createAltruCoderClient(
+  config?: Config & { directory?: string; experimental_workspaceID?: string; experimentalApi?: boolean },
+) {
   if (!config?.fetch) {
     const customFetch: any = (req: any) => {
       // Pass duplex in the init arg so it survives VS Code's proxy-agent
@@ -57,6 +59,13 @@ export function createAltruCoderClient(config?: Config & { directory?: string; e
     config = {
       ...config,
       fetch: customFetch,
+    }
+  }
+
+  if (config?.experimentalApi !== false) {
+    config.headers = {
+      ...config.headers,
+      "x-altru-coder-experimental-api": "true",
     }
   }
 

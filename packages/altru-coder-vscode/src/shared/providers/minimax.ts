@@ -1,5 +1,5 @@
-import type { ProviderPreset } from './types'
-import { ANTHROPIC_PROVIDER_PACKAGE } from '../provider-model'
+import type { ProviderPreset } from "./types"
+import { ANTHROPIC_PROVIDER_PACKAGE } from "../provider-model"
 
 export const MinimaxPreset: ProviderPreset = {
   id: "minimax",

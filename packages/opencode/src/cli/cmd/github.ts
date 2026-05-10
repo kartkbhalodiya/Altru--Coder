@@ -366,7 +366,9 @@ export const GithubInstallCommand = cmd({
 
             async function getInstallation() {
               // altrucoder_change start - updated to new endpoint
-              return await fetch(`https://api.altru-coder.ai/api/integrations/github/check-installation?owner=${app.owner}`)
+              return await fetch(
+                `https://api.altru-coder.ai/api/integrations/github/check-installation?owner=${app.owner}`,
+              )
                 .then((res) => res.json())
                 .then((data) => data.installation)
               // altrucoder_change end

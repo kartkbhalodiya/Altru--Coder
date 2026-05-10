@@ -15,7 +15,15 @@ export namespace AltruCoderPaths {
     const home = os.homedir()
     switch (process.platform) {
       case "darwin":
-        return path.join(home, "Library", "Application Support", "Code", "User", "globalStorage", "altrucoder.altru-coder")
+        return path.join(
+          home,
+          "Library",
+          "Application Support",
+          "Code",
+          "User",
+          "globalStorage",
+          "altrucoder.altru-coder",
+        )
       case "win32":
         return path.join(
           process.env.APPDATA || path.join(home, "AppData", "Roaming"),

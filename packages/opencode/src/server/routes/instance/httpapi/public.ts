@@ -173,6 +173,28 @@ function matchLegacyOpenApi(input: Record<string, unknown>) {
           },
         }
       }
+      // altrucoder_change start - raw experimental thread stream is also SSE
+      if (path === "/experimental/thread/{sessionID}/subscribe" && method === "get") {
+        operation.responses!["200"] = {
+          description: "Thread event stream",
+          content: {
+            "text/event-stream": {
+              schema: {
+                type: "object",
+                properties: {
+                  sessionID: { type: "string" },
+                  directory: { type: "string" },
+                  project: { type: "string" },
+                  workspace: { type: "string" },
+                  payload: {},
+                },
+                required: ["sessionID", "payload"],
+              },
+            },
+          },
+        }
+      }
+      // altrucoder_change end
       if (!isInstanceRoute) continue
       operation.parameters = [
         ...InstanceQueryParameters,

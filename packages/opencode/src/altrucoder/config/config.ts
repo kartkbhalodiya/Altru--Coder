@@ -52,7 +52,12 @@ export namespace AltruCoderConfig {
   export const ALL_CONFIG_DIR_SUFFIXES = [".altru-coder", ".altrucoder", ".opencode"] as const
 
   /** Path patterns for resolving altru-coder agent names from file paths. */
-  export const AGENT_PATTERNS = ["/.altru-coder/agent/", "/.altru-coder/agents/", "/.altrucoder/agent/", "/.altrucoder/agents/"] as const
+  export const AGENT_PATTERNS = [
+    "/.altru-coder/agent/",
+    "/.altru-coder/agents/",
+    "/.altrucoder/agent/",
+    "/.altrucoder/agents/",
+  ] as const
 
   /** Path patterns for resolving altru-coder command names from file paths. */
   export const COMMAND_PATTERNS = [
@@ -316,7 +321,13 @@ export namespace AltruCoderConfig {
 
   // ── Bash permission migration ────────────────────────────────────────
 
-  const GLOBAL_CONFIG_FILES = ["config.json", "altru-coder.json", "altru-coder.jsonc", "opencode.json", "opencode.jsonc"]
+  const GLOBAL_CONFIG_FILES = [
+    "config.json",
+    "altru-coder.json",
+    "altru-coder.jsonc",
+    "opencode.json",
+    "opencode.jsonc",
+  ]
 
   /**
    * Migrate bash permission for existing users before config is consumed.

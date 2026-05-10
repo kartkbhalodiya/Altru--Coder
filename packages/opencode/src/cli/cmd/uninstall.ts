@@ -293,13 +293,18 @@ async function cleanShellConfig(file: string) {
 
     if (skip) {
       skip = false
-      if (trimmed.includes(".opencode/bin") || trimmed.includes(".altru-coder/bin") || trimmed.includes("fish_add_path")) {
+      if (
+        trimmed.includes(".opencode/bin") ||
+        trimmed.includes(".altru-coder/bin") ||
+        trimmed.includes("fish_add_path")
+      ) {
         continue
       }
     }
 
     if (
-      (trimmed.startsWith("export PATH=") && (trimmed.includes(".opencode/bin") || trimmed.includes(".altru-coder/bin"))) ||
+      (trimmed.startsWith("export PATH=") &&
+        (trimmed.includes(".opencode/bin") || trimmed.includes(".altru-coder/bin"))) ||
       (trimmed.startsWith("fish_add_path") && (trimmed.includes(".opencode") || trimmed.includes(".altru-coder")))
     ) {
       continue

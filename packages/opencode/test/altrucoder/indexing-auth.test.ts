@@ -8,7 +8,9 @@ import {
 describe("Altru Coder indexing auth resolution", () => {
   test("detects auth from explicit indexing Altru Coder config", () => {
     const auth = resolveAltruCoderIndexingAuth({
-      config: { indexing: { "altru-coder": { apiKey: "idx-token", baseUrl: "https://idx.test", organizationId: "org_idx" } } },
+      config: {
+        indexing: { "altru-coder": { apiKey: "idx-token", baseUrl: "https://idx.test", organizationId: "org_idx" } },
+      },
     })
 
     expect(auth).toEqual({ apiKey: "idx-token", baseUrl: "https://idx.test", organizationId: "org_idx" })
@@ -17,16 +19,21 @@ describe("Altru Coder indexing auth resolution", () => {
 
   test("detects auth from provider config, provider state, auth storage, and env", () => {
     expect(
-      resolveAltruCoderIndexingAuth({ config: { provider: { "altru-coder": { options: { apiKey: "cfg-token" } } } } }).apiKey,
+      resolveAltruCoderIndexingAuth({ config: { provider: { "altru-coder": { options: { apiKey: "cfg-token" } } } } })
+        .apiKey,
     ).toBe("cfg-token")
     expect(resolveAltruCoderIndexingAuth({ provider: { options: { altrucoderToken: "provider-token" } } }).apiKey).toBe(
       "provider-token",
     )
-    expect(resolveAltruCoderIndexingAuth({ auth: { type: "oauth", access: "oauth-token", accountId: "org_oauth" } })).toEqual({
+    expect(
+      resolveAltruCoderIndexingAuth({ auth: { type: "oauth", access: "oauth-token", accountId: "org_oauth" } }),
+    ).toEqual({
       apiKey: "oauth-token",
       organizationId: "org_oauth",
     })
-    expect(resolveAltruCoderIndexingAuth({ env: { ALTRU_CODER_API_KEY: "env-token", ALTRU_CODER_ORG_ID: "org_env" } })).toEqual({
+    expect(
+      resolveAltruCoderIndexingAuth({ env: { ALTRU_CODER_API_KEY: "env-token", ALTRU_CODER_ORG_ID: "org_env" } }),
+    ).toEqual({
       apiKey: "env-token",
       organizationId: "org_env",
     })

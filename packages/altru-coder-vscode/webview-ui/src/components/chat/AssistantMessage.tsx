@@ -118,7 +118,7 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
   const session = useSession()
   const display = useDisplay()
   const { config } = useConfig()
-  const open = createMemo(() => config().terminal_command_display !== "collapsed")
+  const open = createMemo(() => config().terminal_command_display === "expanded")
 
   const parts = createMemo(() => {
     const stored = data.store.part?.[props.message.id]
@@ -140,6 +140,7 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
 
           // Active suggestion tool parts render the interactive SuggestBar inline
           const activeSuggestion = createMemo(() => matchToolRequest(part, "suggest", session.suggestions()))
+          const tp = createMemo(() => (part.type === "tool" ? (part as unknown as ToolPart) : undefined))
           const bash = createMemo(() => {
             if (part.type !== "tool") return
             const tool = part as unknown as ToolPart
@@ -152,7 +153,12 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
             <Show
               when={isUpstreamSuppressed || activeQuestion() || activeSuggestion() || bash() || PART_MAPPING[part.type]}
             >
-              <div data-component="tool-part-wrapper" data-part-type={part.type}>
+              <div
+                data-component="tool-part-wrapper"
+                data-part-type={part.type}
+                data-tool-name={tp()?.tool}
+                data-tool-status={tp()?.state?.status}
+              >
                 <Show
                   when={activeQuestion()}
                   fallback={

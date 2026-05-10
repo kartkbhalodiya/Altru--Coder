@@ -68,6 +68,7 @@ import { tuiHandlers } from "./handlers/tui"
 import { workspaceHandlers } from "./handlers/workspace"
 import { instanceContextLayer, instanceRouterMiddleware } from "./middleware/instance-context"
 import { workspaceRouterMiddleware, workspaceRoutingLayer } from "./middleware/workspace-routing"
+import { experimentalApiLayer } from "./middleware/experimental-api" // altrucoder_change
 import { disposeMiddleware } from "./lifecycle"
 import { memoMap } from "@opencode-ai/core/effect/memo-map"
 import * as ServerBackend from "@/server/backend"
@@ -125,6 +126,7 @@ const rawInstanceRoutes = Layer.mergeAll(ptyConnectRoute).pipe(Layer.provide(ins
 const instanceRoutes = Layer.mergeAll(rawInstanceRoutes, instanceApiRoutes).pipe(
   Layer.provide([
     authorizationLayer.pipe(Layer.provide(ServerAuthConfig.defaultLayer)),
+    experimentalApiLayer, // altrucoder_change
     workspaceRoutingLayer.pipe(Layer.provide(Socket.layerWebSocketConstructorGlobal)),
     instanceContextLayer,
   ]),

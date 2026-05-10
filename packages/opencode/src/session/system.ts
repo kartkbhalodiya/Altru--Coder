@@ -24,6 +24,7 @@ import SOUL from "../altrucoder/soul.txt"
 import { staticEnvLines, type EditorContext } from "../altrucoder/editor-context"
 import { isLing } from "../altrucoder/model-match"
 import { AltruCoderPromptFragments } from "../altrucoder/session/fragments"
+import { nearest as nearestSkills } from "../altrucoder/skills/routing"
 // altrucoder_change end
 
 // altrucoder_change start
@@ -81,8 +82,12 @@ export function provider(model: Provider.Model) {
 }
 
 export interface Interface {
-  readonly environment: (model: Provider.Model, editorContext?: EditorContext) => Effect.Effect<string[]> // altrucoder_change
-  readonly skills: (agent: Agent.Info) => Effect.Effect<string | undefined>
+  readonly environment: (
+    model: Provider.Model,
+    editorContext?: EditorContext,
+    query?: string,
+  ) => Effect.Effect<string[]> // altrucoder_change
+  readonly skills: (agent: Agent.Info, query?: string) => Effect.Effect<string | undefined> // altrucoder_change
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/SystemPrompt") {}
@@ -97,10 +102,13 @@ export const layer = Layer.effect(
       environment: Effect.fn("SystemPrompt.environment")(function* (
         model: Provider.Model,
         editorContext?: EditorContext,
+        query?: string,
       ) {
         // altrucoder_change end
         const ctx = yield* InstanceState.context
-        const memory = yield* Effect.promise(() => AltruCoderPromptFragments.memory(ctx.project.id))
+        const memory = yield* Effect.promise(() =>
+          AltruCoderPromptFragments.memory({ projectID: ctx.project.id, root: ctx.worktree, query }),
+        )
         return [
           [
             `You are powered by the model named ${model.api.id}. The exact model ID is ${model.providerID}/${model.api.id}`,
@@ -121,14 +129,15 @@ export const layer = Layer.effect(
         ]
       }),
 
-      skills: Effect.fn("SystemPrompt.skills")(function* (agent: Agent.Info) {
+      skills: Effect.fn("SystemPrompt.skills")(function* (agent: Agent.Info, query?: string) {
         if (Permission.disabled(["skill"], agent.permission).has("skill")) return
 
-        const list = yield* skill.available(agent)
+        const list = nearestSkills(yield* skill.available(agent), query) // altrucoder_change
 
         return [
           "Skills provide specialized instructions and workflows for specific tasks.",
           "Use the skill tool to load a skill when a task matches its description.",
+          "For normal frontend/page/component work, default to frontend-design plus ckm:ui-styling. Load ui-ux-pro-max-full only for explicit deep/full UI or UX audit requests.", // altrucoder_change
           // the agents seem to ingest the information about skills a bit better if we present a more verbose
           // version of them here and a less verbose version in tool description, rather than vice versa.
           Skill.fmt(list, { verbose: true }),

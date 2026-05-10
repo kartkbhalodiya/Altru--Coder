@@ -113,7 +113,11 @@ function VariantRow(props: VariantRowProps) {
           }}
         >
           <label
-            style={{ "font-size": "var(--altru-coder-font-size-12)", "font-weight": "500", color: "var(--text-weak-base)" }}
+            style={{
+              "font-size": "var(--altru-coder-font-size-12)",
+              "font-weight": "500",
+              color: "var(--text-weak-base)",
+            }}
           >
             {props.t("provider.custom.models.variants.enableThinking.label")}
           </label>
@@ -139,7 +143,11 @@ function VariantRow(props: VariantRowProps) {
           }}
         >
           <label
-            style={{ "font-size": "var(--altru-coder-font-size-12)", "font-weight": "500", color: "var(--text-weak-base)" }}
+            style={{
+              "font-size": "var(--altru-coder-font-size-12)",
+              "font-weight": "500",
+              color: "var(--text-weak-base)",
+            }}
           >
             {props.t("provider.custom.models.variants.thinking.label")}
           </label>
@@ -165,7 +173,11 @@ function VariantRow(props: VariantRowProps) {
           }}
         >
           <label
-            style={{ "font-size": "var(--altru-coder-font-size-12)", "font-weight": "500", color: "var(--text-weak-base)" }}
+            style={{
+              "font-size": "var(--altru-coder-font-size-12)",
+              "font-weight": "500",
+              color: "var(--text-weak-base)",
+            }}
           >
             {props.t("provider.custom.models.variants.reasoningEffort.label")}
           </label>
@@ -191,7 +203,11 @@ function VariantRow(props: VariantRowProps) {
           }}
         >
           <label
-            style={{ "font-size": "var(--altru-coder-font-size-12)", "font-weight": "500", color: "var(--text-weak-base)" }}
+            style={{
+              "font-size": "var(--altru-coder-font-size-12)",
+              "font-weight": "500",
+              color: "var(--text-weak-base)",
+            }}
           >
             {props.t("provider.custom.models.variants.chatTemplateArgs.label")}
           </label>
@@ -309,7 +325,11 @@ export function ModelCard(props: ModelCardProps) {
         <Show when={props.m.variants.length > 0}>
           <div style={{ display: "flex", "flex-direction": "column", gap: "0" }}>
             <label
-              style={{ "font-size": "var(--altru-coder-font-size-11)", "font-weight": "500", color: "var(--text-weak-base)" }}
+              style={{
+                "font-size": "var(--altru-coder-font-size-11)",
+                "font-weight": "500",
+                color: "var(--text-weak-base)",
+              }}
             >
               {props.t("provider.custom.models.variants.label")}
             </label>

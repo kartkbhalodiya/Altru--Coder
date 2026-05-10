@@ -479,7 +479,8 @@ export const dict = {
   "error.chain.didYouMean": "Da li si mislio: {{suggestions}}",
   "error.chain.modelNotFound": "Model nije pronađen: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Provjeri konfiguraciju (opencode.json) - nazive provajdera/modela",
-  "error.chain.mcpFailed": 'MCP server "{{name}}" nije uspio. Napomena: Altru Coder još ne podržava MCP autentifikaciju.',
+  "error.chain.mcpFailed":
+    'MCP server "{{name}}" nije uspio. Napomena: Altru Coder još ne podržava MCP autentifikaciju.',
   "error.chain.providerAuthFailed": "Autentifikacija provajdera nije uspjela ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Neuspjelo inicijalizovanje provajdera "{{provider}}". Provjeri kredencijale i konfiguraciju.',
@@ -932,7 +933,8 @@ export const dict = {
   "settings.config.title": "Otvori {{scope}} Altru Coder konfiguracijsku datoteku",
   "settings.config.placeholder":
     "Konfiguracijske datoteke se spajaju po redu; datoteke označene kao učitane trenutno utiču na postavke.",
-  "settings.config.noWorkspace": "Otvorite fasciklu radnog prostora da uredite lokalnu Altru Coder konfiguracijsku datoteku.",
+  "settings.config.noWorkspace":
+    "Otvorite fasciklu radnog prostora da uredite lokalnu Altru Coder konfiguracijsku datoteku.",
   "settings.config.openFailed": "Nije uspjelo otvaranje {{scope}} Altru Coder konfiguracijske datoteke: {{message}}",
   "settings.config.source.xdg": "XDG globalna konfiguracija",
   "settings.config.source.homeAltruCoder": "Home .altru-coder konfiguracija",
@@ -1157,7 +1159,8 @@ export const dict = {
   "settings.aboutAltruCoder.importSettings": "Uvezi",
   "settings.aboutAltruCoder.importSettings.invalidJson": "Nevažeći JSON fajl. Odaberite važeći fajl s postavkama.",
   "settings.aboutAltruCoder.importSettings.invalidConfig": "Fajl ne sadrži važeće Altru Coder postavke.",
-  "settings.aboutAltruCoder.importSettings.tooLarge": "Fajl je prevelik. Fajlovi s postavkama moraju biti manji od 1 MB.",
+  "settings.aboutAltruCoder.importSettings.tooLarge":
+    "Fajl je prevelik. Fajlovi s postavkama moraju biti manji od 1 MB.",
   "settings.aboutAltruCoder.importSettings.newerVersion":
     "Ovaj fajl je izvezen iz novije verzije Altru Coder-a. Neke postavke mogu biti zanemarene.",
   "settings.aboutAltruCoder.importSettings.success":
@@ -1434,7 +1437,8 @@ export const dict = {
   "settings.display.layout.auto": "Automatski",
   "settings.display.layout.stretch": "Rastegni",
   "settings.display.fontSize.title": "Veličina fonta",
-  "settings.display.fontSize.description": "Prilagodite veličinu fonta za Altru Coder webview UI nezavisno od VS Code-a.",
+  "settings.display.fontSize.description":
+    "Prilagodite veličinu fonta za Altru Coder webview UI nezavisno od VS Code-a.",
   "settings.display.reasoningAutoCollapse.title": "Automatski sažmi razmišljanje",
   "settings.display.reasoningAutoCollapse.description":
     "Sažima blokove razmišljanja nakon što ih agent završi pisati. Ostavite isključeno da razmišljanje ostane prošireno, osim ako ga ručno sažmete.",
@@ -1591,5 +1595,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

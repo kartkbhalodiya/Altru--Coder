@@ -352,8 +352,8 @@ export function TopNav({ onMobileMenuToggle, isMobileMenuOpen = false, showMobil
       <div className="announcement-banner">
         <p>
           The all-new Altru Coder extension is here, rebuilt on the{" "}
-          <Link href="/code-with-ai/platforms/vscode/whats-new">Altru Coder CLI</Link> for speed, flexibility, and continued
-          access to 500+ models via the Altru Coder Gateway →
+          <Link href="/code-with-ai/platforms/vscode/whats-new">Altru Coder CLI</Link> for speed, flexibility, and
+          continued access to 500+ models via the Altru Coder Gateway →
         </p>
       </div>
 

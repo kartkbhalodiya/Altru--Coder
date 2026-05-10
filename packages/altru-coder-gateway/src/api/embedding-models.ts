@@ -41,8 +41,13 @@ type Options = {
   signal?: AbortSignal
 }
 
-export async function fetchAltruCoderEmbeddingModelCatalog(options: Options = {}): Promise<AltruCoderEmbeddingModelCatalog> {
-  const url = new URL("embedding-models", resolveAltruCoderGatewayBaseUrl({ baseURL: options.baseURL, token: options.token }))
+export async function fetchAltruCoderEmbeddingModelCatalog(
+  options: Options = {},
+): Promise<AltruCoderEmbeddingModelCatalog> {
+  const url = new URL(
+    "embedding-models",
+    resolveAltruCoderGatewayBaseUrl({ baseURL: options.baseURL, token: options.token }),
+  )
 
   try {
     const response = await fetch(url, { signal: options.signal })

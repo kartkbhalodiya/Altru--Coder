@@ -9,7 +9,7 @@
  * - Simpler flat structure without overflow containers
  */
 
-import { Component, createMemo, For, Show, createEffect } from "solid-js"
+import { Component, createMemo, createSignal, For, Show, createEffect } from "solid-js"
 import { UserMessageDisplay } from "@altru-coder/altru-coder-ui/message-part"
 import { DiffChanges } from "@altru-coder/altru-coder-ui/diff-changes"
 import { Icon } from "@altru-coder/altru-coder-ui/icon"
@@ -31,6 +31,18 @@ import { useFeedback } from "../../context/feedback"
 import { visibleError } from "../../context/session-errors"
 import type { ErrorDisplayProps } from "./ErrorDisplay"
 import type { Message as WebMessage } from "../../types/messages"
+
+const ROWS = 10
+
+function dir(file: string): string {
+  const i = file.lastIndexOf("/")
+  return i === -1 ? "" : file.slice(0, i + 1)
+}
+
+function name(file: string): string {
+  const i = file.lastIndexOf("/")
+  return i === -1 ? file : file.slice(i + 1)
+}
 
 export interface VscodeTurn {
   id: string
@@ -90,6 +102,24 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
       }, [])
       .reverse()
   })
+
+  const [all, setAll] = createSignal(false)
+  const complete = createMemo(() => {
+    const msgs = assistantMessages()
+    if (msgs.length === 0) return false
+    return msgs.every((msg) => typeof msg.time.completed === "number" || !!msg.error)
+  })
+  const totals = createMemo(() => ({
+    files: diffs().length,
+    additions: diffs().reduce((sum, diff) => sum + diff.additions, 0),
+    deletions: diffs().reduce((sum, diff) => sum + diff.deletions, 0),
+  }))
+  const visible = createMemo(() => (all() ? diffs() : diffs().slice(0, ROWS)))
+  const overflow = createMemo(() => Math.max(0, diffs().length - ROWS))
+  const toggle = (event: MouseEvent) => {
+    event.stopPropagation()
+    setAll((value) => !value)
+  }
 
   const openChanges = () => vscode.postMessage({ type: "openChanges", turnId: message().id })
 
@@ -178,25 +208,60 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
           </Show>
 
           {/* Diff summary — shown after completion. Click opens the changes view. */}
-          <Show when={diffs().length > 0 && server.gitInstalled()}>
-            <div class="vscode-session-turn-diffs" data-component="session-turn">
-              <button
-                type="button"
-                class="vscode-session-turn-diffs-trigger"
-                onClick={openChanges}
-                aria-label={i18n.t("ui.sessionReview.change.modified")}
-              >
-                <span data-slot="session-turn-diffs-label">{i18n.t("ui.sessionReview.change.modified")}</span>
-                <span data-slot="session-turn-diffs-count">
-                  {diffs().length} {i18n.t(diffs().length === 1 ? "ui.common.file.one" : "ui.common.file.other")}
-                </span>
-                <span data-slot="session-turn-diffs-meta">
-                  <DiffChanges changes={diffs()} variant="bars" />
-                </span>
-                <span data-slot="session-turn-diffs-chevron" aria-hidden="true">
-                  <Icon name="chevron-right" size="small" />
-                </span>
-              </button>
+          <Show when={diffs().length > 0 && complete() && server.gitInstalled()}>
+            <div class="vscode-session-turn-diffs" data-component="session-turn-diff-summary">
+              <div data-slot="session-turn-diffs-panel">
+                <button
+                  type="button"
+                  data-slot="session-turn-diffs-header"
+                  onClick={openChanges}
+                  aria-label={language.t("command.session.show.changes")}
+                >
+                  <span data-slot="session-turn-diffs-title">
+                    {language.t("session.review.filesChanged", { count: totals().files })}
+                  </span>
+                  <span data-slot="session-turn-diffs-total">
+                    <span class="session-diff-add">+{totals().additions}</span>
+                    <span class="session-diff-del">-{totals().deletions}</span>
+                  </span>
+                  <span data-slot="session-turn-diffs-review">
+                    {language.t("common.review")}
+                    <Icon name="open-file" size="small" />
+                  </span>
+                </button>
+                <div data-slot="session-turn-diffs-list">
+                  <For each={visible()}>
+                    {(diff) => (
+                      <button
+                        type="button"
+                        data-slot="session-turn-diff-row"
+                        onClick={openChanges}
+                        aria-label={`${language.t("common.review")} ${diff.file}`}
+                      >
+                        <span data-slot="session-turn-diff-path">
+                          <Show when={dir(diff.file)}>
+                            <span data-slot="session-turn-diff-directory">{`\u2066${dir(diff.file)}\u2069`}</span>
+                          </Show>
+                          <span data-slot="session-turn-diff-filename">{name(diff.file)}</span>
+                        </span>
+                        <span data-slot="session-turn-diff-changes">
+                          <DiffChanges changes={diff} />
+                        </span>
+                        <span data-slot="session-turn-diff-chevron" aria-hidden="true">
+                          <Icon name="chevron-right" size="small" />
+                        </span>
+                      </button>
+                    )}
+                  </For>
+                  <Show when={overflow() > 0}>
+                    <button type="button" data-slot="session-turn-diffs-more" onClick={toggle}>
+                      {all()
+                        ? i18n.t("ui.sessionTurn.diffs.showLess")
+                        : i18n.t("ui.sessionTurn.diffs.more", { count: String(overflow()) })}
+                    </button>
+                  </Show>
+                </div>
+              </div>
             </div>
           </Show>
 

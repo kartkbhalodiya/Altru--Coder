@@ -108,9 +108,13 @@ describe("fetchOpenAIModels", () => {
     expect(models[0]?.variants).toBeUndefined()
   })
 
-  it("uses the built-in NVIDIA catalog instead of fetching the NVIDIA catalog", async () => {
+  it("fetches the live NVIDIA catalog and preserves built-in model metadata", async () => {
     const fn = mock(async () => {
-      return new Response(JSON.stringify({ data: [{ id: "qwen/qwen3.5-397b-a17b" }] }))
+      return new Response(
+        JSON.stringify({
+          data: [{ id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" }, { id: "qwen/qwen3.5-397b-a17b" }],
+        }),
+      )
     })
     install(fn as typeof fetch)
 
@@ -119,13 +123,29 @@ describe("fetchOpenAIModels", () => {
       apiKey: "nv-test",
     })
 
-    expect(fn).not.toHaveBeenCalled()
-    expect(models.length > 100).toBe(true)
+    expect(fn).toHaveBeenCalled()
+    expect(models.length).toBe(2)
     expect(models.some((item) => item.id === "qwen/qwen3.5-397b-a17b")).toBe(true)
     const kimi = models.find((item) => item.id === "moonshotai/kimi-k2.6")
     expect(kimi?.reasoning).toBe(true)
     expect(Object.keys(kimi?.variants ?? {})).toEqual(["normal", "low", "medium", "high", "xhigh"])
     expect(kimi?.variants?.normal).toEqual({})
     expect(kimi?.variants?.xhigh?.chat_template_kwargs).toEqual({ thinking: true })
+  })
+
+  it("falls back to the built-in NVIDIA catalog when the live endpoint fails", async () => {
+    install(
+      mock(async () => {
+        return new Response("temporarily unavailable", { status: 503 })
+      }) as typeof fetch,
+    )
+
+    const models = await fetchOpenAIModels({
+      baseURL: "https://integrate.api.nvidia.com/v1",
+      apiKey: "nv-test",
+    })
+
+    expect(models.length > 100).toBe(true)
+    expect(models.some((item) => item.id === "moonshotai/kimi-k2.6")).toBe(true)
   })
 })

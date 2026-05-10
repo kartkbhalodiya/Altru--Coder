@@ -1,22 +1,28 @@
-import type { ProviderPreset } from './types'
+import type { ProviderPreset, ProviderPresetModel } from "./types"
+
+const variants = Object.fromEntries(
+  ["low", "medium", "high", "xhigh"].map((reasoningEffort) => [reasoningEffort, { reasoningEffort }]),
+)
+
+function model(id: string, name: string, reasoning = false): ProviderPresetModel {
+  if (!reasoning) return { id, name }
+  return { id, name, reasoning, variants }
+}
 
 export const SambanovaPreset: ProviderPreset = {
   id: "sambanova",
   name: "SambaNova",
   baseURL: "https://api.sambanova.ai/v1",
-  note: "Select SambaNova cloud models from the built-in Cline registry.",
-  fetch: false,
+  note: "Seeded from SambaNova official /models catalog (8 models). Use Refresh after entering an API key if the provider changes it.",
+  fetch: true,
   models: [
-    { id: "DeepSeek-R1-0528", name: "DeepSeek R1 0528" },
-    { id: "DeepSeek-R1-Distill-Llama-70B", name: "DeepSeek R1 Distill Llama 70B" },
-    { id: "DeepSeek-V3-0324", name: "DeepSeek V3 0324" },
-    { id: "DeepSeek-V3.1", name: "DeepSeek V3.1" },
-    { id: "DeepSeek-V3.1-Terminus", name: "DeepSeek V3.1 Terminus" },
-    { id: "Llama-4-Maverick-17B-128E-Instruct", name: "Llama 4 Maverick 17B 128E Instruct" },
-    { id: "Meta-Llama-3.1-8B-Instruct", name: "Meta Llama 3.1 8B Instruct" },
-    { id: "Meta-Llama-3.3-70B-Instruct", name: "Meta Llama 3.3 70B Instruct" },
-    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-    { id: "Qwen3-235B", name: "Qwen3 235B" },
-    { id: "Qwen3-32B", name: "Qwen3 32B" },
+    model("DeepSeek-V3.1", "DeepSeek-V3.1", true),
+    model("DeepSeek-V3.2", "DeepSeek-V3.2", true),
+    model("gemma-3-12b-it", "gemma-3-12b-it", false),
+    model("gpt-oss-120b", "gpt-oss-120b", true),
+    model("Llama-4-Maverick-17B-128E-Instruct", "Llama-4-Maverick-17B-128E-Instruct", false),
+    model("Meta-Llama-3.3-70B-Instruct", "Meta-Llama-3.3-70B-Instruct", false),
+    model("MiniMax-M2.5", "MiniMax-M2.5", true),
+    model("MiniMax-M2.7", "MiniMax-M2.7", true),
   ],
 }

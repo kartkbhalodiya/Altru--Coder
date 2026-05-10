@@ -36,6 +36,7 @@ import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
 import { RemoteCommand } from "./cli/cmd/remote" // altrucoder_change
 import { DevSetupCommand, DevAliasCommand } from "./altrucoder/cli/dev-setup" // altrucoder_change
+import { McpServerCommand } from "./altrucoder/cli/mcp-server" // altrucoder_change
 // altrucoder_change start - Import telemetry, instance disposal, and legacy migration
 import { Telemetry } from "@altru-coder/altru-coder-telemetry"
 import { InstanceStore } from "./project/instance-store" // altrucoder_change
@@ -210,6 +211,7 @@ let cli = yargs(args) // altrucoder_change
   .completion("completion", "generate shell completion script")
   .command(AcpCommand)
   .command(McpCommand)
+  .command(McpServerCommand) // altrucoder_change
   .command(TuiThreadCommand)
   .command(AttachCommand)
   .command(RunCommand)

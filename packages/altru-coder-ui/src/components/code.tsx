@@ -29,7 +29,9 @@ const codeStyle = {
 
 function lineHeight() {
   if (typeof window === "undefined") return codeMetrics.lineHeight
-  const value = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--altru-coder-font-size-24"))
+  const value = Number.parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue("--altru-coder-font-size-24"),
+  )
   return Number.isFinite(value) ? value : codeMetrics.lineHeight
 }
 

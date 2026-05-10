@@ -3,6 +3,7 @@
 // When upstream adds a new command to index.ts, add it here too.
 import { AcpCommand } from "../cli/cmd/acp"
 import { McpCommand } from "../cli/cmd/mcp"
+import { McpServerCommand } from "./cli/mcp-server"
 import { TuiThreadCommand } from "../cli/cmd/tui/thread"
 import { AttachCommand } from "../cli/cmd/tui/attach"
 import { RunCommand } from "../cli/cmd/run"
@@ -44,6 +45,7 @@ const dev = InstallationBuildKind === "release" ? [] : [DevSetupCommand, DevAlia
 export const commands = [
   AcpCommand,
   McpCommand,
+  McpServerCommand,
   TuiThreadCommand,
   AttachCommand,
   RunCommand,

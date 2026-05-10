@@ -156,7 +156,8 @@ describe("installation", () => {
         () => jsonResponse({}), // HTTP not used for tap formula
         (cmd, args) => {
           // altrucoder_change start
-          if (cmd === "brew" && args.includes("Altru-Coder/tap/altru") && args.includes("--formula")) return "altru-coder"
+          if (cmd === "brew" && args.includes("Altru-Coder/tap/altru") && args.includes("--formula"))
+            return "altru-coder"
           // altrucoder_change end
           if (cmd === "brew" && args.includes("--json=v2")) return brewInfoJson
           return ""

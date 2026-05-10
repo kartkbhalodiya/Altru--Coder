@@ -164,7 +164,8 @@ export const dict = {
   "provider.connect.oauth.code.invalid": "รหัสการอนุญาตไม่ถูกต้อง",
   "provider.connect.oauth.auto.visit.prefix": "เยี่ยมชม ",
   "provider.connect.oauth.auto.visit.link": "ลิงก์นี้",
-  "provider.connect.oauth.auto.visit.suffix": " และป้อนรหัสด้านล่างเพื่อเชื่อมต่อบัญชีและใช้โมเดล {{provider}} ใน Altru Coder",
+  "provider.connect.oauth.auto.visit.suffix":
+    " และป้อนรหัสด้านล่างเพื่อเชื่อมต่อบัญชีและใช้โมเดล {{provider}} ใน Altru Coder",
   "provider.connect.oauth.auto.confirmationCode": "รหัสยืนยัน",
   "provider.connect.toast.connected.title": "{{provider}} ที่เชื่อมต่อแล้ว",
   "provider.connect.toast.connected.description": "โมเดล {{provider}} พร้อมใช้งานแล้ว",
@@ -474,7 +475,8 @@ export const dict = {
   "error.chain.didYouMean": "คุณหมายถึง: {{suggestions}}",
   "error.chain.modelNotFound": "ไม่พบโมเดล: {{provider}}/{{model}}",
   "error.chain.checkConfig": "ตรวจสอบการกำหนดค่าของคุณ (opencode.json) ชื่อผู้ให้บริการ/โมเดล",
-  "error.chain.mcpFailed": 'เซิร์ฟเวอร์ MCP "{{name}}" ล้มเหลว โปรดทราบว่า Altru Coder ยังไม่รองรับการตรวจสอบสิทธิ์ MCP',
+  "error.chain.mcpFailed":
+    'เซิร์ฟเวอร์ MCP "{{name}}" ล้มเหลว โปรดทราบว่า Altru Coder ยังไม่รองรับการตรวจสอบสิทธิ์ MCP',
   "error.chain.providerAuthFailed": "การตรวจสอบสิทธิ์ผู้ให้บริการล้มเหลว ({{provider}}): {{message}}",
   "error.chain.providerInitFailed": 'ไม่สามารถเริ่มต้นผู้ให้บริการ "{{provider}}" ตรวจสอบข้อมูลรับรองและการกำหนดค่า',
   "error.chain.configJsonInvalid": "ไฟล์กำหนดค่าที่ {{path}} ไม่ใช่ JSON(C) ที่ถูกต้อง",
@@ -1127,7 +1129,8 @@ export const dict = {
   "settings.aboutAltruCoder.community": "ชุมชนและการสนับสนุน",
   "settings.aboutAltruCoder.feedback.prefix": "หากคุณมีคำถามหรือข้อเสนอแนะ สามารถเปิด issue ได้ที่",
   "settings.aboutAltruCoder.feedback.or": "หรือ",
-  "settings.aboutAltruCoder.support.prefix": "สำหรับคำถามเกี่ยวกับการเรียกเก็บเงินหรือบัญชี ติดต่อฝ่ายสนับสนุนลูกค้าที่",
+  "settings.aboutAltruCoder.support.prefix":
+    "สำหรับคำถามเกี่ยวกับการเรียกเก็บเงินหรือบัญชี ติดต่อฝ่ายสนับสนุนลูกค้าที่",
   "settings.aboutAltruCoder.resetSettings.title": "รีเซ็ตการตั้งค่า",
   "settings.aboutAltruCoder.resetSettings.description":
     "การดำเนินการนี้จะรีเซ็ตเฉพาะการตั้งค่าเฉพาะของส่วนขยาย VS Code กลับเป็นค่าเริ่มต้นเท่านั้น การตั้งค่าที่ใช้ร่วมกับ CLI เช่น โหมดและกฎการอนุมัติอัตโนมัติ จะถูกเก็บไว้ในการกำหนดค่า CLI และจะไม่ถูกรีเซ็ต",
@@ -1142,7 +1145,8 @@ export const dict = {
   "settings.aboutAltruCoder.importSettings.tooLarge": "ไฟล์มีขนาดใหญ่เกินไป ไฟล์การตั้งค่าต้องมีขนาดไม่เกิน 1 MB",
   "settings.aboutAltruCoder.importSettings.newerVersion":
     "ไฟล์นี้ถูกส่งออกจาก Altru Coder เวอร์ชันใหม่กว่า การตั้งค่าบางรายการอาจถูกข้ามไป",
-  "settings.aboutAltruCoder.importSettings.success": "นำเข้าการตั้งค่าแล้ว ตรวจสอบการเปลี่ยนแปลงด้านบน จากนั้นคลิกบันทึก",
+  "settings.aboutAltruCoder.importSettings.success":
+    "นำเข้าการตั้งค่าแล้ว ตรวจสอบการเปลี่ยนแปลงด้านบน จากนั้นคลิกบันทึก",
 
   "settings.aboutAltruCoder.telemetry.title": "Telemetry",
   "settings.aboutAltruCoder.telemetry.description":
@@ -1558,5 +1562,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

@@ -244,7 +244,10 @@ async function handleDeviceLogin(ctx: AuthContext, attempt: number, getAttempt: 
     expiresIn: 900,
   })
 
-  await ctx.client.provider.oauth.callback({ providerID: "altru-coder", method: 0, directory: dir }, { throwOnError: true })
+  await ctx.client.provider.oauth.callback(
+    { providerID: "altru-coder", method: 0, directory: dir },
+    { throwOnError: true },
+  )
   if (attempt !== getAttempt()) return
 
   await ctx.setWebsiteSession(undefined)
@@ -320,7 +323,10 @@ export async function handleSetOrganization(ctx: AuthContext, organizationId: st
       const result = await ctx.client.altruCoder.profile()
       ctx.postMessage({ type: "profileData", data: result.data ?? profileFromWebsiteSession(ctx.getWebsiteSession()) })
     } catch (profileError) {
-      console.error("[Altru Coder New] AltruCoderProvider: Failed to refresh profile after org switch error:", profileError)
+      console.error(
+        "[Altru Coder New] AltruCoderProvider: Failed to refresh profile after org switch error:",
+        profileError,
+      )
     }
     return
   }

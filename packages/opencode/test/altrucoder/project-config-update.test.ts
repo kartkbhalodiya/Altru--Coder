@@ -61,7 +61,9 @@ test("project config update creates .altru-coder/altru-coder.json and reloads it
     fn: async () => {
       await save({ model: "updated/model" } as any)
 
-      const written = await Filesystem.readJson<{ model: string }>(path.join(tmp.path, ".altru-coder", "altru-coder.json"))
+      const written = await Filesystem.readJson<{ model: string }>(
+        path.join(tmp.path, ".altru-coder", "altru-coder.json"),
+      )
       expect(written.model).toBe("updated/model")
 
       const loaded = await load()
@@ -91,7 +93,9 @@ test("project config update prefers existing root altru-coder.json", async () =>
     fn: async () => {
       await save({ model: "updated/model" } as any)
 
-      const merged = await Filesystem.readJson<{ model: string; username: string }>(path.join(tmp.path, "altru-coder.json"))
+      const merged = await Filesystem.readJson<{ model: string; username: string }>(
+        path.join(tmp.path, "altru-coder.json"),
+      )
       expect(merged.model).toBe("updated/model")
       expect(merged.username).toBe("alice")
     },

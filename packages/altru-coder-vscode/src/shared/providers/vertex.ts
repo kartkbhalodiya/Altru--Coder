@@ -1,4 +1,4 @@
-import type { ProviderPreset } from './types'
+import type { ProviderPreset } from "./types"
 
 export const VertexPreset: ProviderPreset = {
   id: "vertex",

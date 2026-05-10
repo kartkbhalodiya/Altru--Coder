@@ -722,6 +722,19 @@ export function registerPartComponent(type: string, component: PartComponent) {
   PART_MAPPING[type] = component
 }
 
+function attached(file: FilePart) {
+  return file.url.startsWith("data:")
+}
+
+function inline(file: FilePart) {
+  if (attached(file)) return false
+  return file.source?.text?.start !== undefined && file.source?.text?.end !== undefined
+}
+
+function kind(file: FilePart) {
+  return file.mime.startsWith("image/") ? "image" : "file"
+}
+
 export function UserMessageDisplay(props: {
   message: UserMessage
   parts: PartType[]
@@ -744,19 +757,9 @@ export function UserMessageDisplay(props: {
 
   const files = createMemo(() => (props.parts?.filter((p) => p.type === "file") as FilePart[]) ?? [])
 
-  const attachments = createMemo(() =>
-    files()?.filter((f) => {
-      const mime = f.mime
-      return mime.startsWith("image/") || mime === "application/pdf"
-    }),
-  )
+  const attachments = createMemo(() => files().filter(attached))
 
-  const inlineFiles = createMemo(() =>
-    files().filter((f) => {
-      const mime = f.mime
-      return !mime.startsWith("image/") && mime !== "application/pdf" && f.source?.text?.start !== undefined
-    }),
-  )
+  const inlineFiles = createMemo(() => files().filter(inline))
 
   const agents = createMemo(() => (props.parts?.filter((p) => p.type === "agent") as AgentPart[]) ?? [])
 
@@ -807,33 +810,34 @@ export function UserMessageDisplay(props: {
         <Show when={attachments().length > 0}>
           <div data-slot="user-message-attachments">
             <For each={attachments()}>
-              {(file) => (
-                <div
-                  data-slot="user-message-attachment"
-                  data-type={file.mime.startsWith("image/") ? "image" : "file"}
-                  data-queued={props.queued ? "" : undefined}
-                  onClick={() => {
-                    if (file.mime.startsWith("image/") && file.url) {
-                      openImagePreview(file.url, file.filename)
-                    }
-                  }}
-                >
-                  <Show
-                    when={file.mime.startsWith("image/") && file.url}
-                    fallback={
-                      <div data-slot="user-message-attachment-icon">
-                        <Icon name="folder" />
-                      </div>
-                    }
+              {(file) => {
+                const type = kind(file)
+                const name = file.filename ?? i18n.t("ui.message.attachment.alt")
+                return (
+                  <div
+                    data-slot="user-message-attachment"
+                    data-type={type}
+                    data-clickable={type === "image" ? "true" : undefined}
+                    data-queued={props.queued ? "" : undefined}
+                    title={type === "file" ? name : undefined}
+                    onClick={() => {
+                      if (type === "image") openImagePreview(file.url, name)
+                    }}
                   >
-                    <img
-                      data-slot="user-message-attachment-image"
-                      src={file.url}
-                      alt={file.filename ?? i18n.t("ui.message.attachment.alt")}
-                    />
-                  </Show>
-                </div>
-              )}
+                    <Show
+                      when={type === "image"}
+                      fallback={
+                        <div data-slot="user-message-attachment-file">
+                          <FileIcon node={{ path: name, type: "file" }} />
+                          <span data-slot="user-message-attachment-name">{name}</span>
+                        </div>
+                      }
+                    >
+                      <img data-slot="user-message-attachment-image" src={file.url} alt={name} />
+                    </Show>
+                  </div>
+                )
+              }}
             </For>
           </div>
         </Show>
@@ -2627,69 +2631,74 @@ ToolRegistry.register({
   },
 })
 
+function TodoTool(props: ToolProps) {
+  const i18n = useI18n()
+  const view = createMemo(() => (isTodoView(props.metadata?.view) ? props.metadata.view : undefined))
+  const todos = createMemo(() => {
+    const meta = props.metadata?.todos
+    if (Array.isArray(meta)) return meta
+
+    const input = props.input.todos
+    if (Array.isArray(input)) return input
+
+    return []
+  })
+  const shown = createMemo(() => view()?.todos ?? todos())
+  const pending = createMemo(() => busy(props.status))
+
+  const title = createMemo(() => {
+    if (props.tool === "todoread") return i18n.t("ui.tool.todos.read")
+    return i18n.t("ui.tool.todos")
+  })
+
+  const subtitle = createMemo(() => {
+    const list = shown()
+    if (list.length === 0) return ""
+    return `${list.filter((todo: Todo) => todo.status === "completed").length}/${list.length}`
+  })
+
+  return (
+    <BasicTool
+      {...props}
+      defaultOpen={props.defaultOpen ?? true}
+      icon="checklist"
+      trigger={<ToolTriggerRow title={title()} pending={pending()} subtitle={subtitle()} animate={props.reveal} />}
+    >
+      <Show when={shown().length}>
+        <div data-component="todos">
+          <Show when={view()?.mode === "compact" && (view()?.hiddenBefore ?? 0) > 0}>
+            <div data-slot="message-part-todo-hidden">{hiddenText("earlier", view()?.hiddenBefore ?? 0)}</div>
+          </Show>
+          <For each={shown()}>
+            {(todo: TodoItem) => (
+              <Checkbox readOnly checked={todo.status === "completed"}>
+                <span
+                  data-slot="message-part-todo-content"
+                  data-completed={todo.status === "completed" ? "completed" : undefined}
+                  data-changed={todo.changed ? "changed" : undefined}
+                >
+                  {todo.content}
+                </span>
+              </Checkbox>
+            )}
+          </For>
+          <Show when={view()?.mode === "compact" && (view()?.hiddenAfter ?? 0) > 0}>
+            <div data-slot="message-part-todo-hidden">{hiddenText("later", view()?.hiddenAfter ?? 0)}</div>
+          </Show>
+        </div>
+      </Show>
+    </BasicTool>
+  )
+}
+
 ToolRegistry.register({
   name: "todowrite",
-  render(props) {
-    const i18n = useI18n()
-    const view = createMemo(() => (isTodoView(props.metadata?.view) ? props.metadata.view : undefined))
-    const todos = createMemo(() => {
-      const meta = props.metadata?.todos
-      if (Array.isArray(meta)) return meta
+  render: TodoTool,
+})
 
-      const input = props.input.todos
-      if (Array.isArray(input)) return input
-
-      return []
-    })
-    const shown = createMemo(() => view()?.todos ?? todos())
-    const pending = createMemo(() => busy(props.status))
-
-    const subtitle = createMemo(() => {
-      const list = todos()
-      if (list.length === 0) return ""
-      return `${list.filter((t: Todo) => t.status === "completed").length}/${list.length}`
-    })
-
-    return (
-      <BasicTool
-        {...props}
-        defaultOpen
-        icon="checklist"
-        trigger={
-          <ToolTriggerRow
-            title={i18n.t("ui.tool.todos")}
-            pending={pending()}
-            subtitle={subtitle()}
-            animate={props.reveal}
-          />
-        }
-      >
-        <Show when={shown().length}>
-          <div data-component="todos">
-            <Show when={view()?.mode === "compact" && (view()?.hiddenBefore ?? 0) > 0}>
-              <div data-slot="message-part-todo-hidden">{hiddenText("earlier", view()?.hiddenBefore ?? 0)}</div>
-            </Show>
-            <For each={shown()}>
-              {(todo: TodoItem) => (
-                <Checkbox readOnly checked={todo.status === "completed"}>
-                  <span
-                    data-slot="message-part-todo-content"
-                    data-completed={todo.status === "completed" ? "completed" : undefined}
-                    data-changed={todo.changed ? "changed" : undefined}
-                  >
-                    {todo.content}
-                  </span>
-                </Checkbox>
-              )}
-            </For>
-            <Show when={view()?.mode === "compact" && (view()?.hiddenAfter ?? 0) > 0}>
-              <div data-slot="message-part-todo-hidden">{hiddenText("later", view()?.hiddenAfter ?? 0)}</div>
-            </Show>
-          </div>
-        </Show>
-      </BasicTool>
-    )
-  },
+ToolRegistry.register({
+  name: "todoread",
+  render: TodoTool,
 })
 
 function isTodoView(value: unknown): value is TodoView {

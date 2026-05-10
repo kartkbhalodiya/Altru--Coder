@@ -790,9 +790,11 @@ export const dict = {
   "settings.indexing.provider.description":
     "Wählen Sie den Anbieter, der für die Generierung von Embeddings für die semantische Suche verwendet wird.",
   "settings.indexing.altruCoderModel.title": "Altru Coder-Modellvoreinstellung",
-  "settings.indexing.altruCoderModel.description": "Wählen Sie ein unterstütztes von Altru Coder gehostetes Embedding-Modell.",
+  "settings.indexing.altruCoderModel.description":
+    "Wählen Sie ein unterstütztes von Altru Coder gehostetes Embedding-Modell.",
   "settings.indexing.altruCoderSignIn.title": "Altru Coder-Anmeldung erforderlich",
-  "settings.indexing.altruCoderSignIn.description": "Melden Sie sich bei Altru Coder an, um gehostete Embeddings zu verwenden.",
+  "settings.indexing.altruCoderSignIn.description":
+    "Melden Sie sich bei Altru Coder an, um gehostete Embeddings zu verwenden.",
   "settings.indexing.provider.title": "Embedding-Anbieter",
   "settings.indexing.providerField.description": "Anbieterspezifische Verbindungseinstellung.",
   "settings.indexing.qdrantApiKey.description": "Optionaler API-Schlüssel für die Qdrant-Instanz.",
@@ -1166,7 +1168,8 @@ export const dict = {
   "settings.aboutAltruCoder.importSettings": "Importieren",
   "settings.aboutAltruCoder.importSettings.invalidJson":
     "Ungültige JSON-Datei. Bitte wählen Sie eine gültige Einstellungsdatei aus.",
-  "settings.aboutAltruCoder.importSettings.invalidConfig": "Die Datei enthält keine gültigen Altru Coder-Einstellungen.",
+  "settings.aboutAltruCoder.importSettings.invalidConfig":
+    "Die Datei enthält keine gültigen Altru Coder-Einstellungen.",
   "settings.aboutAltruCoder.importSettings.tooLarge":
     "Die Datei ist zu groß. Einstellungsdateien müssen kleiner als 1 MB sein.",
   "settings.aboutAltruCoder.importSettings.newerVersion":
@@ -1452,7 +1455,8 @@ export const dict = {
   "settings.display.layout.auto": "Automatisch",
   "settings.display.layout.stretch": "Gestreckt",
   "settings.display.fontSize.title": "Schriftgröße",
-  "settings.display.fontSize.description": "Passen Sie die Schriftgröße der Altru Coder webview UI unabhängig von VS Code an.",
+  "settings.display.fontSize.description":
+    "Passen Sie die Schriftgröße der Altru Coder webview UI unabhängig von VS Code an.",
   "settings.display.reasoningAutoCollapse.title": "Reasoning automatisch einklappen",
   "settings.display.reasoningAutoCollapse.description":
     "Klappt Reasoning-Blöcke ein, nachdem der Agent sie fertig geschrieben hat. Deaktiviert lassen, damit Reasoning erweitert bleibt, sofern du es nicht manuell einklappst.",
@@ -1611,5 +1615,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 } satisfies Partial<Record<Keys, string>>

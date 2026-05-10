@@ -107,7 +107,9 @@ const IndexingTab: Component = () => {
   const altruAvailable = () => !!server.profileData() || provider.authStates()[ALTRU_CODER_PROVIDER_ID] !== undefined
   const selectedProvider = () => cfg().provider ?? (altruAvailable() ? "altru-coder" : undefined)
   const providers = createMemo(() =>
-    allProviders.filter((item) => item.value !== "altru-coder" || altruAvailable() || selectedProvider() === "altru-coder"),
+    allProviders.filter(
+      (item) => item.value !== "altru-coder" || altruAvailable() || selectedProvider() === "altru-coder",
+    ),
   )
   const fields = createMemo(() => providerFields(selectedProvider()))
 
@@ -158,7 +160,9 @@ const IndexingTab: Component = () => {
     }
     updateIndexing({
       model:
-        selectedProvider() === "altru-coder" ? (normalizeAltruCoderEmbeddingModelId(trimmed, embeds.catalog()) ?? trimmed) : trimmed,
+        selectedProvider() === "altru-coder"
+          ? (normalizeAltruCoderEmbeddingModelId(trimmed, embeds.catalog()) ?? trimmed)
+          : trimmed,
     })
   }
 
@@ -290,14 +294,19 @@ const IndexingTab: Component = () => {
         >
           <TextField
             value={cfg().model ?? ""}
-            placeholder={selectedProvider() === "altru-coder" ? altruDefault() || "provider/model" : "text-embedding-3-small"}
+            placeholder={
+              selectedProvider() === "altru-coder" ? altruDefault() || "provider/model" : "text-embedding-3-small"
+            }
             onChange={saveModel}
           />
         </SettingsRow>
         <SettingsRow
           title={language.t("settings.indexing.dimension.title")}
           description={language.t("settings.indexing.dimension.description")}
-          last={!selectedProvider() || (fields().length === 0 && !(selectedProvider() === "altru-coder" && !altruAvailable()))}
+          last={
+            !selectedProvider() ||
+            (fields().length === 0 && !(selectedProvider() === "altru-coder" && !altruAvailable()))
+          }
         >
           <TextField
             value={cfg().dimension === undefined ? "" : String(cfg().dimension)}

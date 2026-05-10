@@ -79,7 +79,9 @@ describe("altrucoder tool registry indexing", () => {
       () =>
         Effect.gen(function* () {
           const err = new Error("ready rejected")
-          const ready = spyOn(AltruCoderIndexing, "ready").mockImplementation(() => Promise.reject(err) as unknown as boolean)
+          const ready = spyOn(AltruCoderIndexing, "ready").mockImplementation(
+            () => Promise.reject(err) as unknown as boolean,
+          )
           const warn = spyOn(logger, "warn").mockImplementation(() => {})
 
           try {
@@ -150,7 +152,9 @@ describe("altrucoder tool registry indexing", () => {
           (tool) => tool.id,
         ),
       ).toEqual(["codebase_search", "semantic_search", "recall", "agent_manager"])
-      expect(AltruCoderToolRegistry.extra({ ...tools, semantic: undefined }, {}).map((tool) => tool.id)).toEqual(["recall"])
+      expect(AltruCoderToolRegistry.extra({ ...tools, semantic: undefined }, {}).map((tool) => tool.id)).toEqual([
+        "recall",
+      ])
     } finally {
       if (prev === undefined) delete process.env["ALTRU_CODER_CLIENT"]
       if (prev !== undefined) process.env["ALTRU_CODER_CLIENT"] = prev

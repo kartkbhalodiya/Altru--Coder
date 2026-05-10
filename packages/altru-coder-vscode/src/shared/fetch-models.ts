@@ -94,7 +94,7 @@ function knownReasoningModel(id: string, name: string) {
     /\bkimi-k2\.(5|6)\b/.test(value) ||
     /\bkimi-k2[-_\s]?thinking\b/.test(value) ||
     /\bglm-(4\.5|4\.6|4\.7|5)/.test(value) ||
-    /\bdeepseek.*(reasoner|r1|thinking|v3\.1|v3\.2)/.test(value) ||
+    /\bdeepseek.*(reasoner|r1|thinking|v3\.1|v3\.2|v4)/.test(value) ||
     /\bminimax-m2\.(1|5|7)\b/.test(value) ||
     /\bnemotron-3\b/.test(value) ||
     /\bsonar-(reasoning|deep-research)/.test(value) ||
@@ -119,9 +119,7 @@ function namedVariants(base: Record<string, unknown>) {
 function modelVariants(opts: Options, id: string, name: string) {
   const value = `${id} ${name}`.toLowerCase()
   if (anthropic(opts)) {
-    return Object.fromEntries(
-      EFFORTS.map((effort) => [effort, { thinking: { type: "adaptive" }, effort }]),
-    )
+    return Object.fromEntries(EFFORTS.map((effort) => [effort, { thinking: { type: "adaptive" }, effort }]))
   }
   if (openrouter(opts)) {
     return Object.fromEntries(EFFORTS.map((effort) => [effort, { reasoning: { effort } }]))
@@ -152,16 +150,23 @@ function headers(opts: Options): Record<string, string> {
 }
 
 export async function fetchOpenAIModels(opts: Options): Promise<ModelEntry[]> {
-  if (nvidia(opts)) return nvidiaNimModels()
+  const nvidiaModels = nvidiaNimModels()
+  const nvidiaMap = new Map(nvidiaModels.map((item) => [item.id, item]))
 
   const response = await fetch(endpoint(opts.baseURL), {
     method: "GET",
     headers: headers(opts),
     signal: AbortSignal.timeout(15_000),
+  }).catch((err) => {
+    if (nvidia(opts)) return undefined
+    throw err
   })
+
+  if (!response) return nvidiaModels
 
   if (!response.ok) {
     const text = await response.text().catch(() => "")
+    if (nvidia(opts)) return nvidiaModels
     throw new FetchModelsError(`HTTP ${response.status}: ${text.slice(0, 200)}`, response.status)
   }
 
@@ -176,6 +181,11 @@ export async function fetchOpenAIModels(opts: Options): Promise<ModelEntry[]> {
     if (!id || seen.has(id)) continue
     seen.add(id)
     const name = text(item.name) ?? text(item.display_name) ?? text(item.displayName) ?? id
+    const preset = nvidia(opts) ? nvidiaMap.get(id) : undefined
+    if (preset) {
+      result.push({ ...preset, name: text(item.name) ?? preset.name })
+      continue
+    }
     const reasoning = supportsReasoning(id, name)
     result.push({
       id,

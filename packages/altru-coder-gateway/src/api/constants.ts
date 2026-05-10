@@ -28,7 +28,8 @@ export const ALTRU_CODER_EVENT_SERVICE_URL_ENV = "EVENT_SERVICE_URL"
 export const ALTRU_CODER_DEFAULT_EVENT_SERVICE_URL = "wss://events.altru-coderapps.io"
 
 /** Base URL for Event Service - can be overridden by EVENT_SERVICE_URL env var */
-export const ALTRU_CODER_EVENT_SERVICE_URL = process.env[ALTRU_CODER_EVENT_SERVICE_URL_ENV] || ALTRU_CODER_DEFAULT_EVENT_SERVICE_URL
+export const ALTRU_CODER_EVENT_SERVICE_URL =
+  process.env[ALTRU_CODER_EVENT_SERVICE_URL_ENV] || ALTRU_CODER_DEFAULT_EVENT_SERVICE_URL
 
 /** Default base URL for OpenRouter-compatible endpoint */
 export const ALTRU_CODER_OPENROUTER_BASE = `${ALTRU_CODER_API_BASE}/api/openrouter`

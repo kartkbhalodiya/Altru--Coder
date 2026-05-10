@@ -60,11 +60,54 @@ import type {
   EventTuiPromptAppend,
   EventTuiSessionSelect,
   EventTuiToastShow,
+  ExperimentalAppServerCapabilitiesResponses,
+  ExperimentalAppServerRpcErrors,
+  ExperimentalAppServerRpcResponses,
   ExperimentalConsoleGetResponses,
   ExperimentalConsoleListOrgsResponses,
   ExperimentalConsoleSwitchOrgResponses,
+  ExperimentalFilesystemListErrors,
+  ExperimentalFilesystemListResponses,
+  ExperimentalFilesystemMkdirErrors,
+  ExperimentalFilesystemMkdirResponses,
+  ExperimentalFilesystemReadErrors,
+  ExperimentalFilesystemReadResponses,
+  ExperimentalFilesystemRemoveErrors,
+  ExperimentalFilesystemRemoveResponses,
+  ExperimentalFilesystemRenameErrors,
+  ExperimentalFilesystemRenameResponses,
+  ExperimentalFilesystemStatErrors,
+  ExperimentalFilesystemStatResponses,
+  ExperimentalFilesystemWriteErrors,
+  ExperimentalFilesystemWriteResponses,
+  ExperimentalProcessCleanErrors,
+  ExperimentalProcessCleanResponses,
+  ExperimentalProcessListResponses,
+  ExperimentalProcessOutputErrors,
+  ExperimentalProcessOutputResponses,
+  ExperimentalProcessReadErrors,
+  ExperimentalProcessReadResponses,
+  ExperimentalProcessStartErrors,
+  ExperimentalProcessStartResponses,
+  ExperimentalProcessStopErrors,
+  ExperimentalProcessStopResponses,
+  ExperimentalProcessWriteErrors,
+  ExperimentalProcessWriteResponses,
   ExperimentalResourceListResponses,
   ExperimentalSessionListResponses,
+  ExperimentalTerminalCleanErrors,
+  ExperimentalTerminalCleanResponses,
+  ExperimentalTerminalListResponses,
+  ExperimentalTerminalReadErrors,
+  ExperimentalTerminalReadResponses,
+  ExperimentalTerminalStopErrors,
+  ExperimentalTerminalStopResponses,
+  ExperimentalTerminalWriteErrors,
+  ExperimentalTerminalWriteResponses,
+  ExperimentalThreadResumeErrors,
+  ExperimentalThreadResumeResponses,
+  ExperimentalThreadSubscribeErrors,
+  ExperimentalThreadSubscribeResponses,
   ExperimentalWorkspaceAdapterListResponses,
   ExperimentalWorkspaceCreateErrors,
   ExperimentalWorkspaceCreateResponses,
@@ -950,6 +993,956 @@ export class Session extends HeyApiClient {
   }
 }
 
+export class Process extends HeyApiClient {
+  /**
+   * List background processes
+   *
+   * List retained background processes created through the experimental process API.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<ExperimentalProcessListResponses, unknown, ThrowOnError>({
+      url: "/experimental/process",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Start background process
+   *
+   * Start a shell command as a retained background process and return its stable process ID.
+   */
+  public start<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      sessionID?: string
+      command?: string
+      cwd?: string
+      shell?: string
+      env?: {
+        [key: string]: string
+      }
+      messageID?: string
+      callID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+            { in: "body", key: "command" },
+            { in: "body", key: "cwd" },
+            { in: "body", key: "shell" },
+            { in: "body", key: "env" },
+            { in: "body", key: "messageID" },
+            { in: "body", key: "callID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalProcessStartResponses,
+      ExperimentalProcessStartErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/process",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Clean background processes
+   *
+   * Stop and remove retained background processes, optionally scoped to a session.
+   */
+  public clean<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalProcessCleanResponses,
+      ExperimentalProcessCleanErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/process/clean",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Read background process
+   *
+   * Read retained status and truncated output for one background process.
+   */
+  public read<ThrowOnError extends boolean = false>(
+    parameters: {
+      processID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "processID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalProcessReadResponses,
+      ExperimentalProcessReadErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/process/{processID}",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Read background process output
+   *
+   * Poll incremental output for one background process using an offset cursor.
+   */
+  public output<ThrowOnError extends boolean = false>(
+    parameters: {
+      processID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+      offset?: number
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "processID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "sessionID" },
+            { in: "query", key: "offset" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalProcessOutputResponses,
+      ExperimentalProcessOutputErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/process/{processID}/output",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Write to background process
+   *
+   * Send stdin text to one running background process.
+   */
+  public write<ThrowOnError extends boolean = false>(
+    parameters: {
+      processID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+      input?: string
+      newline?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "processID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+            { in: "body", key: "input" },
+            { in: "body", key: "newline" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalProcessWriteResponses,
+      ExperimentalProcessWriteErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/process/{processID}/write",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Stop background process
+   *
+   * Terminate one running background process.
+   */
+  public stop<ThrowOnError extends boolean = false>(
+    parameters: {
+      processID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "processID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalProcessStopResponses,
+      ExperimentalProcessStopErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/process/{processID}/stop",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class AppServer extends HeyApiClient {
+  /**
+   * Get app-server capabilities
+   *
+   * Return the experimental app-server protocol version, methods, and supported feature flags.
+   */
+  public capabilities<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<ExperimentalAppServerCapabilitiesResponses, unknown, ThrowOnError>({
+      url: "/experimental/app-server/capabilities",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Call app-server JSON-RPC method
+   *
+   * Call an experimental app-server JSON-RPC method such as initialize, thread/start, thread/resume, or thread/list.
+   */
+  public rpc<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      jsonrpc?: "2.0"
+      id?: string | number | null
+      method?: string
+      params?: unknown
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "jsonrpc" },
+            { in: "body", key: "id" },
+            { in: "body", key: "method" },
+            { in: "body", key: "params" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalAppServerRpcResponses,
+      ExperimentalAppServerRpcErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/app-server/rpc",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class Thread extends HeyApiClient {
+  /**
+   * Subscribe to realtime thread events
+   *
+   * Stream server-sent events for one thread, including sync updates, message deltas, approvals, questions, status changes, and background process output.
+   */
+  public subscribe<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).sse.get<
+      ExperimentalThreadSubscribeResponses,
+      ExperimentalThreadSubscribeErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/thread/{sessionID}/subscribe",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Get thread resume payload
+   *
+   * Return a compact reconnect payload with session metadata, recent messages, status, todos, optional diff, and restored usage totals.
+   */
+  public resume<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      directory?: string
+      workspace?: string
+      limit?: number
+      before?: string
+      diff?: boolean | "true" | "false"
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "limit" },
+            { in: "query", key: "before" },
+            { in: "query", key: "diff" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalThreadResumeResponses,
+      ExperimentalThreadResumeErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/thread/{sessionID}/resume",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class Filesystem extends HeyApiClient {
+  /**
+   * Stat filesystem path
+   *
+   * Return workspace-scoped file or directory metadata without reading content.
+   */
+  public stat<ThrowOnError extends boolean = false>(
+    parameters: {
+      directory?: string
+      workspace?: string
+      path: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "path" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalFilesystemStatResponses,
+      ExperimentalFilesystemStatErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/stat",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Read filesystem file
+   *
+   * Read a workspace-scoped file as utf8 text or base64 content.
+   */
+  public read<ThrowOnError extends boolean = false>(
+    parameters: {
+      directory?: string
+      workspace?: string
+      path: string
+      encoding?: "utf8" | "base64"
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "path" },
+            { in: "query", key: "encoding" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalFilesystemReadResponses,
+      ExperimentalFilesystemReadErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/read",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Write filesystem file
+   *
+   * Write a workspace-scoped file, optionally creating parent directories.
+   */
+  public write<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      path?: string
+      content?: string
+      encoding?: "utf8" | "base64"
+      createDirs?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "path" },
+            { in: "body", key: "content" },
+            { in: "body", key: "encoding" },
+            { in: "body", key: "createDirs" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalFilesystemWriteResponses,
+      ExperimentalFilesystemWriteErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/write",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Create filesystem directory
+   *
+   * Create a workspace-scoped directory.
+   */
+  public mkdir<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      path?: string
+      recursive?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "path" },
+            { in: "body", key: "recursive" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalFilesystemMkdirResponses,
+      ExperimentalFilesystemMkdirErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/mkdir",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Remove filesystem path
+   *
+   * Remove a workspace-scoped file or, with recursive enabled, a directory.
+   */
+  public remove<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      path?: string
+      recursive?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "path" },
+            { in: "body", key: "recursive" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalFilesystemRemoveResponses,
+      ExperimentalFilesystemRemoveErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/remove",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Rename filesystem path
+   *
+   * Rename or move a workspace-scoped file or directory.
+   */
+  public rename<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      from?: string
+      to?: string
+      overwrite?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "from" },
+            { in: "body", key: "to" },
+            { in: "body", key: "overwrite" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalFilesystemRenameResponses,
+      ExperimentalFilesystemRenameErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/rename",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * List filesystem directory
+   *
+   * List workspace-scoped directory entries.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters: {
+      directory?: string
+      workspace?: string
+      path: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "path" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalFilesystemListResponses,
+      ExperimentalFilesystemListErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/filesystem/list",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class Terminal extends HeyApiClient {
+  /**
+   * List background terminal jobs
+   *
+   * List retained background terminal jobs started by Bash background mode.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<ExperimentalTerminalListResponses, unknown, ThrowOnError>({
+      url: "/experimental/terminal",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Clean background terminal jobs
+   *
+   * Stop and remove retained background terminal jobs, optionally scoped to a session.
+   */
+  public clean<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalTerminalCleanResponses,
+      ExperimentalTerminalCleanErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/terminal/clean",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Read background terminal job
+   *
+   * Read retained output and status for one background terminal job.
+   */
+  public read<ThrowOnError extends boolean = false>(
+    parameters: {
+      jobID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "jobID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "query", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      ExperimentalTerminalReadResponses,
+      ExperimentalTerminalReadErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/terminal/{jobID}",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Write to background terminal job
+   *
+   * Send text to the stdin stream of one running background terminal job.
+   */
+  public write<ThrowOnError extends boolean = false>(
+    parameters: {
+      jobID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+      input?: string
+      newline?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "jobID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+            { in: "body", key: "input" },
+            { in: "body", key: "newline" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalTerminalWriteResponses,
+      ExperimentalTerminalWriteErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/terminal/{jobID}/write",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Stop background terminal job
+   *
+   * Terminate one running background terminal job.
+   */
+  public stop<ThrowOnError extends boolean = false>(
+    parameters: {
+      jobID: string
+      directory?: string
+      workspace?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "jobID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      ExperimentalTerminalStopResponses,
+      ExperimentalTerminalStopErrors,
+      ThrowOnError
+    >({
+      url: "/experimental/terminal/{jobID}/stop",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
 export class Resource extends HeyApiClient {
   /**
    * Get MCP resources
@@ -996,6 +1989,31 @@ export class Experimental extends HeyApiClient {
   private _session?: Session
   get session(): Session {
     return (this._session ??= new Session({ client: this.client }))
+  }
+
+  private _process?: Process
+  get process(): Process {
+    return (this._process ??= new Process({ client: this.client }))
+  }
+
+  private _appServer?: AppServer
+  get appServer(): AppServer {
+    return (this._appServer ??= new AppServer({ client: this.client }))
+  }
+
+  private _thread?: Thread
+  get thread(): Thread {
+    return (this._thread ??= new Thread({ client: this.client }))
+  }
+
+  private _filesystem?: Filesystem
+  get filesystem(): Filesystem {
+    return (this._filesystem ??= new Filesystem({ client: this.client }))
+  }
+
+  private _terminal?: Terminal
+  get terminal(): Terminal {
+    return (this._terminal ??= new Terminal({ client: this.client }))
   }
 
   private _resource?: Resource

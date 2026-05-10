@@ -442,7 +442,8 @@ export const dict = {
   "toast.session.listFailed.title": "Échec du chargement des sessions pour {{project}}",
 
   "toast.update.title": "Mise à jour disponible",
-  "toast.update.description": "Une nouvelle version d'Altru Coder ({{version}}) est maintenant disponible pour installation.",
+  "toast.update.description":
+    "Une nouvelle version d'Altru Coder ({{version}}) est maintenant disponible pour installation.",
   "toast.update.action.installRestart": "Installer et redémarrer",
   "toast.update.action.notYet": "Pas encore",
 
@@ -660,7 +661,8 @@ export const dict = {
   "sidebar.workspaces.enable": "Activer les espaces de travail",
   "sidebar.workspaces.disable": "Désactiver les espaces de travail",
   "sidebar.gettingStarted.title": "Commencer",
-  "sidebar.gettingStarted.line1": "Altru Coder inclut des modèles gratuits pour que vous puissiez commencer immédiatement.",
+  "sidebar.gettingStarted.line1":
+    "Altru Coder inclut des modèles gratuits pour que vous puissiez commencer immédiatement.",
   "sidebar.gettingStarted.line2":
     "Connectez n'importe quel fournisseur pour utiliser des modèles, y compris Claude, GPT, Gemini etc.",
   "sidebar.project.recentSessions": "Sessions récentes",
@@ -710,9 +712,11 @@ export const dict = {
   "settings.indexing.provider.description":
     "Choisissez le fournisseur utilisé pour générer les embeddings pour la recherche sémantique.",
   "settings.indexing.altruCoderModel.title": "Préréglage de modèle Altru Coder",
-  "settings.indexing.altruCoderModel.description": "Choisissez un modèle d'embedding hébergé par Altru Coder pris en charge.",
+  "settings.indexing.altruCoderModel.description":
+    "Choisissez un modèle d'embedding hébergé par Altru Coder pris en charge.",
   "settings.indexing.altruCoderSignIn.title": "Connexion à Altru Coder requise",
-  "settings.indexing.altruCoderSignIn.description": "Connectez-vous à Altru Coder pour utiliser les embeddings hébergés.",
+  "settings.indexing.altruCoderSignIn.description":
+    "Connectez-vous à Altru Coder pour utiliser les embeddings hébergés.",
   "settings.indexing.provider.title": "Fournisseur d'embedding",
   "settings.indexing.providerField.description": "Paramètre de connexion spécifique au fournisseur.",
   "settings.indexing.qdrantApiKey.description": "Clé API optionnelle pour l'instance Qdrant.",
@@ -1170,7 +1174,8 @@ export const dict = {
   "settings.aboutAltruCoder.importSettings": "Importer",
   "settings.aboutAltruCoder.importSettings.invalidJson":
     "Fichier JSON invalide. Veuillez sélectionner un fichier de paramètres valide.",
-  "settings.aboutAltruCoder.importSettings.invalidConfig": "Le fichier ne contient pas de paramètres Altru Coder valides.",
+  "settings.aboutAltruCoder.importSettings.invalidConfig":
+    "Le fichier ne contient pas de paramètres Altru Coder valides.",
   "settings.aboutAltruCoder.importSettings.tooLarge":
     "Le fichier est trop volumineux. Les fichiers de paramètres doivent faire moins de 1 MB.",
   "settings.aboutAltruCoder.importSettings.newerVersion":
@@ -1619,5 +1624,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

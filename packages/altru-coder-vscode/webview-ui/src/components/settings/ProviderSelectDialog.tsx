@@ -13,6 +13,7 @@ import { ALTRU_CODER_PROVIDER_ID } from "../../../../src/shared/provider-model"
 import { NVIDIA_NIM_PROVIDER_ID } from "../../../../src/shared/nvidia-nim"
 import { PROVIDER_PRESETS, type ProviderPreset } from "./provider-presets"
 import NvidiaNimDialog from "./NvidiaNimDialog"
+import OpenRouterDialog from "./OpenRouterDialog"
 
 type ProviderItem = {
   id: string
@@ -89,6 +90,10 @@ const ProviderSelectDialog = () => {
     if (item.preset) {
       if (item.id === NVIDIA_NIM_PROVIDER_ID) {
         dialog.show(() => <NvidiaNimDialog onBack={() => dialog.show(() => <ProviderSelectDialog />)} />)
+        return
+      }
+      if (item.id === "openrouter") {
+        dialog.show(() => <OpenRouterDialog onBack={() => dialog.show(() => <ProviderSelectDialog />)} />)
         return
       }
       dialog.show(() => (

@@ -12,11 +12,22 @@ import { errors } from "../../error"
 import { lazy } from "@/util/lazy"
 import * as Log from "@opencode-ai/core/util/log"
 import { errorData } from "@/util/error"
+import { ExperimentalApi } from "@/altrucoder/server/experimental-api" // altrucoder_change
 
 const log = Log.create({ service: "server.workspace" })
 
 export const WorkspaceRoutes = lazy(() =>
   new Hono()
+    // altrucoder_change start - require client opt-in for unstable workspace routes
+    .use("*", async (c, next) => {
+      const ok = ExperimentalApi.enabled({
+        url: c.req.url,
+        header: (name) => c.req.header(name),
+      })
+      if (ok) return next()
+      return c.json(ExperimentalApi.response(), 403)
+    })
+    // altrucoder_change end
     .get(
       "/adapter",
       describeRoute({

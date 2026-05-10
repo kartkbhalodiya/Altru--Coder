@@ -1,4 +1,4 @@
-import type { ProviderPreset } from './types'
+import type { ProviderPreset } from "./types"
 
 export const BedrockPreset: ProviderPreset = {
   id: "bedrock",
@@ -9,11 +9,27 @@ export const BedrockPreset: ProviderPreset = {
   models: [
     { id: "anthropic.claude-sonnet-4-6", name: "Anthropic.Claude Sonnet 4 6", reasoning: true },
     { id: "anthropic.claude-sonnet-4-6:1m", name: "Anthropic.Claude Sonnet 4 6 1m", reasoning: true },
-    { id: "anthropic.claude-sonnet-4-5-20250929-v1:0", name: "Anthropic.Claude Sonnet 4 5 20250929 V1 0", reasoning: true },
-    { id: "anthropic.claude-sonnet-4-5-20250929-v1:0:1m", name: "Anthropic.Claude Sonnet 4 5 20250929 V1 0 1m", reasoning: true },
-    { id: "anthropic.claude-haiku-4-5-20251001-v1:0", name: "Anthropic.Claude Haiku 4 5 20251001 V1 0", reasoning: true },
+    {
+      id: "anthropic.claude-sonnet-4-5-20250929-v1:0",
+      name: "Anthropic.Claude Sonnet 4 5 20250929 V1 0",
+      reasoning: true,
+    },
+    {
+      id: "anthropic.claude-sonnet-4-5-20250929-v1:0:1m",
+      name: "Anthropic.Claude Sonnet 4 5 20250929 V1 0 1m",
+      reasoning: true,
+    },
+    {
+      id: "anthropic.claude-haiku-4-5-20251001-v1:0",
+      name: "Anthropic.Claude Haiku 4 5 20251001 V1 0",
+      reasoning: true,
+    },
     { id: "anthropic.claude-sonnet-4-20250514-v1:0", name: "Anthropic.Claude Sonnet 4 20250514 V1 0", reasoning: true },
-    { id: "anthropic.claude-sonnet-4-20250514-v1:0:1m", name: "Anthropic.Claude Sonnet 4 20250514 V1 0 1m", reasoning: true },
+    {
+      id: "anthropic.claude-sonnet-4-20250514-v1:0:1m",
+      name: "Anthropic.Claude Sonnet 4 20250514 V1 0 1m",
+      reasoning: true,
+    },
     { id: "anthropic.claude-opus-4-6-v1", name: "Anthropic.Claude Opus 4 6 V1", reasoning: true },
     { id: "anthropic.claude-opus-4-6-v1:1m", name: "Anthropic.Claude Opus 4 6 V1 1m", reasoning: true },
     { id: "anthropic.claude-opus-4-7", name: "Anthropic.Claude Opus 4 7", reasoning: true },
@@ -26,7 +42,11 @@ export const BedrockPreset: ProviderPreset = {
     { id: "amazon.nova-lite-v1:0", name: "Amazon.Nova Lite V1 0" },
     { id: "amazon.nova-2-lite-v1:0", name: "Amazon.Nova 2 Lite V1 0" },
     { id: "amazon.nova-micro-v1:0", name: "Amazon.Nova Micro V1 0" },
-    { id: "anthropic.claude-3-7-sonnet-20250219-v1:0", name: "Anthropic.Claude 3 7 Sonnet 20250219 V1 0", reasoning: true },
+    {
+      id: "anthropic.claude-3-7-sonnet-20250219-v1:0",
+      name: "Anthropic.Claude 3 7 Sonnet 20250219 V1 0",
+      reasoning: true,
+    },
     { id: "anthropic.claude-3-5-sonnet-20241022-v2:0", name: "Anthropic.Claude 3 5 Sonnet 20241022 V2 0" },
     { id: "anthropic.claude-3-5-haiku-20241022-v1:0", name: "Anthropic.Claude 3 5 Haiku 20241022 V1 0" },
     { id: "anthropic.claude-3-5-sonnet-20240620-v1:0", name: "Anthropic.Claude 3 5 Sonnet 20240620 V1 0" },

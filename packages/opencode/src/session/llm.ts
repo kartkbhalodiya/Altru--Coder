@@ -492,7 +492,9 @@ function resolveTools(input: Pick<StreamInput, "tools" | "agent" | "permission" 
 export function repairToolName(input: { name: string; tools: Record<string, Tool> }) {
   const lower = input.name.toLowerCase()
   const unsafe = lower.endsWith("_unsafe") ? lower.slice(0, -"_unsafe".length) : undefined
-  return [lower, unsafe].filter((name): name is string => !!name).find((name) => name !== input.name && input.tools[name])
+  return [lower, unsafe]
+    .filter((name): name is string => !!name)
+    .find((name) => name !== input.name && input.tools[name])
 }
 
 export function invalidToolInput(input: { name: string; error: { message: string }; tools: Record<string, Tool> }) {

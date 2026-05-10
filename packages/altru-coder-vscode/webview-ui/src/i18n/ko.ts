@@ -1145,7 +1145,8 @@ export const dict = {
   "settings.aboutAltruCoder.importSettings.tooLarge": "파일이 너무 큽니다. 설정 파일은 1 MB 이하여야 합니다.",
   "settings.aboutAltruCoder.importSettings.newerVersion":
     "이 파일은 더 최신 버전의 Altru Coder에서 내보낸 것입니다. 일부 설정이 무시될 수 있습니다.",
-  "settings.aboutAltruCoder.importSettings.success": "설정을 가져왔습니다. 위의 변경 사항을 확인한 후 저장을 클릭하세요.",
+  "settings.aboutAltruCoder.importSettings.success":
+    "설정을 가져왔습니다. 위의 변경 사항을 확인한 후 저장을 클릭하세요.",
 
   "settings.aboutAltruCoder.telemetry.title": "원격 측정",
   "settings.aboutAltruCoder.telemetry.description":
@@ -1560,5 +1561,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

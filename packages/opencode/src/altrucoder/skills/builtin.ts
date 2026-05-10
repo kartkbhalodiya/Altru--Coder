@@ -15,6 +15,13 @@ import SECURITY_GUIDANCE from "./security-guidance.md"
 import SKILL_CREATOR from "./skill-creator.md"
 import SKILL_INSTALLER from "./skill-installer.md"
 import UI_UX_PRO_MAX from "./ui-ux-pro-max.md"
+import UI_UX_PRO_MAX_FULL from "./ui-ux-pro-max-pack/skills/ui-ux-pro-max/SKILL.md"
+import CKM_BANNER_DESIGN from "./ui-ux-pro-max-pack/skills/banner-design/SKILL.md"
+import CKM_BRAND from "./ui-ux-pro-max-pack/skills/brand/SKILL.md"
+import CKM_DESIGN from "./ui-ux-pro-max-pack/skills/design/SKILL.md"
+import CKM_DESIGN_SYSTEM from "./ui-ux-pro-max-pack/skills/design-system/SKILL.md"
+import CKM_SLIDES from "./ui-ux-pro-max-pack/skills/slides/SKILL.md"
+import CKM_UI_STYLING from "./ui-ux-pro-max-pack/skills/ui-styling/SKILL.md"
 
 export interface BuiltinSkill {
   name: string
@@ -93,12 +100,82 @@ export const BUILTIN_SKILLS: BuiltinSkill[] = [
   {
     name: "ui-ux-pro-max",
     displayName: "UI/UX Pro Max",
-    shortDescription: "Deep UI/UX guidance for polished product interfaces.",
+    shortDescription: "Route UI work to the nearest bundled design skill.",
     brandColor: "#EC4899",
     description:
-      "Advanced UI/UX design intelligence for Altru Coder. Use when planning, building, reviewing, fixing, or polishing websites, landing pages, dashboards, admin panels, SaaS screens, mobile views, forms, tables, charts, navigation, design systems, color palettes, typography, accessibility, responsive layouts, animation, and interaction states.",
-    defaultPrompt: "Design, implement, or review this UI with strong UX, accessibility, and visual quality.",
+      "Router for the bundled UI/UX Pro Max skill pack. Use for UI/UX, frontend, visual design, web/mobile interfaces, landing pages, dashboards, components, accessibility, responsive layout, typography, color, animation, charts, brand, banners, slides, or design systems. First route to the nearest narrow skill: ckm:ui-styling, ckm:design-system, ckm:brand, ckm:slides, ckm:banner-design, ckm:design, or ui-ux-pro-max-full.",
+    defaultPrompt: "Route this UI/UX task to the nearest specific design skill before loading the full guide.",
     content: UI_UX_PRO_MAX,
+  },
+  {
+    name: "ckm:ui-styling",
+    displayName: "UI Styling",
+    shortDescription: "Build accessible UI components, layouts, Tailwind, and shadcn/ui surfaces.",
+    brandColor: "#38BDF8",
+    description:
+      "Create beautiful, accessible user interfaces with shadcn/ui, Radix UI, Tailwind CSS, responsive layouts, dialogs, dropdowns, forms, tables, dark mode, theme customization, and consistent styling patterns.",
+    defaultPrompt: "Build or fix this interface with accessible components, responsive layout, and stable styling.",
+    content: CKM_UI_STYLING,
+  },
+  {
+    name: "ckm:design-system",
+    displayName: "Design System",
+    shortDescription: "Design tokens, component specs, variants, states, and theme architecture.",
+    brandColor: "#8B5CF6",
+    description:
+      "Create and maintain design systems: primitive and semantic tokens, CSS variables, Tailwind integration, component specs, states, variants, governance, and reusable UI foundations.",
+    defaultPrompt: "Define or repair the design-system structure behind this UI.",
+    content: CKM_DESIGN_SYSTEM,
+  },
+  {
+    name: "ckm:brand",
+    displayName: "Brand",
+    shortDescription: "Brand identity, logo rules, voice, color, typography, and consistency.",
+    brandColor: "#F97316",
+    description:
+      "Apply, document, or enforce brand identity including logo usage, visual identity, color palettes, typography, voice, messaging, assets, guidelines, and approval checks.",
+    defaultPrompt: "Apply the brand system consistently to this work.",
+    content: CKM_BRAND,
+  },
+  {
+    name: "ckm:slides",
+    displayName: "Slides",
+    shortDescription: "Presentation structure, slide layouts, pitch decks, charts, and slide copy.",
+    brandColor: "#F59E0B",
+    description:
+      "Create strategic HTML presentations, pitch decks, slide layouts, slide copy, chart slides, narrative structure, and presentation visual systems.",
+    defaultPrompt: "Create or improve the slide experience with strong structure and readable visuals.",
+    content: CKM_SLIDES,
+  },
+  {
+    name: "ckm:banner-design",
+    displayName: "Banner Design",
+    shortDescription: "Social, ad, hero, cover, and print/web banner design.",
+    brandColor: "#EC4899",
+    description:
+      "Design banners for social media, ads, website heroes, headers, covers, creative assets, and print with multiple art directions, sizes, safe zones, visual hierarchy, and campaign fit.",
+    defaultPrompt: "Design this banner with the right size, hierarchy, brand fit, and visual direction.",
+    content: CKM_BANNER_DESIGN,
+  },
+  {
+    name: "ckm:design",
+    displayName: "Design",
+    shortDescription: "Logo, icon, CIP, broad visual design, and generated visual assets.",
+    brandColor: "#14B8A6",
+    description:
+      "Comprehensive visual design skill for brand identity, logo, icon, corporate identity packages, creative assets, social graphics, art direction, and broad design production.",
+    defaultPrompt: "Handle this visual design request with the right asset type, style, and production constraints.",
+    content: CKM_DESIGN,
+  },
+  {
+    name: "ui-ux-pro-max-full",
+    displayName: "UI/UX Pro Max Full Guide",
+    shortDescription: "Full UI/UX Pro Max guide for broad audits or complex design reasoning.",
+    brandColor: "#DB2777",
+    description:
+      "Complete UI/UX Pro Max design intelligence guide. Use only for broad UI/UX audits, complex product design reasoning, or when the narrower ckm skills do not cover the request.",
+    defaultPrompt: "Use the full UI/UX Pro Max guide because the narrower skills are not enough.",
+    content: UI_UX_PRO_MAX_FULL,
   },
   {
     name: "pr-review-toolkit",

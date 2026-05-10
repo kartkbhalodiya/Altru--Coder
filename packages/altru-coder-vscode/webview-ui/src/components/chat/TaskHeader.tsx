@@ -114,10 +114,7 @@ export const TaskHeader: Component<TaskHeaderProps> = (props) => {
           </Show>
           <Show when={context()}>
             {(ctx) => (
-              <Tooltip
-                value={`${ctx().tokens} tokens (${ctx().pct} of context)`}
-                placement="bottom"
-              >
+              <Tooltip value={`${ctx().tokens} tokens (${ctx().pct} of context)`} placement="bottom">
                 <span>{ctx().pct}</span>
               </Tooltip>
             )}

@@ -15,9 +15,7 @@ describe("Code mode prompt", () => {
     expect(AltruCoderSessionPrompt.modeInstructions({ agent: { name: "ask" } })).toContain(
       "Do not modify files unless the user explicitly asks",
     )
-    expect(AltruCoderSessionPrompt.modeInstructions({ agent: { name: "debug" } })).toContain(
-      "isolating the root cause",
-    )
+    expect(AltruCoderSessionPrompt.modeInstructions({ agent: { name: "debug" } })).toContain("isolating the root cause")
     expect(AltruCoderSessionPrompt.modeInstructions({ agent: { name: "orchestrator" } })).toContain(
       "Delegate only separable work",
     )

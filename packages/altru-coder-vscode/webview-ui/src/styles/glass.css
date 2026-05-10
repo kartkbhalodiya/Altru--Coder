@@ -26,12 +26,11 @@ body,
 .am-layout,
 .altru-coder-claw-root,
 .altru-coder-claw-layout {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--vscode-editor-background, #1f1f1f) 90%, #ffffff 4%),
-      var(--vscode-editor-background, #1f1f1f)
-    );
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--vscode-editor-background, #1f1f1f) 90%, #ffffff 4%),
+    var(--vscode-editor-background, #1f1f1f)
+  );
 }
 
 .chat-input {
@@ -46,9 +45,7 @@ body,
 [data-component="user-message"] [data-slot="user-message-text"],
 [data-component="user-message"] [data-slot="user-message-attachment"] {
   border-color: var(--glass-border) !important;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.065), transparent 46%),
-    var(--glass-bg-strong) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.065), transparent 46%), var(--glass-bg-strong) !important;
   box-shadow: var(--glass-shadow-soft);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -75,13 +72,18 @@ html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.026), transparent 48%),
     color-mix(in srgb, var(--glass-bg-strong) 56%, transparent) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(6px) saturate(1.02);
   -webkit-backdrop-filter: blur(6px) saturate(1.02);
   overflow: hidden !important;
 }
 
-html[data-theme="altru-coder-vscode"] [data-component="tool-part-wrapper"][data-part-type="tool"]:has(> [data-component="tool-part-wrapper"][data-part-type="tool"]) {
+html[data-theme="altru-coder-vscode"]
+  [data-component="tool-part-wrapper"][data-part-type="tool"]:has(
+    > [data-component="tool-part-wrapper"][data-part-type="tool"]
+  ) {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -241,7 +243,9 @@ html[data-theme="altru-coder-vscode"] [data-component="assistant-part-item"][dat
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.026), transparent 48%),
     color-mix(in srgb, var(--glass-bg-strong) 56%, transparent) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(6px) saturate(1.02);
   -webkit-backdrop-filter: blur(6px) saturate(1.02);
   overflow: hidden;
@@ -313,7 +317,9 @@ html[data-theme="altru-coder-vscode"] [data-slot="shell-rolling-subtitle"] {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.014), transparent 48%),
     color-mix(in srgb, var(--glass-bg-soft) 30%, transparent) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(3px) saturate(1);
   -webkit-backdrop-filter: blur(3px) saturate(1);
   transition:
@@ -368,7 +374,9 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
   background: transparent !important;
 }
 
-html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-component="collapsible"].tool-collapsible {
+html[data-theme="altru-coder-vscode"]
+  [data-component="reasoning-part"]
+  [data-component="collapsible"].tool-collapsible {
   gap: 0 !important;
 }
 
@@ -387,11 +395,22 @@ html[data-theme="altru-coder-vscode"]
 }
 
 html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-header"] {
-  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 56%, var(--vscode-descriptionForeground, #c8c8c8) 44%) !important;
+  color: color-mix(
+    in srgb,
+    var(--vscode-foreground, #f2f2f2) 56%,
+    var(--vscode-descriptionForeground, #c8c8c8) 44%
+  ) !important;
 }
 
-html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-header"] [data-component="icon"] {
-  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 52%, var(--vscode-descriptionForeground, #c8c8c8) 48%) !important;
+html[data-theme="altru-coder-vscode"]
+  [data-component="reasoning-part"]
+  [data-slot="reasoning-header"]
+  [data-component="icon"] {
+  color: color-mix(
+    in srgb,
+    var(--vscode-foreground, #f2f2f2) 52%,
+    var(--vscode-descriptionForeground, #c8c8c8) 48%
+  ) !important;
 }
 
 html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-slot="reasoning-content"] {
@@ -407,7 +426,11 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
 
 [data-component="reasoning-part"] [data-component="markdown"] strong,
 [data-component="reasoning-part"] [data-component="markdown"] b {
-  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 64%, var(--vscode-descriptionForeground, #c8c8c8) 36%) !important;
+  color: color-mix(
+    in srgb,
+    var(--vscode-foreground, #f2f2f2) 64%,
+    var(--vscode-descriptionForeground, #c8c8c8) 36%
+  ) !important;
 }
 
 [data-component="markdown-code"] .shiki,
@@ -418,7 +441,9 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.024), transparent 48%),
     color-mix(in srgb, var(--glass-bg-strong) 58%, transparent) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(6px) saturate(1.02);
   -webkit-backdrop-filter: blur(6px) saturate(1.02);
 }
@@ -461,9 +486,6 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
 .cloud-session-repo-filter,
 .cloud-session-load-more-btn,
 .altru-coder-notifications-card,
-[data-component="dock-prompt"][data-kind="permission"],
-[data-component="permission-dock"],
-[data-component="question-dock"],
 .prompt-review-comments,
 .prompt-review-chip,
 .prompt-review-modal-snippet,
@@ -494,9 +516,7 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
 .altru-coder-claw-msg-toolbar,
 .altru-coder-claw-msg-reactionpick {
   border-color: var(--glass-border) !important;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 46%),
-    var(--glass-bg-strong) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 46%), var(--glass-bg-strong) !important;
   box-shadow: var(--glass-shadow-soft);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -507,9 +527,6 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
 .history-view-tabs,
 .cloud-session-repo-filter,
 .altru-coder-notifications-card,
-[data-component="dock-prompt"][data-kind="permission"],
-[data-component="permission-dock"],
-[data-component="question-dock"],
 .am-sidebar,
 .am-detail,
 .am-empty-state,
@@ -556,66 +573,6 @@ html[data-theme="altru-coder-vscode"] [data-component="reasoning-part"] [data-sl
   border-radius: var(--glass-radius-sm);
 }
 
-[data-component="question-dock"] {
-  border: 1px solid color-mix(in srgb, var(--glass-border) 64%, transparent) !important;
-  border-radius: var(--glass-radius) !important;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.024), transparent 48%),
-    color-mix(in srgb, var(--glass-bg-strong) 58%, transparent) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
-  backdrop-filter: blur(6px) saturate(1.02) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(1.02) !important;
-  overflow: hidden;
-}
-
-[data-component="question-dock"] [data-slot="question-dock-header"] {
-  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 48%, transparent);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.026), transparent 48%),
-    color-mix(in srgb, var(--glass-bg-soft) 42%, transparent);
-}
-
-[data-component="question-dock"][data-collapsed="true"] [data-slot="question-dock-header"] {
-  border-bottom-color: transparent;
-}
-
-[data-component="question-dock"] [data-slot="question-text"],
-[data-component="question-dock"] [data-slot="question-collapsed-preview"],
-[data-component="question-dock"] [data-slot="option-label"],
-[data-component="question-dock"] [data-slot="review-title"],
-[data-component="question-dock"] [data-slot="review-value"] {
-  color: color-mix(in srgb, var(--vscode-foreground, #f2f2f2) 92%, #ffffff 8%) !important;
-}
-
-[data-component="question-dock"] [data-slot="question-hint"],
-[data-component="question-dock"] [data-slot="question-header-title"],
-[data-component="question-dock"] [data-slot="option-description"],
-[data-component="question-dock"] [data-slot="review-label"] {
-  color: color-mix(in srgb, var(--vscode-descriptionForeground, #c8c8c8) 84%, #ffffff 16%) !important;
-}
-
-[data-component="question-dock"] [data-slot="question-option"],
-[data-component="question-dock"] [data-slot="custom-input-form"] {
-  border: 1px solid transparent !important;
-  border-radius: var(--glass-radius-sm) !important;
-  background: color-mix(in srgb, var(--glass-bg-soft) 24%, transparent) !important;
-}
-
-[data-component="question-dock"] [data-slot="question-option"]:hover:not([data-picked="true"]),
-[data-component="question-dock"] [data-slot="question-option"]:focus-visible {
-  border-color: var(--glass-border) !important;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 48%),
-    color-mix(in srgb, var(--glass-hover) 56%, transparent) !important;
-}
-
-[data-component="question-dock"] [data-slot="question-option"][data-picked="true"] {
-  border-color: color-mix(in srgb, var(--glass-border-strong) 68%, transparent) !important;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.038), transparent 48%),
-    color-mix(in srgb, var(--glass-active) 62%, transparent) !important;
-}
-
 [data-component="dialog-overlay"] {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.54)),
@@ -638,9 +595,7 @@ select,
 .altru-coder-claw-convitem-renameinput,
 .altru-coder-claw-msg-edit-input {
   border-color: var(--glass-border) !important;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.055), transparent 48%),
-    var(--glass-bg-soft) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), transparent 48%), var(--glass-bg-soft) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   backdrop-filter: blur(10px) saturate(1.06);
   -webkit-backdrop-filter: blur(10px) saturate(1.06);
@@ -695,9 +650,7 @@ select,
 .altru-coder-claw-msg-action-secondary:hover,
 .altru-coder-claw-msg-reaction-pill:hover,
 .altru-coder-claw-msg-reactionpick-btn:hover {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 48%),
-    var(--glass-hover) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 48%), var(--glass-hover) !important;
 }
 
 .history-tab-btn--active,
@@ -707,9 +660,7 @@ select,
 .am-tab-active,
 .am-tab-diff-btn-active,
 .altru-coder-claw-convitem-active {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 48%),
-    var(--glass-active) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 48%), var(--glass-active) !important;
   border-color: var(--glass-border-strong) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }

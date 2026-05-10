@@ -20,6 +20,7 @@ import * as Log from "@opencode-ai/core/util/log"
 import { Discovery } from "./discovery"
 import { rm } from "fs/promises" // altrucoder_change
 import { BUILTIN_SKILLS } from "../altrucoder/skills/builtin" // altrucoder_change
+import { AwesomeSkills } from "../altrucoder/skills/awesome" // altrucoder_change
 
 const log = Log.create({ service: "skill" })
 const CLAUDE_EXTERNAL_DIR = ".claude"
@@ -68,6 +69,7 @@ export const NameMismatchError = NamedError.create(
 type State = {
   skills: Record<string, Info>
   dirs: Set<string>
+  lazy: Set<string> // altrucoder_change
 }
 
 type DiscoveryState = {
@@ -131,6 +133,7 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
     })
   }
 
+  state.lazy.delete(parsed.data.name) // altrucoder_change
   state.dirs.add(path.dirname(match))
   state.skills[parsed.data.name] = {
     name: parsed.data.name,
@@ -258,6 +261,31 @@ const loadSkills = Effect.fnUntraced(function* (state: State, discovered: Discov
   }
   // altrucoder_change end
 
+  // altrucoder_change start - index bundled awesome-claude-skills metadata without loading full skill bodies
+  const awesome = yield* Effect.tryPromise({
+    try: () => AwesomeSkills.index(),
+    catch: (err) => err,
+  }).pipe(
+    Effect.catch((err) => {
+      log.error("failed to index bundled awesome-claude-skills", { err })
+      return Effect.succeed([])
+    }),
+  )
+  for (const skill of awesome) {
+    if (state.skills[skill.name]) {
+      log.warn("duplicate bundled awesome skill name", {
+        name: skill.name,
+        existing: state.skills[skill.name].location,
+        duplicate: skill.location,
+      })
+      continue
+    }
+    state.dirs.add(path.dirname(skill.location))
+    state.lazy.add(skill.name)
+    state.skills[skill.name] = skill
+  }
+  // altrucoder_change end
+
   yield* Effect.forEach(discovered.matches, (match) => add(state, match, bus), {
     concurrency: "unbounded",
     discard: true,
@@ -283,7 +311,7 @@ export const layer = Layer.effect(
     )
     const state = yield* InstanceState.make(
       Effect.fn("Skill.state")(function* () {
-        const s: State = { skills: {}, dirs: new Set() }
+        const s: State = { skills: {}, dirs: new Set(), lazy: new Set() } // altrucoder_change
         yield* loadSkills(s, yield* InstanceState.get(discovered), bus)
         return s
       }),
@@ -291,7 +319,25 @@ export const layer = Layer.effect(
 
     const get = Effect.fn("Skill.get")(function* (name: string) {
       const s = yield* InstanceState.get(state)
-      return s.skills[name]
+      const info = s.skills[name]
+      if (!info || !s.lazy.has(name)) return info
+
+      // altrucoder_change start - lazy-load bundled skill body only when the skill tool requests it
+      const md = yield* Effect.tryPromise({
+        try: () => ConfigMarkdown.parse(info.location),
+        catch: (err) => err,
+      }).pipe(
+        Effect.catch((err) => {
+          log.error("failed to load lazy bundled skill", { skill: name, location: info.location, err })
+          return Effect.succeed(undefined)
+        }),
+      )
+      if (!md) return info
+      const next = { ...info, content: md.content }
+      s.skills[name] = next
+      s.lazy.delete(name)
+      return next
+      // altrucoder_change end
     })
 
     const all = Effect.fn("Skill.all")(function* () {
@@ -300,7 +346,8 @@ export const layer = Layer.effect(
     })
 
     const dirs = Effect.fn("Skill.dirs")(function* () {
-      return (yield* InstanceState.get(discovered)).dirs
+      const s = yield* InstanceState.get(state) // altrucoder_change
+      return Array.from(new Set([...(yield* InstanceState.get(discovered)).dirs, ...s.dirs])) // altrucoder_change
     })
 
     const available = Effect.fn("Skill.available")(function* (agent?: Agent.Info) {
@@ -332,7 +379,8 @@ export const dirs = () => runPromise((svc) => svc.dirs())
 
 export function fmt(list: Info[], opts: { verbose: boolean }) {
   if (list.length === 0) return "No skills are currently available."
-  const loc = (skill: Info) => (skill.location === BUILTIN_LOCATION ? BUILTIN_LOCATION : pathToFileURL(skill.location).href)
+  const loc = (skill: Info) =>
+    skill.location === BUILTIN_LOCATION ? BUILTIN_LOCATION : pathToFileURL(skill.location).href
   if (opts.verbose) {
     return [
       "<available_skills>",

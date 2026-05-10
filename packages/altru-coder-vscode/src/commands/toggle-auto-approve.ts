@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
-import type { AltruCoderClient, Event } from "@altru-coder/sdk/v2/client"
+import * as path from "path"
+import type { AltruCoderClient, Event, PermissionRequest } from "@altru-coder/sdk/v2/client"
 import type { AltruCoderConnectionService } from "../services/cli-backend/connection-service"
 
 /**
@@ -14,21 +15,30 @@ export type DirectoryResolver = (sessionId?: string) => string
  */
 export type AllDirectories = () => string[]
 
+export type AutoApproveMode = "default" | "workspace" | "bypass"
+
+export interface AutoApproveState {
+  active: boolean
+  mode: AutoApproveMode
+}
+
 export interface AutoApproveController {
   active(): boolean
+  mode(): AutoApproveMode
+  setMode(mode: AutoApproveMode): Promise<AutoApproveMode>
   toggle(): Promise<boolean>
-  onChange(listener: (active: boolean) => void): { dispose(): void }
+  onChange(listener: (state: AutoApproveState) => void): { dispose(): void }
 }
 
 const CONFIG = "altru-coder.new.autoApprove"
-const KEY = "enabled"
+const ENABLED = "enabled"
+const MODE = "mode"
 
 /**
- * Runtime auto-accept toggle for permissions.
+ * Runtime auto-approve modes for permissions.
  *
- * Instead of writing to the config file, we intercept `permission.asked` SSE
- * events and auto-reply "once" to each. This avoids config-layer issues
- * (merged vs global, sparse defaults) and works even when the sidebar is closed.
+ * Workspace mode replies "always" to in-project prompts. Bypass mode writes
+ * the CLI's allow-everything rule so the backend stops prompting entirely.
  */
 export function registerToggleAutoApprove(
   context: vscode.ExtensionContext,
@@ -36,42 +46,66 @@ export function registerToggleAutoApprove(
   resolve: DirectoryResolver,
   directories: AllDirectories,
 ): AutoApproveController {
-  let active = readActive()
-  // Bumped on disable to invalidate in-flight enable drains
-  let generation = 0
-  const listeners = new Set<(active: boolean) => void>()
+  const state = { mode: readMode(), generation: 0 }
+  const listeners = new Set<(state: AutoApproveState) => void>()
 
   const notify = () => {
-    for (const listener of listeners) listener(active)
+    const snapshot = current(state.mode)
+    for (const listener of listeners) listener(snapshot)
   }
 
-  const setActive = async (next: boolean) => {
-    active = next
-    generation++
+  const setMode = async (next: AutoApproveMode) => {
+    state.mode = next
+    state.generation++
+    const snapshot = state.generation
     notify()
-    await vscode.workspace.getConfiguration(CONFIG).update(KEY, active, target())
+    await writeMode(next)
+    await apply(next, snapshot)
+    return state.mode
   }
 
   const toggle = async () => {
-    await setActive(!active)
-    const snapshot = generation
+    await setMode(state.mode === "default" ? "workspace" : "default")
+    return state.mode !== "default"
+  }
 
-    if (!active) {
-      vscode.window.showInformationMessage("Auto-approve disabled")
-      return active
+  const apply = async (mode: AutoApproveMode, snapshot: number) => {
+    const client = tryGetClient(connectionService)
+    if (mode === "default") {
+      vscode.window.showInformationMessage("Auto-approve default")
+      if (client) await allowEverything(client, directories(), false)
+      return
     }
 
-    vscode.window.showInformationMessage("Auto-approve enabled")
-    // Drain any already-pending permission requests across all tracked directories
-    const client = tryGetClient(connectionService)
-    if (!client) return active
-    for (const dir of directories()) {
-      if (generation !== snapshot) break
+    if (mode === "workspace") {
+      vscode.window.showInformationMessage("Auto-approve inside workspace enabled")
+      if (!client) return
+      await allowEverything(client, directories(), false)
+      await drain(client, directories(), snapshot, mode, "always")
+      return
+    }
+
+    vscode.window.showWarningMessage("Bypass permissions enabled")
+    if (!client) return
+    await allowEverything(client, directories(), true)
+    await drain(client, directories(), snapshot, mode, "once")
+  }
+
+  const drain = async (
+    client: AltruCoderClient,
+    roots: string[],
+    snapshot: number,
+    mode: AutoApproveMode,
+    reply: "once" | "always",
+  ) => {
+    for (const dir of unique(roots)) {
+      if (state.generation !== snapshot) break
       try {
         const { data: pending } = await client.permission.list({ directory: dir }, { throwOnError: true })
         for (const req of pending) {
-          if (generation !== snapshot) break
-          await client.permission.reply({ requestID: req.id, directory: dir, reply: "once" }).catch((err) => {
+          if (state.generation !== snapshot) break
+          if (!shouldApprove(mode, req, roots)) continue
+          await client.permission.reply({ requestID: req.id, directory: dir, reply }).catch((err) => {
             console.error("[Altru Coder New] toggleAutoApprove: failed to drain pending:", err)
           })
         }
@@ -79,17 +113,25 @@ export function registerToggleAutoApprove(
         console.error("[Altru Coder New] toggleAutoApprove: failed to list pending permissions:", err)
       }
     }
-
-    return active
   }
 
   const unsubscribe = connectionService.onEvent((event: Event) => {
-    if (!active) return
+    const mode = state.mode
+    if (mode === "default") return
     if (event.type !== "permission.asked") return
+    if (!shouldApprove(mode, event.properties, directories())) return
     const client = tryGetClient(connectionService)
     if (!client) return
     const dir = resolve(event.properties.sessionID)
-    client.permission.reply({ requestID: event.properties.id, directory: dir, reply: "once" }).catch((err) => {
+    if (mode === "bypass") {
+      client.permission
+        .allowEverything({ requestID: event.properties.id, directory: dir, enable: true })
+        .catch((err) => {
+          console.error("[Altru Coder New] toggleAutoApprove: failed to bypass permission:", err)
+        })
+      return
+    }
+    client.permission.reply({ requestID: event.properties.id, directory: dir, reply: "always" }).catch((err) => {
       console.error("[Altru Coder New] toggleAutoApprove: failed to auto-reply:", err)
     })
   })
@@ -97,11 +139,12 @@ export function registerToggleAutoApprove(
   context.subscriptions.push({ dispose: unsubscribe })
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (!event.affectsConfiguration(`${CONFIG}.${KEY}`)) return
-      const next = readActive()
-      if (next === active) return
-      active = next
-      generation++
+      if (!event.affectsConfiguration(`${CONFIG}.${MODE}`) && !event.affectsConfiguration(`${CONFIG}.${ENABLED}`))
+        return
+      const next = readMode()
+      if (next === state.mode) return
+      state.mode = next
+      state.generation++
       notify()
     }),
   )
@@ -109,7 +152,9 @@ export function registerToggleAutoApprove(
   context.subscriptions.push(vscode.commands.registerCommand("altru-coder.new.toggleAutoApprove", toggle))
 
   return {
-    active: () => active,
+    active: () => state.mode !== "default",
+    mode: () => state.mode,
+    setMode,
     toggle,
     onChange(listener) {
       listeners.add(listener)
@@ -125,15 +170,62 @@ export function registerToggleAutoApprove(
   }
 }
 
-function readActive(): boolean {
-  return vscode.workspace.getConfiguration(CONFIG).get(KEY, false)
+function current(mode: AutoApproveMode): AutoApproveState {
+  return { mode, active: mode !== "default" }
 }
 
-function target(): vscode.ConfigurationTarget {
-  const info = vscode.workspace.getConfiguration(CONFIG).inspect<boolean>(KEY)
+function readMode(): AutoApproveMode {
+  const cfg = vscode.workspace.getConfiguration(CONFIG)
+  const mode = cfg.get<string>(MODE, "")
+  if (isMode(mode)) return mode
+  return cfg.get(ENABLED, false) ? "workspace" : "default"
+}
+
+async function writeMode(mode: AutoApproveMode) {
+  const cfg = vscode.workspace.getConfiguration(CONFIG)
+  await cfg.update(MODE, mode, target(MODE))
+  await cfg.update(ENABLED, mode !== "default", target(ENABLED))
+}
+
+function target(key: string): vscode.ConfigurationTarget {
+  const info = vscode.workspace.getConfiguration(CONFIG).inspect(key)
   if (info?.workspaceFolderValue !== undefined) return vscode.ConfigurationTarget.WorkspaceFolder
   if (info?.workspaceValue !== undefined) return vscode.ConfigurationTarget.Workspace
   return vscode.ConfigurationTarget.Global
+}
+
+function isMode(value: unknown): value is AutoApproveMode {
+  return value === "default" || value === "workspace" || value === "bypass"
+}
+
+function unique(dirs: string[]) {
+  return [...new Set(dirs.filter(Boolean))]
+}
+
+async function allowEverything(client: AltruCoderClient, dirs: string[], enable: boolean) {
+  for (const dir of unique(dirs)) {
+    await client.permission.allowEverything({ directory: dir, enable }, { throwOnError: true }).catch((err) => {
+      console.error("[Altru Coder New] toggleAutoApprove: failed to update bypass mode:", err)
+    })
+  }
+}
+
+function shouldApprove(mode: AutoApproveMode, req: PermissionRequest, roots: string[]) {
+  if (mode === "bypass") return true
+  if (mode === "default") return false
+  if (req.permission !== "external_directory") return true
+  return req.patterns.every((pattern) => contained(pattern, roots))
+}
+
+function contained(pattern: string, roots: string[]) {
+  const clean = pattern.replace(/[/\\]?\*.*$/, "")
+  if (!clean || (clean === pattern && pattern.includes("*"))) return false
+  const file = path.resolve(clean)
+  return unique(roots).some((root) => {
+    const dir = path.resolve(root)
+    const rel = path.relative(dir, file)
+    return rel === "" || (!!rel && !rel.startsWith("..") && !path.isAbsolute(rel))
+  })
 }
 
 function tryGetClient(connectionService: AltruCoderConnectionService): AltruCoderClient | undefined {

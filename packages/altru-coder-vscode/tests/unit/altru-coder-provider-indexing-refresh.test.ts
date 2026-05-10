@@ -131,7 +131,11 @@ describe("AltruCoderProvider indexing refresh", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0))
 
-    expect(posts.some((msg) => typeof msg === "object" && msg !== null && (msg as { type?: string }).type === "configUpdated")).toBe(true)
+    expect(
+      posts.some(
+        (msg) => typeof msg === "object" && msg !== null && (msg as { type?: string }).type === "configUpdated",
+      ),
+    ).toBe(true)
     conn.releaseUpdate()
     await task
   })

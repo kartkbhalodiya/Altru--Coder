@@ -72,7 +72,8 @@ export const dict = {
   "altruClaw.upgrade.description1": "This instance was provisioned before chat was enabled.",
   "altruClaw.upgrade.description2.before": "Use the ",
   "altruClaw.upgrade.description2.bold": "Upgrade to Latest",
-  "altruClaw.upgrade.description2.after": " button on the AltruCoderClaw dashboard to activate real-time chat with your bot.",
+  "altruClaw.upgrade.description2.after":
+    " button on the AltruCoderClaw dashboard to activate real-time chat with your bot.",
   "altruClaw.upgrade.openDashboard": "Open Dashboard",
 
   // Sidebar

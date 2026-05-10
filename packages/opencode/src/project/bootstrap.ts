@@ -46,9 +46,14 @@ export const layer = Layer.effect(
       yield* plugin.init()
       yield* Effect.promise(() => AltruCoderBootstrap.init()).pipe(Effect.forkDetach) // altrucoder_change
       yield* Effect.all(
-        [lsp, /* shareNext, altrucoder_change - handled by AltruCoderBootstrap */ format, file, fileWatcher, vcs, snapshot].map(
-          (s) => Effect.forkDetach(s.init()),
-        ),
+        [
+          lsp,
+          /* shareNext, altrucoder_change - handled by AltruCoderBootstrap */ format,
+          file,
+          fileWatcher,
+          vcs,
+          snapshot,
+        ].map((s) => Effect.forkDetach(s.init())),
       ).pipe(Effect.withSpan("InstanceBootstrap.init"))
 
       const projectID = ctx.project.id

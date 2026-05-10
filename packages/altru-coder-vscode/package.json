@@ -2,7 +2,7 @@
   "name": "altru-coder-agent-by-kartik",
   "displayName": "Altru Coder - Agent by Kartik",
   "description": "AI coding agent for VS Code by Kartik. Generate code, edit files, run terminal commands, manage models, enhance prompts, and automate development from one workspace chat.",
-  "version": "1.1.2",
+  "version": "1.1.5",
   "icon": "assets/icons/logo-outline-black.png",
   "galleryBanner": {
     "color": "#FFFFFF",
@@ -779,6 +779,21 @@
           "type": "boolean",
           "default": false,
           "description": "Start Altru Coder with the main auto-approve toggle enabled. When enabled, permission prompts are approved automatically."
+        },
+        "altru-coder.new.autoApprove.mode": {
+          "type": "string",
+          "default": "default",
+          "enum": [
+            "default",
+            "workspace",
+            "bypass"
+          ],
+          "enumDescriptions": [
+            "Use normal permission prompts.",
+            "Approve permission prompts inside the current workspace automatically.",
+            "Bypass permission prompts anywhere."
+          ],
+          "description": "Controls how aggressively Altru Coder auto-approves permission prompts."
         },
         "altru-coder.new.fontSize": {
           "type": "number",

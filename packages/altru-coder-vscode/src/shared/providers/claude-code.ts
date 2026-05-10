@@ -1,4 +1,4 @@
-import type { ProviderPreset } from './types'
+import type { ProviderPreset } from "./types"
 
 export const ClaudeCodePreset: ProviderPreset = {
   id: "claude-code",

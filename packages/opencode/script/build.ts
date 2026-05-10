@@ -75,6 +75,19 @@ async function copyTreeSitterWasms(outputDir: string) {
 
   console.log(`copied ${languageWasmFiles.length + 1} tree-sitter wasm files to ${targetDir}`)
 }
+
+async function copySkillPacks(outputDir: string) {
+  const source = path.join(dir, "altrucoder-skill-packs", "awesome-claude-skills")
+  if (!fs.existsSync(source)) return
+  const target = path.join(outputDir, "skills", "awesome-claude-skills")
+  await fs.promises.rm(target, { recursive: true, force: true })
+  await fs.promises.mkdir(path.dirname(target), { recursive: true })
+  await fs.promises.cp(source, target, {
+    recursive: true,
+    filter: (item) => !item.split(path.sep).includes(".git"),
+  })
+  console.log(`copied bundled skill pack to ${target}`)
+}
 // altrucoder_change end
 
 const allTargets: {
@@ -228,6 +241,7 @@ for (const item of targets) {
   })
 
   await copyTreeSitterWasms(path.resolve(dir, `dist/${name}/bin`)) // altrucoder_change
+  await copySkillPacks(path.resolve(dir, `dist/${name}/bin`)) // altrucoder_change
 
   // altrucoder_change start - fix Nix-specific ELF interpreter paths for Linux binaries
   if (item.os === "linux") {

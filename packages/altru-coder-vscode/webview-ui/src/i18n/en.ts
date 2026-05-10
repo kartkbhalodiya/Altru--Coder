@@ -266,7 +266,10 @@ export const dict = {
   "prompt.context.includeActiveFile": "Include active file",
   "prompt.context.removeActiveFile": "Remove active file from context",
   "prompt.context.removeFile": "Remove file from context",
+  "prompt.action.attach": "Attach",
   "prompt.action.attachFile": "Attach file",
+  "prompt.action.attachImage": "Attach image",
+  "prompt.action.attachFiles": "Attach files",
   "prompt.attachment.remove": "Remove attachment",
   "prompt.action.send": "Send",
   "prompt.action.send.blocked": "Answer or dismiss the pending question first",
@@ -511,6 +514,7 @@ export const dict = {
   "ui.permission.toolLabel.skill": "Skill",
   "ui.permission.toolLabel.lsp": "LSP",
   "ui.permission.toolLabel.bash": "Bash",
+  "ui.permission.toolLabel.terminal": "Terminal",
   "ui.permission.toolLabel.todoRead": "Todo Read",
   "ui.permission.toolLabel.todoWrite": "Todo Write",
   "ui.permission.toolLabel.codeSearch": "Code Search",
@@ -1106,7 +1110,8 @@ export const dict = {
 
   "dialog.model.noProviders": "No providers",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 
   "prompt.placeholder.connecting": "Connecting to server...",
   "prompt.placeholder.default": "Type a message... (Enter to send, Shift+Enter for new line)",
@@ -1392,6 +1397,8 @@ export const dict = {
   "settings.autoApprove.tool.list": "List directory contents. Allows viewing files and folders within a directory.",
   "settings.autoApprove.tool.task": "Launch sub-agents. Allows starting specialized sub-agents for specific tasks.",
   "settings.autoApprove.tool.skill": "Load skills. Allows loading predefined skills by name.",
+  "settings.autoApprove.tool.terminal":
+    "Manage background terminal jobs. Allows listing, reading, stopping, and cleaning jobs started by Bash background mode.",
   "settings.autoApprove.tool.lsp":
     "Query language server. Allows running language server queries for code intelligence.",
   "settings.autoApprove.tool.todoreadwrite": "Manage task list. Allows reading and updating the internal task list.",

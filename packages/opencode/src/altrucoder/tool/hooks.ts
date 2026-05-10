@@ -310,7 +310,8 @@ export namespace AltruCoderToolHooks {
 
   export function after<M extends Tool.Metadata>(input: Input & { result: Tool.ExecuteResult<M> }) {
     return Effect.gen(function* () {
-      const output = typeof input.result.output === "string" ? input.result.output : JSON.stringify(input.result.output ?? "")
+      const output =
+        typeof input.result.output === "string" ? input.result.output : JSON.stringify(input.result.output ?? "")
       const metadata =
         input.result.metadata && typeof input.result.metadata === "object" ? input.result.metadata : ({} as M)
       const title = typeof input.result.title === "string" ? input.result.title : ""

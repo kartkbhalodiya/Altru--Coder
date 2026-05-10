@@ -6,6 +6,7 @@ import { AltruCoderSessionPromptQueue } from "@/altrucoder/session/prompt-queue"
 import { AltruCoderSession } from "@/altrucoder/session" // altrucoder_change
 import { AltruCoderCostPropagation } from "@/altrucoder/session/cost-propagation" // altrucoder_change
 import { AltruCoderSessionProcessor } from "@/altrucoder/session/processor" // altrucoder_change
+import { AltruCoderMemory } from "@/altrucoder/memory" // altrucoder_change
 import { Suggestion } from "@/altrucoder/suggestion" // altrucoder_change
 import { Question } from "@/question" // altrucoder_change
 import z from "zod"
@@ -61,6 +62,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { TaskTool, type TaskPromptOps } from "@/tool/task"
 import { SessionRunState } from "./run-state"
 import { EffectBridge } from "@/effect/bridge"
+import { errorMessage } from "@/util/error" // altrucoder_change
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -80,6 +82,45 @@ export const shouldAskPlanFollowup = AltruCoderSessionPrompt.shouldAskPlanFollow
 
 const log = Log.create({ service: "session.prompt" })
 const elog = EffectLogger.create({ service: "session.prompt" })
+
+// altrucoder_change start - keep recoverable wrong-tool calls from aborting the whole turn
+export function recoverToolError(tool: string, args: unknown, error: unknown): Tool.ExecuteResult | undefined {
+  const msg = error instanceof Error ? error.message : String(error)
+  const recover = (() => {
+    if (tool === "glob") return /glob path must be a directory/i.test(msg)
+    if (tool === "edit") {
+      return (
+        /not found/i.test(msg) ||
+        /path is a directory/i.test(msg) ||
+        /could not find oldString/i.test(msg) ||
+        /found multiple matches/i.test(msg) ||
+        /oldString and newString are identical/i.test(msg)
+      )
+    }
+    if (tool === "apply_patch") return /apply_patch verification failed|patch rejected/i.test(msg)
+    if (tool === "lsp") return /file not found|no lsp server available/i.test(msg)
+    if (tool === "view_image") return /expected an image file|image is too large|unsupported image type/i.test(msg)
+    if (tool === "skill") return /skill ".+" not found/i.test(msg)
+    return false
+  })()
+  if (!recover) return
+
+  return {
+    title: `${tool} failed`,
+    output: [
+      `Tool ${tool} could not complete: ${msg}`,
+      "",
+      "This is recoverable. Choose the correct path or a different tool and continue.",
+    ].join("\n"),
+    metadata: {
+      error: msg,
+      recoverable: true,
+      args,
+      truncated: false,
+    },
+  }
+}
+// altrucoder_change end
 
 export interface Interface {
   readonly cancel: (sessionID: SessionID) => Effect.Effect<void>
@@ -191,6 +232,15 @@ export const layer = Layer.effect(
       const firstUser = context[idx]
       if (!firstUser || firstUser.info.role !== "user") return
       const firstInfo = firstUser.info
+      // altrucoder_change start - avoid spending an extra first-turn LLM call just to title the session
+      const local = AltruCoderSessionPrompt.title({ message: firstUser })
+      if (local) {
+        yield* sessions
+          .setTitle({ sessionID: input.session.id, title: local })
+          .pipe(Effect.catchCause((cause) => elog.error("failed to set local title", { error: Cause.squash(cause) })))
+        return
+      }
+      // altrucoder_change end
 
       const subtasks = firstUser.parts.filter((p): p is MessageV2.SubtaskPart => p.type === "subtask")
       const onlySubtasks = subtasks.length > 0 && firstUser.parts.every((p) => p.type === "subtask")
@@ -407,6 +457,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           permission
             .ask({
               ...req,
+              metadata: { ...(req.metadata ?? {}), guardian: true }, // altrucoder_change
               sessionID: input.session.id,
               tool: { messageID: input.processor.message.id, callID: options.toolCallId },
               // altrucoder_change start - reapply Ask/Plan mode guards after session permissions
@@ -424,6 +475,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         modelID: ModelID.make(input.model.api.id),
         providerID: input.model.providerID,
         agent: input.agent,
+        query: latestText(input.messages), // altrucoder_change
       })) {
         const schema = ProviderTransform.schema(input.model, EffectZod.toJsonSchema(item.parameters))
         tools[item.id] = tool({
@@ -438,7 +490,19 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                   { tool: item.id, sessionID: ctx.sessionID, callID: ctx.callID },
                   { args },
                 )
-                const result = yield* item.execute(args, ctx)
+                // altrucoder_change start - keep recoverable wrong-tool calls from aborting the turn
+                const result = yield* item.execute(args, ctx).pipe(
+                  Effect.catchCause((cause) => {
+                    const error = Cause.squash(cause)
+                    const recovered = recoverToolError(item.id, args, error)
+                    if (recovered) {
+                      log.warn("recovered tool execution error", { tool: item.id, error })
+                      return Effect.succeed(recovered)
+                    }
+                    return Effect.failCause(cause)
+                  }),
+                )
+                // altrucoder_change end
                 const output = {
                   ...result,
                   attachments: result.attachments?.map((attachment) => ({
@@ -553,6 +617,19 @@ NOTE: At any point in time through this workflow you should feel free to ask the
       return tools
     })
 
+    const latestText = (messages: MessageV2.WithParts[]) => {
+      const msg = messages.findLast(
+        (item): item is MessageV2.WithParts & { info: MessageV2.User } => item.info.role === "user",
+      )
+      if (!msg) return ""
+      const text = msg.parts
+        .filter((part): part is MessageV2.TextPart => part.type === "text" && !part.synthetic && !part.ignored)
+        .map((part) => part.text)
+        .join("\n")
+      const editor = [msg.info.editorContext?.activeFile, ...(msg.info.editorContext?.openTabs ?? [])].join("\n")
+      return [text, editor].filter(Boolean).join("\n")
+    }
+
     const handleSubtask = Effect.fn("SessionPrompt.handleSubtask")(function* (input: {
       task: MessageV2.SubtaskPart
       model: Provider.Model
@@ -649,6 +726,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             permission
               .ask({
                 ...req,
+                metadata: { ...(req.metadata ?? {}), guardian: true }, // altrucoder_change
                 // altrucoder_change start - reapply Ask/Plan subagent guards after session permissions
                 sessionID,
                 ruleset: Permission.merge(
@@ -1362,6 +1440,35 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         let structured: unknown | undefined
         let step = 0
         const session = yield* sessions.get(sessionID)
+        // altrucoder_change start
+        const consolidate = Effect.fn("SessionPrompt.consolidateMemory")(function* (input: {
+          messages: MessageV2.WithParts[]
+          user: MessageV2.User
+          assistant: MessageV2.Assistant
+        }) {
+          if (input.assistant.error) return
+          if (input.assistant.summary === true) return
+          const turn = input.messages.filter(
+            (msg) => msg.info.id === input.user.id || msg.info.id === input.assistant.id,
+          )
+          const diffs = yield* summary.computeDiff({ messages: turn })
+          yield* Effect.tryPromise({
+            try: () =>
+              AltruCoderMemory.consolidateTurn({
+                projectID: ctx.project.id,
+                sessionID,
+                messageID: input.user.id,
+                messages: turn,
+                diffs,
+              }),
+            catch: (err) => err,
+          }).pipe(
+            Effect.catch((err) =>
+              Effect.sync(() => log.warn("failed to consolidate project memory", { err: errorMessage(err) })),
+            ),
+          )
+        })
+        // altrucoder_change end
 
         while (true) {
           yield* status.set(sessionID, { type: "busy" })
@@ -1417,6 +1524,9 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               AltruCoderSessionPrompt.askPlanFollowup({ sessionID, messages: msgs, abort: signal }),
             )
             if (action === "continue") continue
+            // altrucoder_change start
+            yield* consolidate({ messages: msgs, user: lastUser, assistant: lastAssistant })
+            // altrucoder_change end
             yield* slog.info("exiting loop")
             break
           }
@@ -1434,6 +1544,9 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               AltruCoderSessionPrompt.askPlanFollowup({ sessionID, messages: msgs, abort: signal }),
             )
             if (action === "continue") continue
+            // altrucoder_change end
+            // altrucoder_change start
+            yield* consolidate({ messages: msgs, user: lastUser, assistant: lastAssistant })
             // altrucoder_change end
             yield* slog.info("exiting loop")
             break
@@ -1588,8 +1701,8 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             // altrucoder_change end
 
             const [skills, env, instructions, modelMsgs] = yield* Effect.all([
-              sys.skills(agent),
-              sys.environment(model, lastUser.editorContext), // altrucoder_change
+              sys.skills(agent, latestText(msgs)), // altrucoder_change
+              sys.environment(model, lastUser.editorContext, latestText(msgs)), // altrucoder_change
               instruction.system().pipe(Effect.orDie),
               MessageV2.toModelMessagesEffect(msgs, model),
             ])

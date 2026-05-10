@@ -549,7 +549,10 @@ async function migrateConfigFields(
   }
 }
 
-async function migrateDefaultModel(settings: LegacyProviderSettings, client: AltruCoderClient): Promise<MigrationResultItem> {
+async function migrateDefaultModel(
+  settings: LegacyProviderSettings,
+  client: AltruCoderClient,
+): Promise<MigrationResultItem> {
   const provider = settings.apiProvider
   if (!provider) {
     return { item: "Default model", category: "defaultModel", status: "error", message: "No provider type found" }

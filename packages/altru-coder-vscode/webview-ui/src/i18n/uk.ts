@@ -480,7 +480,8 @@ export const dict = {
   "error.chain.didYouMean": "Можливо ви мали на увазі: {{suggestions}}",
   "error.chain.modelNotFound": "Модель не знайдено: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Перевірте назви провайдера/моделі у файлі конфігурації (opencode.json)",
-  "error.chain.mcpFailed": 'MCP-сервер "{{name}}" зазнав помилки. Примітка: Altru Coder поки не підтримує автентифікацію MCP.',
+  "error.chain.mcpFailed":
+    'MCP-сервер "{{name}}" зазнав помилки. Примітка: Altru Coder поки не підтримує автентифікацію MCP.',
   "error.chain.providerAuthFailed": "Автентифікація провайдера не вдалася ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Не вдалося ініціалізувати провайдера "{{provider}}". Перевірте облікові дані та конфігурацію.',
@@ -888,7 +889,8 @@ export const dict = {
   "settings.config.title": "Відкрити файл конфігурації Altru Coder ({{scope}})",
   "settings.config.placeholder":
     "Файли конфігурації об'єднуються по порядку; файли, позначені як завантажені, наразі впливають на налаштування.",
-  "settings.config.noWorkspace": "Відкрийте папку робочої області, щоб відредагувати локальний файл конфігурації Altru Coder.",
+  "settings.config.noWorkspace":
+    "Відкрийте папку робочої області, щоб відредагувати локальний файл конфігурації Altru Coder.",
   "settings.config.openFailed": "Не вдалося відкрити файл конфігурації Altru Coder ({{scope}}): {{message}}",
   "settings.config.source.xdg": "Глобальна конфігурація XDG",
   "settings.config.source.homeAltruCoder": "Конфігурація .altru-coder (Home)",
@@ -1132,7 +1134,8 @@ export const dict = {
   "settings.aboutAltruCoder.community": "Спільнота і підтримка",
   "settings.aboutAltruCoder.feedback.prefix": "Якщо у вас є питання або відгуки, будь ласка, відкрийте тікет на:",
   "settings.aboutAltruCoder.feedback.or": "або",
-  "settings.aboutAltruCoder.support.prefix": "З питань виставлення рахунків або акаунту зверніться до служби підтримки:",
+  "settings.aboutAltruCoder.support.prefix":
+    "З питань виставлення рахунків або акаунту зверніться до служби підтримки:",
   "settings.aboutAltruCoder.resetSettings.title": "Скидання налаштувань",
   "settings.aboutAltruCoder.resetSettings.description":
     "Це скине лише налаштування, специфічні для розширення VS Code, до стандартних значень. Налаштування, що зберігаються в конфігурації CLI (такі як режими та правила автоматичного схвалення), не будуть скинуті.",
@@ -1601,5 +1604,6 @@ export const dict = {
   "settings.models.addModel.description": "Connect a provider and choose the models you want to use in chat.",
   "session.messages.welcomeTyping": "What can Altru Coder do for you?",
   "dialog.model.addFirst": "Add model",
-  "dialog.model.addFirst.description": "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
+  "dialog.model.addFirst.description":
+    "No models are added yet. Add a provider, fetch models, then save the models you want to use.",
 }

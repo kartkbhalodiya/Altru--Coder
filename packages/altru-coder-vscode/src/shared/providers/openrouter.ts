@@ -1,7 +1,7 @@
-import type { ProviderPreset, ProviderPresetModel } from './types'
+import type { ProviderPreset, ProviderPresetModel } from "./types"
 
 const variants = Object.fromEntries(
-  ['low', 'medium', 'high', 'xhigh'].map((effort) => [effort, { reasoning: { effort } }]),
+  ["low", "medium", "high", "xhigh"].map((effort) => [effort, { reasoning: { effort } }]),
 )
 
 function model(id: string, name: string, reasoning = false): ProviderPresetModel {

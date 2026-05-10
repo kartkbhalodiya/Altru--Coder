@@ -415,9 +415,9 @@
         ]
       }
     },
-    "/experimental/workspace/adaptor": {
+    "/experimental/workspace/adapter": {
       "get": {
-        "operationId": "experimental.workspace.adaptor.list",
+        "operationId": "experimental.workspace.adapter.list",
         "parameters": [
           {
             "in": "query",
@@ -434,11 +434,11 @@
             }
           }
         ],
-        "summary": "List workspace adaptors",
-        "description": "List all available workspace adaptors for the current project.",
+        "summary": "List workspace adapters",
+        "description": "List all available workspace adapters for the current project.",
         "responses": {
           "200": {
-            "description": "Workspace adaptors",
+            "description": "Workspace adapters",
             "content": {
               "application/json": {
                 "schema": {
@@ -466,7 +466,7 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.workspace.adaptor.list({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.workspace.adapter.list({\n  ...\n})"
           }
         ]
       }
@@ -2525,6 +2525,1741 @@
           {
             "lang": "js",
             "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.session.list({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/process": {
+      "get": {
+        "operationId": "experimental.process.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sessionID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "List background processes",
+        "description": "List retained background processes created through the experimental process API.",
+        "responses": {
+          "200": {
+            "description": "Background processes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProcessInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.list({\n  ...\n})"
+          }
+        ]
+      },
+      "post": {
+        "operationId": "experimental.process.start",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Start background process",
+        "description": "Start a shell command as a retained background process and return its stable process ID.",
+        "responses": {
+          "200": {
+            "description": "Background process",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  },
+                  "command": {
+                    "type": "string"
+                  },
+                  "cwd": {
+                    "type": "string"
+                  },
+                  "shell": {
+                    "type": "string"
+                  },
+                  "env": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "messageID": {
+                    "type": "string"
+                  },
+                  "callID": {
+                    "type": "string"
+                  }
+                },
+                "required": ["sessionID", "command"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.start({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/process/clean": {
+      "post": {
+        "operationId": "experimental.process.clean",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Clean background processes",
+        "description": "Stop and remove retained background processes, optionally scoped to a session.",
+        "responses": {
+          "200": {
+            "description": "Background processes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProcessInfo"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.clean({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/process/{processID}": {
+      "get": {
+        "operationId": "experimental.process.read",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sessionID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "processID",
+            "required": true
+          }
+        ],
+        "summary": "Read background process",
+        "description": "Read retained status and truncated output for one background process.",
+        "responses": {
+          "200": {
+            "description": "Background process",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.read({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/process/{processID}/output": {
+      "get": {
+        "operationId": "experimental.process.output",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sessionID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "processID",
+            "required": true
+          }
+        ],
+        "summary": "Read background process output",
+        "description": "Poll incremental output for one background process using an offset cursor.",
+        "responses": {
+          "200": {
+            "description": "Background process output",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.output({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/process/{processID}/write": {
+      "post": {
+        "operationId": "experimental.process.write",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "processID",
+            "required": true
+          }
+        ],
+        "summary": "Write to background process",
+        "description": "Send stdin text to one running background process.",
+        "responses": {
+          "200": {
+            "description": "Background process",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  },
+                  "input": {
+                    "type": "string"
+                  },
+                  "newline": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["input"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.write({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/process/{processID}/stop": {
+      "post": {
+        "operationId": "experimental.process.stop",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "processID",
+            "required": true
+          }
+        ],
+        "summary": "Stop background process",
+        "description": "Terminate one running background process.",
+        "responses": {
+          "200": {
+            "description": "Background process",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.process.stop({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/app-server/capabilities": {
+      "get": {
+        "operationId": "experimental.appServer.capabilities",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get app-server capabilities",
+        "description": "Return the experimental app-server protocol version, methods, and supported feature flags.",
+        "responses": {
+          "200": {
+            "description": "App-server capabilities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppServerCapabilities"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.appServer.capabilities({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/app-server/rpc": {
+      "post": {
+        "operationId": "experimental.appServer.rpc",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Call app-server JSON-RPC method",
+        "description": "Call an experimental app-server JSON-RPC method such as initialize, thread/start, thread/resume, or thread/list.",
+        "responses": {
+          "200": {
+            "description": "App-server JSON-RPC response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppServerRpcResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jsonrpc": {
+                    "type": "string",
+                    "const": "2.0"
+                  },
+                  "id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "method": {
+                    "type": "string"
+                  },
+                  "params": {}
+                },
+                "required": ["jsonrpc", "method"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.appServer.rpc({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/thread/{sessionID}/subscribe": {
+      "get": {
+        "operationId": "experimental.thread.subscribe",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "sessionID",
+            "required": true
+          }
+        ],
+        "summary": "Subscribe to realtime thread events",
+        "description": "Stream server-sent events for one thread, including sync updates, message deltas, approvals, questions, status changes, and background process output.",
+        "responses": {
+          "200": {
+            "description": "Thread event stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadRealtimeEvent"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.thread.subscribe({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/thread/{sessionID}/resume": {
+      "get": {
+        "operationId": "experimental.thread.resume",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "diff",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string",
+                  "enum": ["true", "false"]
+                }
+              ]
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "sessionID",
+            "required": true
+          }
+        ],
+        "summary": "Get thread resume payload",
+        "description": "Return a compact reconnect payload with session metadata, recent messages, status, todos, optional diff, and restored usage totals.",
+        "responses": {
+          "200": {
+            "description": "Thread resume payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadResume"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.thread.resume({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/stat": {
+      "get": {
+        "operationId": "experimental.filesystem.stat",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Stat filesystem path",
+        "description": "Return workspace-scoped file or directory metadata without reading content.",
+        "responses": {
+          "200": {
+            "description": "Filesystem path status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesystemStat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.stat({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/read": {
+      "get": {
+        "operationId": "experimental.filesystem.read",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "encoding",
+            "schema": {
+              "type": "string",
+              "enum": ["utf8", "base64"]
+            }
+          }
+        ],
+        "summary": "Read filesystem file",
+        "description": "Read a workspace-scoped file as utf8 text or base64 content.",
+        "responses": {
+          "200": {
+            "description": "Filesystem file content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesystemRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.read({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/write": {
+      "post": {
+        "operationId": "experimental.filesystem.write",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Write filesystem file",
+        "description": "Write a workspace-scoped file, optionally creating parent directories.",
+        "responses": {
+          "200": {
+            "description": "Written filesystem path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesystemStat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "encoding": {
+                    "type": "string",
+                    "enum": ["utf8", "base64"]
+                  },
+                  "createDirs": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["path", "content"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.write({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/mkdir": {
+      "post": {
+        "operationId": "experimental.filesystem.mkdir",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Create filesystem directory",
+        "description": "Create a workspace-scoped directory.",
+        "responses": {
+          "200": {
+            "description": "Created filesystem directory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesystemStat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "recursive": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["path"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.mkdir({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/remove": {
+      "post": {
+        "operationId": "experimental.filesystem.remove",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Remove filesystem path",
+        "description": "Remove a workspace-scoped file or, with recursive enabled, a directory.",
+        "responses": {
+          "200": {
+            "description": "Removed filesystem path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesystemRemoved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "recursive": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["path"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.remove({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/rename": {
+      "post": {
+        "operationId": "experimental.filesystem.rename",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Rename filesystem path",
+        "description": "Rename or move a workspace-scoped file or directory.",
+        "responses": {
+          "200": {
+            "description": "Renamed filesystem path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesystemStat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "overwrite": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["from", "to"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.rename({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/filesystem/list": {
+      "get": {
+        "operationId": "experimental.filesystem.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "List filesystem directory",
+        "description": "List workspace-scoped directory entries.",
+        "responses": {
+          "200": {
+            "description": "Filesystem directory entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FilesystemEntry"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.filesystem.list({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/terminal": {
+      "get": {
+        "operationId": "experimental.terminal.list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sessionID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "List background terminal jobs",
+        "description": "List retained background terminal jobs started by Bash background mode.",
+        "responses": {
+          "200": {
+            "description": "Background terminal jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TerminalJob"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.terminal.list({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/terminal/clean": {
+      "post": {
+        "operationId": "experimental.terminal.clean",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Clean background terminal jobs",
+        "description": "Stop and remove retained background terminal jobs, optionally scoped to a session.",
+        "responses": {
+          "200": {
+            "description": "Background terminal jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TerminalJob"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.terminal.clean({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/terminal/{jobID}": {
+      "get": {
+        "operationId": "experimental.terminal.read",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sessionID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "jobID",
+            "required": true
+          }
+        ],
+        "summary": "Read background terminal job",
+        "description": "Read retained output and status for one background terminal job.",
+        "responses": {
+          "200": {
+            "description": "Background terminal job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.terminal.read({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/terminal/{jobID}/write": {
+      "post": {
+        "operationId": "experimental.terminal.write",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "jobID",
+            "required": true
+          }
+        ],
+        "summary": "Write to background terminal job",
+        "description": "Send text to the stdin stream of one running background terminal job.",
+        "responses": {
+          "200": {
+            "description": "Background terminal job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  },
+                  "input": {
+                    "type": "string"
+                  },
+                  "newline": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["input"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.terminal.write({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/terminal/{jobID}/stop": {
+      "post": {
+        "operationId": "experimental.terminal.stop",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "jobID",
+            "required": true
+          }
+        ],
+        "summary": "Stop background terminal job",
+        "description": "Terminate one running background terminal job.",
+        "responses": {
+          "200": {
+            "description": "Background terminal job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.experimental.terminal.stop({\n  ...\n})"
           }
         ]
       }
@@ -7956,6 +9691,34 @@
                       "description": {
                         "type": "string"
                       },
+                      "displayName": {
+                        "type": "string"
+                      },
+                      "shortDescription": {
+                        "type": "string"
+                      },
+                      "iconSmall": {
+                        "type": "string"
+                      },
+                      "iconLarge": {
+                        "type": "string"
+                      },
+                      "brandColor": {
+                        "type": "string"
+                      },
+                      "defaultPrompt": {
+                        "type": "string"
+                      },
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "dependencies": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      },
                       "location": {
                         "type": "string"
                       },
@@ -8607,6 +10370,72 @@
         ]
       }
     },
+    "/telemetry/setEnabled": {
+      "post": {
+        "operationId": "telemetry.setEnabled",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Set PostHog telemetry enabled state",
+        "description": "Update the PostHog client's opt-in/out state at runtime. The CLI reads ALTRU_CODER_TELEMETRY_LEVEL once at spawn — this route lets clients (e.g. the VS Code extension) propagate runtime telemetry consent changes.",
+        "responses": {
+          "200": {
+            "description": "State updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled"]
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.telemetry.setEnabled({\n  ...\n})"
+          }
+        ]
+      }
+    },
     "/remote/enable": {
       "post": {
         "operationId": "remote.enable",
@@ -8900,6 +10729,14 @@
                     "description": "The user's draft prompt to enhance",
                     "type": "string",
                     "minLength": 1
+                  },
+                  "providerID": {
+                    "description": "Preferred provider ID from the active chat model",
+                    "type": "string"
+                  },
+                  "modelID": {
+                    "description": "Preferred model ID from the active chat model",
+                    "type": "string"
                   }
                 },
                 "required": ["text"]
@@ -9943,7 +11780,7 @@
         ]
       }
     },
-    "/altru-coder/profile": {
+    "/altru/profile": {
       "get": {
         "operationId": "altru-coder.profile",
         "parameters": [
@@ -10048,12 +11885,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.profile({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.profile({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/organization": {
+    "/altru/organization": {
       "post": {
         "operationId": "altru-coder.organization.set",
         "parameters": [
@@ -10121,12 +11958,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.organization.set({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.organization.set({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/modes": {
+    "/altru/modes": {
       "get": {
         "operationId": "altru-coder.modes",
         "parameters": [
@@ -10250,12 +12087,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.modes({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.modes({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/fim": {
+    "/altru/fim": {
       "post": {
         "operationId": "altru-coder.fim",
         "parameters": [
@@ -10363,12 +12200,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.fim({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.fim({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/notifications": {
+    "/altru/notifications": {
       "get": {
         "operationId": "altru-coder.notifications",
         "parameters": [
@@ -10450,12 +12287,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.notifications({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.notifications({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/cloud/session/{id}": {
+    "/altru/cloud/session/{id}": {
       "get": {
         "operationId": "altru-coder.cloud.session.get",
         "parameters": [
@@ -10507,12 +12344,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.cloud.session.get({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.cloud.session.get({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/cloud/session/import": {
+    "/altru/cloud/session/import": {
       "post": {
         "operationId": "altru-coder.cloud.session.import",
         "parameters": [
@@ -10581,12 +12418,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.cloud.session.import({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.cloud.session.import({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/claw/status": {
+    "/altru/claw/status": {
       "get": {
         "operationId": "altru-coder.claw.status",
         "parameters": [
@@ -10712,12 +12549,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.claw.status({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.claw.status({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/claw/chat-credentials": {
+    "/altru/claw/chat-credentials": {
       "get": {
         "operationId": "altru-coder.claw.chatCredentials",
         "parameters": [
@@ -10775,12 +12612,12 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.claw.chatCredentials({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.claw.chatCredentials({\n  ...\n})"
           }
         ]
       }
     },
-    "/altru-coder/cloud-sessions": {
+    "/altru/cloud-sessions": {
       "get": {
         "operationId": "altru-coder.cloudSessions",
         "parameters": [
@@ -10891,7 +12728,7 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altruCoder.cloudSessions({\n  ...\n})"
+            "source": "import { createAltruCoderClient } from \"@altru-coder/sdk\n\nconst client = createAltruCoderClient()\nawait client.altru-coder.cloudSessions({\n  ...\n})"
           }
         ]
       }
@@ -12377,6 +14214,352 @@
         },
         "required": ["type", "properties"]
       },
+      "Event.process.started": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "process.started"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "processID": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "messageID": {
+                "type": "string",
+                "pattern": "^msg.*"
+              },
+              "callID": {
+                "type": "string"
+              },
+              "pid": {
+                "type": "number"
+              },
+              "started": {
+                "type": "number"
+              },
+              "updated": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string"
+              },
+              "running": {
+                "type": "boolean"
+              },
+              "exit": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "error": {
+                "type": "string"
+              },
+              "stopped": {
+                "type": "boolean"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "output": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "processID",
+              "id",
+              "command",
+              "cwd",
+              "sessionID",
+              "messageID",
+              "started",
+              "updated",
+              "status",
+              "running",
+              "exit",
+              "truncated",
+              "output"
+            ]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.process.output": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "process.output"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "processID": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "messageID": {
+                "type": "string",
+                "pattern": "^msg.*"
+              },
+              "callID": {
+                "type": "string"
+              },
+              "offset": {
+                "type": "number"
+              },
+              "nextOffset": {
+                "type": "number"
+              },
+              "output": {
+                "type": "string"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "running": {
+                "type": "boolean"
+              },
+              "exit": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "processID",
+              "id",
+              "sessionID",
+              "messageID",
+              "offset",
+              "nextOffset",
+              "output",
+              "truncated",
+              "running",
+              "exit",
+              "status"
+            ]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.process.exited": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "process.exited"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "processID": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "messageID": {
+                "type": "string",
+                "pattern": "^msg.*"
+              },
+              "callID": {
+                "type": "string"
+              },
+              "pid": {
+                "type": "number"
+              },
+              "started": {
+                "type": "number"
+              },
+              "updated": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string"
+              },
+              "running": {
+                "type": "boolean"
+              },
+              "exit": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "error": {
+                "type": "string"
+              },
+              "stopped": {
+                "type": "boolean"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "output": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "processID",
+              "id",
+              "command",
+              "cwd",
+              "sessionID",
+              "messageID",
+              "started",
+              "updated",
+              "status",
+              "running",
+              "exit",
+              "truncated",
+              "output"
+            ]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.process.updated": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "process.updated"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "processID": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "messageID": {
+                "type": "string",
+                "pattern": "^msg.*"
+              },
+              "callID": {
+                "type": "string"
+              },
+              "pid": {
+                "type": "number"
+              },
+              "started": {
+                "type": "number"
+              },
+              "updated": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string"
+              },
+              "running": {
+                "type": "boolean"
+              },
+              "exit": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "error": {
+                "type": "string"
+              },
+              "stopped": {
+                "type": "boolean"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "output": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "processID",
+              "id",
+              "command",
+              "cwd",
+              "sessionID",
+              "messageID",
+              "started",
+              "updated",
+              "status",
+              "running",
+              "exit",
+              "truncated",
+              "output"
+            ]
+          }
+        },
+        "required": ["type", "properties"]
+      },
       "Event.altrucoder.agent_manager.start": {
         "type": "object",
         "properties": {
@@ -12465,6 +14648,102 @@
               }
             },
             "required": ["enabled", "connected"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.workspace.ready": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "workspace.ready"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.workspace.failed": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "workspace.failed"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": ["message"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.workspace.restore": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "workspace.restore"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "workspaceID": {
+                "type": "string",
+                "pattern": "^wrk.*"
+              },
+              "sessionID": {
+                "type": "string",
+                "pattern": "^ses.*"
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "step": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["workspaceID", "sessionID", "total", "step"]
+          }
+        },
+        "required": ["type", "properties"]
+      },
+      "Event.workspace.status": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "workspace.status"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "workspaceID": {
+                "type": "string",
+                "pattern": "^wrk.*"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["connected", "connecting", "disconnected", "error"]
+              }
+            },
+            "required": ["workspaceID", "status"]
           }
         },
         "required": ["type", "properties"]
@@ -12623,102 +14902,6 @@
               }
             },
             "required": ["id"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.workspace.ready": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "workspace.ready"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              }
-            },
-            "required": ["name"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.workspace.failed": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "workspace.failed"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "message": {
-                "type": "string"
-              }
-            },
-            "required": ["message"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.workspace.restore": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "workspace.restore"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "workspaceID": {
-                "type": "string",
-                "pattern": "^wrk.*"
-              },
-              "sessionID": {
-                "type": "string",
-                "pattern": "^ses.*"
-              },
-              "total": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              "step": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              }
-            },
-            "required": ["workspaceID", "sessionID", "total", "step"]
-          }
-        },
-        "required": ["type", "properties"]
-      },
-      "Event.workspace.status": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "const": "workspace.status"
-          },
-          "properties": {
-            "type": "object",
-            "properties": {
-              "workspaceID": {
-                "type": "string",
-                "pattern": "^wrk.*"
-              },
-              "status": {
-                "type": "string",
-                "enum": ["connected", "connecting", "disconnected", "error"]
-              }
-            },
-            "required": ["workspaceID", "status"]
           }
         },
         "required": ["type", "properties"]
@@ -14113,9 +16296,7 @@
                 "maximum": 9007199254740991
               },
               "archived": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
+                "type": "number"
               }
             },
             "required": ["created", "updated"]
@@ -14670,9 +16851,7 @@
                       "archived": {
                         "anyOf": [
                           {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9007199254740991
+                            "type": "number"
                           },
                           {
                             "type": "null"
@@ -14895,6 +17074,18 @@
                 "$ref": "#/components/schemas/Event.command.executed"
               },
               {
+                "$ref": "#/components/schemas/Event.process.started"
+              },
+              {
+                "$ref": "#/components/schemas/Event.process.output"
+              },
+              {
+                "$ref": "#/components/schemas/Event.process.exited"
+              },
+              {
+                "$ref": "#/components/schemas/Event.process.updated"
+              },
+              {
                 "$ref": "#/components/schemas/Event.altrucoder.agent_manager.start"
               },
               {
@@ -14902,6 +17093,18 @@
               },
               {
                 "$ref": "#/components/schemas/Event.altru-coder-sessions.remote-status-changed"
+              },
+              {
+                "$ref": "#/components/schemas/Event.workspace.ready"
+              },
+              {
+                "$ref": "#/components/schemas/Event.workspace.failed"
+              },
+              {
+                "$ref": "#/components/schemas/Event.workspace.restore"
+              },
+              {
+                "$ref": "#/components/schemas/Event.workspace.status"
               },
               {
                 "$ref": "#/components/schemas/Event.worktree.ready"
@@ -14920,18 +17123,6 @@
               },
               {
                 "$ref": "#/components/schemas/Event.pty.deleted"
-              },
-              {
-                "$ref": "#/components/schemas/Event.workspace.ready"
-              },
-              {
-                "$ref": "#/components/schemas/Event.workspace.failed"
-              },
-              {
-                "$ref": "#/components/schemas/Event.workspace.restore"
-              },
-              {
-                "$ref": "#/components/schemas/Event.workspace.status"
               },
               {
                 "$ref": "#/components/schemas/Event.message.updated"
@@ -15307,6 +17498,9 @@
                 "$ref": "#/components/schemas/PermissionRuleConfig"
               },
               "agent_manager": {
+                "$ref": "#/components/schemas/PermissionRuleConfig"
+              },
+              "terminal": {
                 "$ref": "#/components/schemas/PermissionRuleConfig"
               }
             },
@@ -17056,9 +19250,7 @@
                 "maximum": 9007199254740991
               },
               "archived": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
+                "type": "number"
               }
             },
             "required": ["created", "updated"]
@@ -17101,6 +19293,499 @@
           }
         },
         "required": ["id", "slug", "projectID", "directory", "title", "version", "time", "project"]
+      },
+      "ProcessInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "sessionID": {
+            "type": "string"
+          },
+          "messageID": {
+            "type": "string"
+          },
+          "callID": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "number"
+          },
+          "started": {
+            "type": "number"
+          },
+          "updated": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "exit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "stopped": {
+            "type": "boolean"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "output": {
+            "type": "string"
+          },
+          "processID": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "command",
+          "cwd",
+          "sessionID",
+          "messageID",
+          "started",
+          "updated",
+          "status",
+          "running",
+          "exit",
+          "truncated",
+          "output",
+          "processID"
+        ]
+      },
+      "ProcessOutput": {
+        "type": "object",
+        "properties": {
+          "processID": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "number"
+          },
+          "nextOffset": {
+            "type": "number"
+          },
+          "output": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "exit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": ["processID", "id", "offset", "nextOffset", "output", "truncated", "running", "exit", "status"]
+      },
+      "AppServerCapabilities": {
+        "type": "object",
+        "properties": {
+          "protocolVersion": {
+            "type": "string"
+          },
+          "server": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": ["name", "version"]
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "features": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        },
+        "required": ["protocolVersion", "server", "methods", "features"]
+      },
+      "AppServerRpcResponse": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "const": "2.0"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {},
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "number"
+              },
+              "message": {
+                "type": "string"
+              },
+              "data": {}
+            },
+            "required": ["code", "message"]
+          }
+        },
+        "required": ["jsonrpc", "id"]
+      },
+      "ThreadRealtimeEvent": {
+        "type": "object",
+        "properties": {
+          "sessionID": {
+            "type": "string"
+          },
+          "directory": {
+            "type": "string"
+          },
+          "project": {
+            "type": "string"
+          },
+          "workspace": {
+            "type": "string"
+          },
+          "payload": {}
+        },
+        "required": ["sessionID", "payload"]
+      },
+      "ThreadUsage": {
+        "type": "object",
+        "properties": {
+          "cost": {
+            "type": "number"
+          },
+          "tokens": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "number"
+              },
+              "output": {
+                "type": "number"
+              },
+              "reasoning": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "cache": {
+                "type": "object",
+                "properties": {
+                  "read": {
+                    "type": "number"
+                  },
+                  "write": {
+                    "type": "number"
+                  }
+                },
+                "required": ["read", "write"]
+              }
+            },
+            "required": ["input", "output", "reasoning", "total", "cache"]
+          }
+        },
+        "required": ["cost", "tokens"]
+      },
+      "ThreadRecovery": {
+        "type": "object",
+        "properties": {
+          "resumable": {
+            "type": "boolean"
+          },
+          "returnedMessages": {
+            "type": "number"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": "string"
+          },
+          "lastMessageID": {
+            "type": "string"
+          },
+          "lastUserMessageID": {
+            "type": "string"
+          },
+          "lastAssistantMessageID": {
+            "type": "string"
+          }
+        },
+        "required": ["resumable", "returnedMessages", "truncated"]
+      },
+      "ThreadResume": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SessionStatus"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "info": {
+                  "$ref": "#/components/schemas/Message"
+                },
+                "parts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Part"
+                  }
+                }
+              },
+              "required": ["info", "parts"]
+            }
+          },
+          "todos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Todo"
+            }
+          },
+          "diff": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SnapshotFileDiff"
+            }
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ThreadUsage"
+          },
+          "recovery": {
+            "$ref": "#/components/schemas/ThreadRecovery"
+          }
+        },
+        "required": ["session", "status", "messages", "todos", "diff", "usage", "recovery"]
+      },
+      "FilesystemStat": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "absolute": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["file", "directory", "missing"]
+          },
+          "exists": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "number"
+          },
+          "mtime": {
+            "type": "number"
+          }
+        },
+        "required": ["path", "absolute", "type", "exists"]
+      },
+      "FilesystemRead": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "absolute": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "const": "file"
+          },
+          "exists": {
+            "type": "boolean",
+            "const": true
+          },
+          "size": {
+            "type": "number"
+          },
+          "mtime": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string",
+            "enum": ["utf8", "base64"]
+          }
+        },
+        "required": ["path", "absolute", "type", "exists", "content", "encoding"]
+      },
+      "FilesystemRemoved": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "absolute": {
+            "type": "string"
+          },
+          "removed": {
+            "type": "boolean"
+          }
+        },
+        "required": ["path", "absolute", "removed"]
+      },
+      "FilesystemEntry": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "absolute": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["file", "directory"]
+          }
+        },
+        "required": ["name", "path", "absolute", "type"]
+      },
+      "TerminalJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "sessionID": {
+            "type": "string"
+          },
+          "messageID": {
+            "type": "string"
+          },
+          "callID": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "number"
+          },
+          "started": {
+            "type": "number"
+          },
+          "updated": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "exit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "stopped": {
+            "type": "boolean"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "output": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "command",
+          "cwd",
+          "sessionID",
+          "messageID",
+          "started",
+          "updated",
+          "status",
+          "running",
+          "exit",
+          "truncated",
+          "output"
+        ]
       },
       "McpResource": {
         "type": "object",
@@ -17660,6 +20345,18 @@
             "$ref": "#/components/schemas/Event.command.executed"
           },
           {
+            "$ref": "#/components/schemas/Event.process.started"
+          },
+          {
+            "$ref": "#/components/schemas/Event.process.output"
+          },
+          {
+            "$ref": "#/components/schemas/Event.process.exited"
+          },
+          {
+            "$ref": "#/components/schemas/Event.process.updated"
+          },
+          {
             "$ref": "#/components/schemas/Event.altrucoder.agent_manager.start"
           },
           {
@@ -17667,6 +20364,18 @@
           },
           {
             "$ref": "#/components/schemas/Event.altru-coder-sessions.remote-status-changed"
+          },
+          {
+            "$ref": "#/components/schemas/Event.workspace.ready"
+          },
+          {
+            "$ref": "#/components/schemas/Event.workspace.failed"
+          },
+          {
+            "$ref": "#/components/schemas/Event.workspace.restore"
+          },
+          {
+            "$ref": "#/components/schemas/Event.workspace.status"
           },
           {
             "$ref": "#/components/schemas/Event.worktree.ready"
@@ -17685,18 +20394,6 @@
           },
           {
             "$ref": "#/components/schemas/Event.pty.deleted"
-          },
-          {
-            "$ref": "#/components/schemas/Event.workspace.ready"
-          },
-          {
-            "$ref": "#/components/schemas/Event.workspace.failed"
-          },
-          {
-            "$ref": "#/components/schemas/Event.workspace.restore"
-          },
-          {
-            "$ref": "#/components/schemas/Event.workspace.status"
           },
           {
             "$ref": "#/components/schemas/Event.message.updated"

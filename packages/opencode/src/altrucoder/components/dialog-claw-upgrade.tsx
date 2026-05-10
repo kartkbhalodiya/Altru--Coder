@@ -17,7 +17,9 @@ export function DialogClawUpgrade(props: { orgId?: string | null }) {
   const { theme } = useTheme()
   const dialog = useDialog()
 
-  const url = props.orgId ? `https://app.altru-coder.ai/organizations/${props.orgId}/claw` : "https://app.altru-coder.ai/claw"
+  const url = props.orgId
+    ? `https://app.altru-coder.ai/organizations/${props.orgId}/claw`
+    : "https://app.altru-coder.ai/claw"
 
   useKeyboard((evt: any) => {
     if (evt.name === "return") {
@@ -39,8 +41,8 @@ export function DialogClawUpgrade(props: { orgId?: string | null }) {
           This instance was provisioned before chat was enabled.
         </text>
         <text fg={theme.textMuted} wrapMode="word">
-          Use the <span style={{ fg: theme.warning, bold: true }}>↻ Upgrade to Latest</span> button on the AltruCoderClaw
-          dashboard to activate real-time chat with your bot.
+          Use the <span style={{ fg: theme.warning, bold: true }}>↻ Upgrade to Latest</span> button on the
+          AltruCoderClaw dashboard to activate real-time chat with your bot.
         </text>
       </box>
 

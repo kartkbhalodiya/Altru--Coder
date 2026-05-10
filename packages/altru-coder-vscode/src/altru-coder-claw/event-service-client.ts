@@ -149,7 +149,10 @@ export class EventServiceClient {
     }
   }
 
-  on<N extends AltruCoderChatEventName>(event: N, handler: (ctx: string, payload: AltruCoderChatEventMap[N]) => void): () => void {
+  on<N extends AltruCoderChatEventName>(
+    event: N,
+    handler: (ctx: string, payload: AltruCoderChatEventMap[N]) => void,
+  ): () => void {
     const set = this.eventHandlers.get(event) ?? new Set<EventHandler>()
     // The raw dispatcher receives `unknown` payloads; the caller supplied a
     // typed handler. We trust server payloads here — they're validated at the

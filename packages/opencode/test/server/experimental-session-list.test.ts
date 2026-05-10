@@ -15,6 +15,11 @@ beforeEach(() => {
 
 Log.init({ print: false })
 
+const headers = (directory: string) => ({
+  "x-altru-coder-directory": directory,
+  "x-altru-coder-experimental-api": "true",
+})
+
 afterEach(async () => {
   mock.restore()
   await resetDatabase()
@@ -68,7 +73,7 @@ describe("experimental.session.list", () => {
         const response = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true`,
           {
-            headers: { "x-altru-coder-directory": first.path },
+            headers: headers(first.path),
           },
         )
 
@@ -136,7 +141,7 @@ describe("experimental.session.list", () => {
         const response = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true&directory=${encodeURIComponent(first.path)}`,
           {
-            headers: { "x-altru-coder-directory": first.path },
+            headers: headers(first.path),
           },
         )
 

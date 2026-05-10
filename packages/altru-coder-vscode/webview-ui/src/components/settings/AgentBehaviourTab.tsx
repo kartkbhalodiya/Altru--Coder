@@ -389,7 +389,9 @@ const AgentBehaviourTab: Component = () => {
                   >
                     <div style={{ flex: 1, "min-width": 0 }}>
                       <div style={{ display: "flex", "align-items": "center", gap: "6px" }}>
-                        <div style={{ "font-weight": "500", "font-size": "var(--altru-coder-font-size-13)" }}>{name}</div>
+                        <div style={{ "font-weight": "500", "font-size": "var(--altru-coder-font-size-13)" }}>
+                          {name}
+                        </div>
                         <Show when={isCustom()}>
                           <span
                             style={{

@@ -116,6 +116,7 @@ export function DialogWorkspaceCreate(props: { onSelect: (workspaceID: string) =
       const dir = sync.path.directory || sdk.directory
       const url = new URL("/experimental/workspace/adapter", sdk.url)
       if (dir) url.searchParams.set("directory", dir)
+      url.searchParams.set("experimentalApi", "true") // altrucoder_change
       const res = await sdk
         .fetch(url)
         .then((x) => x.json() as Promise<Adapter[]>)

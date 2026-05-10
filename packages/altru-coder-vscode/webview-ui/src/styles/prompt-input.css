@@ -13,8 +13,7 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018) 42%, transparent),
     color-mix(in srgb, var(--glass-bg-strong, var(--vscode-input-background, #3c3c3c)) 88%, transparent);
-  border: 1px solid
-    color-mix(in srgb, var(--glass-border, var(--vscode-input-border, #3c3c3c)) 82%, #ffffff 14%);
+  border: 1px solid color-mix(in srgb, var(--glass-border, var(--vscode-input-border, #3c3c3c)) 82%, #ffffff 14%);
   box-shadow:
     0 10px 26px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -269,22 +268,27 @@
   }
 }
 
-/* Image Attachments */
-.image-attachments {
+/* Attachments */
+.prompt-attachment-input {
+  display: none;
+}
+
+.prompt-attachments {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
   padding: 8px 8px 0;
 }
 
-.image-attachment {
+.prompt-image-attachment {
   position: relative;
   width: 48px;
   height: 48px;
   flex-shrink: 0;
 }
 
-.image-attachment img {
+.prompt-image-attachment img {
   width: 48px;
   height: 48px;
   object-fit: cover;
@@ -320,8 +324,57 @@
   }
 }
 
-.image-attachment:hover .image-attachment-remove {
+.prompt-image-attachment:hover .image-attachment-remove {
   opacity: 1;
+}
+
+.prompt-file-attachment {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  max-width: min(240px, 100%);
+  min-width: 0;
+  padding: 0 6px;
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 6px;
+  background: var(--vscode-editorWidget-background, var(--vscode-input-background));
+}
+
+.prompt-file-attachment [data-component="file-icon"] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.prompt-file-attachment-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--vscode-foreground);
+  font-size: var(--altru-coder-font-size-12);
+}
+
+.prompt-file-attachment-remove {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-inset-base, rgba(127, 127, 127, 0.16));
+  color: var(--text-weak, var(--vscode-descriptionForeground));
+  font-size: var(--altru-coder-font-size-11);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.prompt-file-attachment-remove:hover {
+  color: var(--vscode-foreground);
+  background: var(--surface-inset-base-hover, rgba(127, 127, 127, 0.24));
 }
 
 .prompt-input-container--dragging {
@@ -332,9 +385,57 @@
 .prompt-input-wrapper {
   display: flex;
   gap: 8px;
-  align-items: flex-end;
+  align-items: flex-start;
   min-width: 0;
   border-radius: var(--prompt-input-inner-radius);
+}
+
+.prompt-attach-menu {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 8px 0 0 8px;
+}
+
+.prompt-attach-button[data-component="button"] {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 !important;
+  border-radius: 6px;
+}
+
+.prompt-attach-popover {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 30;
+  width: min(180px, calc(100vw - 32px));
+  padding: 4px;
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 6px;
+  background: var(--vscode-dropdown-background, var(--vscode-editorWidget-background));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.prompt-attach-option {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: 5px;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  font-size: var(--altru-coder-font-size-12);
+}
+
+.prompt-attach-option:hover,
+.prompt-attach-option:focus-visible {
+  background: var(--vscode-list-hoverBackground, rgba(127, 127, 127, 0.16));
 }
 
 .prompt-input {
@@ -528,10 +629,7 @@
 }
 
 .altru-builtin-quota--hot .altru-builtin-quota-ring {
-  background: conic-gradient(
-    var(--vscode-errorForeground) var(--quota-pct),
-    var(--vscode-editorWidget-border) 0
-  );
+  background: conic-gradient(var(--vscode-errorForeground) var(--quota-pct), var(--vscode-editorWidget-border) 0);
 }
 
 /* Remote Settings */
@@ -649,11 +747,17 @@
   color: var(--vscode-errorForeground, #f48771);
 }
 
+.prompt-auto-approve-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .prompt-auto-approve-button {
   position: relative;
 }
 
-.prompt-auto-approve-button--active {
+.prompt-auto-approve-button--workspace {
   color: var(--vscode-testing-iconPassed, #73c991);
 
   [data-slot="icon-svg"] {
@@ -661,7 +765,16 @@
   }
 }
 
-.prompt-auto-approve-button--active::after {
+.prompt-auto-approve-button--bypass {
+  color: var(--vscode-errorForeground, #f48771);
+
+  [data-slot="icon-svg"] {
+    color: currentColor !important;
+  }
+}
+
+.prompt-auto-approve-button--workspace::after,
+.prompt-auto-approve-button--bypass::after {
   content: "";
   position: absolute;
   right: 4px;
@@ -669,8 +782,58 @@
   width: 5px;
   height: 5px;
   border-radius: 999px;
-  background: var(--vscode-testing-iconPassed, #73c991);
+  background: currentColor;
   box-shadow: 0 0 0 1px var(--surface-base, var(--vscode-editor-background));
+}
+
+.prompt-auto-approve-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 30;
+  width: min(240px, calc(100vw - 32px));
+  padding: 4px;
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 6px;
+  background: var(--vscode-dropdown-background, var(--vscode-editorWidget-background));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.prompt-auto-approve-option {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.prompt-auto-approve-option:hover,
+.prompt-auto-approve-option:focus-visible,
+.prompt-auto-approve-option[data-active="true"] {
+  background: var(--vscode-list-hoverBackground, rgba(127, 127, 127, 0.16));
+}
+
+.prompt-auto-approve-option:focus-visible {
+  outline: 1px solid var(--border-focus, var(--vscode-focusBorder));
+}
+
+.prompt-auto-approve-option-title {
+  color: var(--vscode-foreground);
+  font-size: var(--altru-coder-font-size-12);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.prompt-auto-approve-option-description {
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--altru-coder-font-size-11);
+  line-height: 1.35;
+  white-space: normal;
 }
 
 /* ============================================
