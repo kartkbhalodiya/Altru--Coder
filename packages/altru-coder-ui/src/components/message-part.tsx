@@ -187,7 +187,7 @@ export function getToolInfo(tool: string, input: any = {}): ToolInfo {
   switch (tool) {
     case "read":
       return {
-        icon: "glasses",
+        icon: "eye",
         title: i18n.t("ui.tool.read"),
         subtitle: input.filePath ? getFilename(input.filePath) : undefined,
       }
@@ -252,7 +252,7 @@ export function getToolInfo(tool: string, input: any = {}): ToolInfo {
       }
     case "write":
       return {
-        icon: "code-lines",
+        icon: "pencil-line",
         title: i18n.t("ui.messagePart.title.write"),
         subtitle: input.filePath ? getFilename(input.filePath) : undefined,
       }
@@ -1763,7 +1763,7 @@ ToolRegistry.register({
         <BasicTool
           hideDetails
           {...props}
-          icon="glasses"
+          icon="eye"
           onSubtitleClick={
             data.openFile && props.input.filePath ? () => data.openFile!(props.input.filePath) : undefined
           }
@@ -2317,7 +2317,7 @@ ToolRegistry.register({
       <div data-component="write-tool">
         <BasicTool
           {...props}
-          icon="code-lines"
+          icon="pencil-line"
           defer
           trigger={
             <div data-component="write-trigger">

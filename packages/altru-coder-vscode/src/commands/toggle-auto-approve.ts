@@ -33,6 +33,9 @@ export interface AutoApproveController {
 const CONFIG = "altru-coder.new.autoApprove"
 const ENABLED = "enabled"
 const MODE = "mode"
+const PATH_KEYS = new Set(["filepath", "filePath", "path", "parentDir", "directory", "workdir", "cwd", "target"])
+const PATH_PERMISSIONS = new Set(["read", "list", "lsp", "edit", "write", "patch", "multiedit"])
+const COMMAND_PATH = /(?:^|[\s"'`])((?:[A-Za-z]:[\\/][^\s"'`]+)|(?:~[\\/][^\s"'`]+)|(?:\.\.[\\/][^\s"'`]+)|(?:\/[A-Za-z0-9_.-]+\/[^\s"'`]+))/g
 
 /**
  * Runtime auto-approve modes for permissions.
@@ -125,9 +128,13 @@ export function registerToggleAutoApprove(
     const dir = resolve(event.properties.sessionID)
     if (mode === "bypass") {
       client.permission
-        .allowEverything({ requestID: event.properties.id, directory: dir, enable: true })
+        .reply({ requestID: event.properties.id, directory: dir, reply: "once" })
         .catch((err) => {
           console.error("[Altru Coder New] toggleAutoApprove: failed to bypass permission:", err)
+        })
+        .then(() => client.permission.allowEverything({ directory: dir, enable: true }))
+        .catch((err) => {
+          console.error("[Altru Coder New] toggleAutoApprove: failed to keep bypass enabled:", err)
         })
       return
     }
@@ -210,15 +217,51 @@ async function allowEverything(client: AltruCoderClient, dirs: string[], enable:
   }
 }
 
-function shouldApprove(mode: AutoApproveMode, req: PermissionRequest, roots: string[]) {
+export function shouldApprove(mode: AutoApproveMode, req: PermissionRequest, roots: string[]) {
   if (mode === "bypass") return true
   if (mode === "default") return false
-  if (req.permission !== "external_directory") return true
-  return req.patterns.every((pattern) => contained(pattern, roots))
+  if (req.permission === "external_directory") return req.patterns.every((pattern) => contained(pattern, roots))
+  return !outside(req, roots)
+}
+
+function outside(req: PermissionRequest, roots: string[]) {
+  const patterns = PATH_PERMISSIONS.has(req.permission) ? req.patterns : []
+  const targets = [...patterns, ...paths(req.metadata), ...commands(req)]
+  return targets.some((item) => external(item, roots))
+}
+
+function paths(meta: PermissionRequest["metadata"]) {
+  return Object.entries(meta).flatMap(([key, value]) => {
+    if (!PATH_KEYS.has(key)) return []
+    return strings(value)
+  })
+}
+
+function strings(value: unknown): string[] {
+  if (typeof value === "string") return [value]
+  if (Array.isArray(value)) return value.flatMap(strings)
+  return []
+}
+
+function commands(req: PermissionRequest) {
+  if (req.permission !== "bash") return []
+  const command = req.metadata.command
+  if (typeof command !== "string") return []
+  return [...command.matchAll(COMMAND_PATH)].map((match) => match[1]).filter((item) => !!item)
+}
+
+function external(value: string, roots: string[]) {
+  const clean = targetPath(value)
+  if (!clean) return false
+  if (clean === ".." || clean.startsWith("../") || clean.startsWith("..\\")) return true
+  if (clean === "~" || clean.startsWith("~/") || clean.startsWith("~\\")) return !contained(clean, roots)
+  if (path.isAbsolute(clean)) return !contained(clean, roots)
+  if (/^[A-Za-z]:[\\/]/.test(clean)) return !contained(clean, roots)
+  return false
 }
 
 function contained(pattern: string, roots: string[]) {
-  const clean = pattern.replace(/[/\\]?\*.*$/, "")
+  const clean = targetPath(pattern)
   if (!clean || (clean === pattern && pattern.includes("*"))) return false
   const file = path.resolve(clean)
   return unique(roots).some((root) => {
@@ -226,6 +269,12 @@ function contained(pattern: string, roots: string[]) {
     const rel = path.relative(dir, file)
     return rel === "" || (!!rel && !rel.startsWith("..") && !path.isAbsolute(rel))
   })
+}
+
+function targetPath(value: string) {
+  const text = value.trim().replace(/^["'`]+|["'`]+$/g, "")
+  if (!text) return ""
+  return text.replace(/[/\\]?\*.*$/, "")
 }
 
 function tryGetClient(connectionService: AltruCoderConnectionService): AltruCoderClient | undefined {

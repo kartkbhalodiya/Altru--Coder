@@ -43,6 +43,10 @@ const AltruCoderLogo = (): JSX.Element => {
   )
 }
 
+const SCROLL_PREFETCH_TOP = 1200
+const WARM_CHUNK = 32
+const IDLE_PREFETCH_PAGES = 4
+
 interface MessageListProps {
   onSelectSession?: (id: string) => void
   onShowHistory?: () => void
@@ -59,6 +63,9 @@ export const MessageList: Component<MessageListProps> = (props) => {
   const session = useSession()
   const server = useServer()
   const language = useLanguage()
+  const warmed = new Map<string, number>()
+  let warmTimer: ReturnType<typeof setTimeout> | undefined
+  let prefetchTimer: ReturnType<typeof setTimeout> | undefined
 
   const autoScroll = createAutoScroll({
     working: () => session.status() !== "idle",
@@ -105,7 +112,7 @@ export const MessageList: Component<MessageListProps> = (props) => {
 
   const maybeLoadOlder = () => {
     const el = scrollEl()
-    if (!el || el.scrollTop > 600) return
+    if (!el || el.scrollTop > SCROLL_PREFETCH_TOP) return
     session.loadOlderMessages()
   }
 
@@ -153,6 +160,43 @@ export const MessageList: Component<MessageListProps> = (props) => {
     })
   })
 
+  createEffect(
+    on(
+      () => [session.currentSessionID(), session.status(), session.loading(), turns().length] as const,
+      ([id, status, loading]) => {
+        if (warmTimer) clearTimeout(warmTimer)
+        if (prefetchTimer) clearTimeout(prefetchTimer)
+        if (!id || status !== "idle" || loading) return
+
+        const ids = turns().flatMap((turn) => [
+          ...(turn.partial ? [] : [turn.user.id]),
+          ...turn.assistant.map((msg) => msg.id),
+        ])
+        let index = 0
+        const warm = () => {
+          if (session.currentSessionID() !== id || session.status() !== "idle") return
+          session.hydrateParts(ids.slice(index, index + WARM_CHUNK))
+          index += WARM_CHUNK
+          if (index < ids.length) warmTimer = setTimeout(warm, 0)
+        }
+        warmTimer = setTimeout(warm, 0)
+
+        const count = warmed.get(id) ?? 0
+        if (count < IDLE_PREFETCH_PAGES && session.hasOlderMessages() && !session.loadingOlderMessages()) {
+          warmed.set(id, count + 1)
+          prefetchTimer = setTimeout(() => {
+            if (session.currentSessionID() !== id || session.status() !== "idle") return
+            session.loadOlderMessages()
+          }, 250)
+        }
+      },
+    ),
+  )
+
+  onCleanup(() => {
+    if (warmTimer) clearTimeout(warmTimer)
+    if (prefetchTimer) clearTimeout(prefetchTimer)
+  })
   onCleanup(() => save(session.currentSessionID()))
 
   return (

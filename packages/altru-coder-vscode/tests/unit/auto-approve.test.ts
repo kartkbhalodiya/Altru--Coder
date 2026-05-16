@@ -2,12 +2,13 @@ import { describe, expect, it } from "bun:test"
 import * as vscode from "vscode"
 import {
   registerToggleAutoApprove,
+  shouldApprove,
   type AutoApproveController,
   type AutoApproveMode,
   type AutoApproveState,
 } from "../../src/commands/toggle-auto-approve"
 import { createAutoApproveBridge } from "../../src/altru-coder-provider/auto-approve"
-import type { Event, AltruCoderClient } from "@altru-coder/sdk/v2/client"
+import type { Event, AltruCoderClient, PermissionRequest } from "@altru-coder/sdk/v2/client"
 import type { AltruCoderConnectionService } from "../../src/services/cli-backend/connection-service"
 
 type ConfigEvent = { affectsConfiguration(key: string): boolean }
@@ -28,6 +29,10 @@ function defer<T>() {
     state.reject = reject
   })
   return { promise, resolve: state.resolve, reject: state.reject }
+}
+
+function tick() {
+  return new Promise((resolve) => setTimeout(resolve, 0))
 }
 
 function config(initial: boolean | AutoApproveMode, info: Record<string, unknown> = {}) {
@@ -153,6 +158,52 @@ function asked(id: string, sessionID = "ses_1", permission = "bash", patterns = 
   return { type: "permission.asked", properties: perm(id, permission, patterns, sessionID) } as Event
 }
 
+function request(input: Partial<PermissionRequest>): PermissionRequest {
+  return {
+    id: "perm",
+    sessionID: "ses_1",
+    permission: "read",
+    patterns: [],
+    always: [],
+    metadata: {},
+    ...input,
+  }
+}
+
+describe("shouldApprove", () => {
+  it("keeps workspace mode scoped to the current folder", () => {
+    expect(
+      shouldApprove(
+        "workspace",
+        request({ permission: "external_directory", patterns: ["/repo/src/*"] }),
+        ["/repo"],
+      ),
+    ).toBe(true)
+    expect(
+      shouldApprove(
+        "workspace",
+        request({ permission: "external_directory", patterns: ["/outside/*"] }),
+        ["/repo"],
+      ),
+    ).toBe(false)
+    expect(shouldApprove("workspace", request({ permission: "read", patterns: ["/outside/secret.txt"] }), ["/repo"]))
+      .toBe(false)
+    expect(
+      shouldApprove(
+        "workspace",
+        request({ permission: "grep", patterns: ["secret"], metadata: { path: "/outside" } }),
+        ["/repo"],
+      ),
+    ).toBe(false)
+  })
+
+  it("allows explicit bypass to approve outside-folder prompts", () => {
+    expect(
+      shouldApprove("bypass", request({ permission: "external_directory", patterns: ["/outside/*"] }), ["/repo"]),
+    ).toBe(true)
+  })
+})
+
 describe("registerToggleAutoApprove", () => {
   it("restores persisted state, follows config changes, and persists toggles to the closest configured scope", async () => {
     const env = config(true, { workspaceValue: false })
@@ -258,7 +309,9 @@ describe("registerToggleAutoApprove", () => {
     expect(bypass).toContainEqual({ directory: "/repo", enable: true })
 
     conn.emit(asked("outside", "ses_1", "external_directory", ["C:/outside/*"]))
-    expect(bypass).toContainEqual({ requestID: "outside", directory: "/repo/ses_1", enable: true })
+    await tick()
+    expect(replies).toContainEqual({ requestID: "outside", directory: "/repo/ses_1", reply: "once" })
+    expect(bypass).toContainEqual({ directory: "/repo/ses_1", enable: true })
   })
 })
 

@@ -194,7 +194,7 @@
     },
     "packages/altru-coder-vscode": {
       "name": "altru-coder-agent-by-kartik",
-      "version": "1.1.4",
+      "version": "1.1.13",
       "dependencies": {
         "@altru-coder/altru-coder-gateway": "workspace:*",
         "@altru-coder/altru-coder-i18n": "workspace:*",

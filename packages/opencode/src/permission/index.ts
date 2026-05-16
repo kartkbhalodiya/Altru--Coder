@@ -469,20 +469,21 @@ export const layer = Layer.effect(
       input: z.infer<typeof AllowEverythingInput>,
     ) {
       const s = yield* InstanceState.get(state)
+      const all = (rule: Rule) => rule.permission === "*" && rule.pattern === "*" && rule.action === "allow"
 
       if (!input.enable) {
         if (input.sessionID) {
           delete s.session[input.sessionID]
           return
         }
-        const idx = s.approved.findLastIndex((r) => r.permission === "*" && r.pattern === "*" && r.action === "allow")
-        if (idx >= 0) s.approved.splice(idx, 1)
+        const approved = s.approved.filter((rule) => !all(rule))
+        s.approved.splice(0, s.approved.length, ...approved)
         return
       }
 
       const rule = { permission: "*", pattern: "*", action: "allow" } as const
       if (input.sessionID) s.session[input.sessionID] = [rule]
-      else s.approved.push(rule)
+      else if (!s.approved.some(all)) s.approved.push(rule)
 
       if (input.requestID) {
         const entry = s.pending.get(PermissionID.make(input.requestID))
