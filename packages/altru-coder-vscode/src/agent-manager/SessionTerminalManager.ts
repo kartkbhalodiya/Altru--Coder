@@ -37,8 +37,6 @@ export class SessionTerminalManager {
 
   private terminals = new Map<string, { terminal: TerminalHandle; cwd: string }>()
   private disposables: Disposable[] = []
-  private commandHandlers = new Map<string, (...args: unknown[]) => Promise<unknown>>()
-  private commandDisposables = new Map<string, Disposable>()
   private panelOpen = false
 
   constructor(
@@ -57,27 +55,10 @@ export class SessionTerminalManager {
       }),
       host.onActiveTerminalChanged((terminal) => {
         const managed = terminal ? this.isManaged(terminal) : false
-        if (terminal) this.panelOpen = true
+        this.panelOpen = !!terminal
         void host.setContext("altru-coder.agentTerminalFocus", managed)
       }),
     )
-
-    this.registerPanelCommand("workbench.action.togglePanel", () => {
-      this.panelOpen = !this.panelOpen
-      this.log(`panel visibility toggled via command (open=${this.panelOpen})`)
-    })
-    this.registerPanelCommand("workbench.action.closePanel", () => {
-      this.panelOpen = false
-      this.log("panel hidden via command")
-    })
-    this.registerPanelCommand("workbench.action.focusPanel", () => {
-      this.panelOpen = true
-      this.log("panel focused via command")
-    })
-    this.registerPanelCommand("workbench.action.terminal.focus", () => {
-      this.panelOpen = true
-      this.log("terminal focused via command")
-    })
   }
 
   /**
@@ -190,38 +171,7 @@ export class SessionTerminalManager {
     void this.host.setContext("altru-coder.agentTerminalFocus", false)
     for (const entry of this.terminals.values()) entry.terminal.dispose()
     this.terminals.clear()
-    for (const d of this.commandDisposables.values()) d.dispose()
-    this.commandDisposables.clear()
-    this.commandHandlers.clear()
     for (const d of this.disposables) d.dispose()
-  }
-
-  private registerPanelCommand(id: string, onAfterRun: () => void): void {
-    const handler = async (...args: unknown[]) => {
-      const result = await this.runOriginalCommand(id, args)
-      onAfterRun()
-      return result
-    }
-
-    this.commandHandlers.set(id, handler)
-    this.commandDisposables.set(id, this.host.registerCommand(id, handler))
-  }
-
-  private async runOriginalCommand(id: string, args: unknown[]): Promise<unknown> {
-    const disposable = this.commandDisposables.get(id)
-    if (!disposable) return this.host.executeCommand(id, ...args)
-
-    disposable.dispose()
-    this.commandDisposables.delete(id)
-
-    try {
-      return await this.host.executeCommand(id, ...args)
-    } finally {
-      const handler = this.commandHandlers.get(id)
-      if (!handler) return
-      const replacement = this.host.registerCommand(id, handler)
-      this.commandDisposables.set(id, replacement)
-    }
   }
 
   private isManaged(terminal: TerminalHandle): boolean {
@@ -234,7 +184,7 @@ export class SessionTerminalManager {
   private updateContextKey(): void {
     const active = this.host.activeTerminal()
     const managed = active ? this.isManaged(active) : false
-    if (active) this.panelOpen = true
+    this.panelOpen = !!active
     void this.host.setContext("altru-coder.agentTerminalFocus", managed)
   }
 

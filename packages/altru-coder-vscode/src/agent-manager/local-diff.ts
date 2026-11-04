@@ -141,14 +141,17 @@ async function statStamp(dir: string, file: string): Promise<string> {
   return `${stat.size}:${stat.mtimeMs}`
 }
 
-async function lineCount(file: string): Promise<number> {
-  const stat = await fs.stat(file).catch(() => undefined)
-  if (!stat || stat.size === 0) return 0
-  if (stat.size > MAX_UNTRACKED_BYTES) return 0
+async function countLines(file: string): Promise<number> {
   const content = await fs.readFile(file, "utf-8").catch(() => "")
   if (!content) return 0
   if (content.endsWith("\n")) return content.split("\n").length - 1
   return content.split("\n").length
+}
+
+async function lineCount(file: string): Promise<number> {
+  const stat = await fs.stat(file).catch(() => undefined)
+  if (!stat || stat.size === 0 || stat.size > MAX_UNTRACKED_BYTES) return 0
+  return countLines(file)
 }
 
 function statusFromCode(code: string): Status {
@@ -168,28 +171,33 @@ async function list(git: GitOps, dir: string, anc: string, log?: Log): Promise<M
   }
 
   const counts = await numstat(git, dir, anc)
-  const result: Meta[] = []
+  const lines = nameStatus.stdout.trim().split("\n")
   const seen = new Set<string>()
 
-  for (const line of nameStatus.stdout.trim().split("\n")) {
-    if (!line) continue
-    const parts = line.split("\t")
-    const code = parts[0]
-    const file = parts.slice(1).join("\t")
-    if (!file || !code) continue
-    seen.add(file)
-    const status = statusFromCode(code)
-    const stat = counts.get(file) ?? { additions: 0, deletions: 0 }
-    result.push({
-      file,
-      additions: stat.additions,
-      deletions: stat.deletions,
-      status,
-      tracked: true,
-      generatedLike: generatedLike(file),
-      stamp: status === "deleted" ? `deleted:${anc}` : await statStamp(dir, file),
-    })
-  }
+  const trackedItems = await Promise.all(
+    lines.map(async (line) => {
+      if (!line) return undefined
+      const parts = line.split("\t")
+      const code = parts[0]
+      const file = parts.slice(1).join("\t")
+      if (!file || !code) return undefined
+      seen.add(file)
+      const status = statusFromCode(code)
+      const stat = counts.get(file) ?? { additions: 0, deletions: 0 }
+      const stamp = status === "deleted" ? `deleted:${anc}` : await statStamp(dir, file)
+      return {
+        file,
+        additions: stat.additions,
+        deletions: stat.deletions,
+        status,
+        tracked: true,
+        generatedLike: generatedLike(file),
+        stamp,
+      }
+    }),
+  )
+
+  const result: Meta[] = trackedItems.filter((item): item is Meta => !!item)
 
   const untracked = await git.execGit(["ls-files", "--others", "--exclude-standard"], dir)
   if (untracked.code !== 0) {
@@ -200,20 +208,28 @@ async function list(git: GitOps, dir: string, anc: string, log?: Log): Promise<M
   const files = untracked.stdout.trim()
   if (!files) return result
 
-  for (const file of files.split("\n")) {
-    if (!file || seen.has(file)) continue
-    const full = path.join(dir, file)
-    const exists = await fs.stat(full).catch(() => undefined)
-    if (!exists) continue
-    result.push({
-      file,
-      additions: await lineCount(full),
-      deletions: 0,
-      status: "added",
-      tracked: false,
-      generatedLike: generatedLike(file),
-      stamp: await statStamp(dir, file),
-    })
+  const untrackedFiles = files.split("\n").filter((f) => f && !seen.has(f))
+  const untrackedItems = await Promise.all(
+    untrackedFiles.map(async (file) => {
+      const full = path.join(dir, file)
+      const stat = await fs.stat(full).catch(() => undefined)
+      if (!stat) return undefined
+      const isGen = generatedLike(file)
+      const count = !isGen && stat.size > 0 && stat.size <= MAX_UNTRACKED_BYTES ? await countLines(full) : 0
+      return {
+        file,
+        additions: count,
+        deletions: 0,
+        status: "added" as const,
+        tracked: false,
+        generatedLike: isGen,
+        stamp: `${stat.size}:${stat.mtimeMs}`,
+      }
+    }),
+  )
+
+  for (const item of untrackedItems) {
+    if (item) result.push(item)
   }
 
   return result

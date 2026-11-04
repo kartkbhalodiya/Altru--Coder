@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import { GitOps } from "../agent-manager/GitOps"
 import { GitStatsPoller, type LocalStats } from "../agent-manager/GitStatsPoller"
 import { diffSummary, workingTreeSummary } from "../agent-manager/local-diff"
+import { Semaphore } from "../agent-manager/semaphore"
 import { getWorkspaceRoot } from "../review-utils"
 
 export function browserSettingsMessage() {
@@ -25,13 +26,16 @@ export function claudeCompatSettingMessage() {
 }
 
 export function createStatsPolling(post: (msg: { type: "worktreeStatsLoaded"; files: number; additions: number; deletions: number }) => void) {
-  const git = new GitOps({ log: () => {} })
+  const semaphore = new Semaphore(2)
+  const git = new GitOps({ log: () => {}, semaphore })
   const poller = new GitStatsPoller({
     getWorktrees: () => [],
     getWorkspaceRoot: () => getWorkspaceRoot(),
     localDiff: (dir, base) => diffSummary(git, dir, base),
     localWorktreeDiff: (dir) => workingTreeSummary(git, dir),
     git,
+    intervalMs: 10000,
+    semaphore,
     onStats: () => {},
     onLocalStats: (stats: LocalStats) => {
       post({

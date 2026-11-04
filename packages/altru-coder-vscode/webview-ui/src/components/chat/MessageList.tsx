@@ -9,7 +9,7 @@
  * Shows the empty welcome state before the first message.
  */
 
-import { type Component, For, Show, createEffect, createMemo, createSignal, on, onCleanup, JSX } from "solid-js"
+import { type Component, For, Show, createEffect, createMemo, createSignal, on, onCleanup, untrack, JSX } from "solid-js"
 import { Icon } from "@altru-coder/altru-coder-ui/icon"
 import { Spinner } from "@altru-coder/altru-coder-ui/spinner"
 import { createAutoScroll } from "@altru-coder/altru-coder-ui/hooks"
@@ -43,7 +43,7 @@ const AltruCoderLogo = (): JSX.Element => {
   )
 }
 
-const SCROLL_PREFETCH_TOP = 1200
+const SCROLL_PREFETCH_TOP = 600
 const WARM_CHUNK = 32
 const IDLE_PREFETCH_PAGES = 4
 
@@ -64,6 +64,7 @@ export const MessageList: Component<MessageListProps> = (props) => {
   const server = useServer()
   const language = useLanguage()
   const warmed = new Map<string, number>()
+  const hydrated = new Set<string>()
   let warmTimer: ReturnType<typeof setTimeout> | undefined
   let prefetchTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -113,6 +114,7 @@ export const MessageList: Component<MessageListProps> = (props) => {
   const maybeLoadOlder = () => {
     const el = scrollEl()
     if (!el || el.scrollTop > SCROLL_PREFETCH_TOP) return
+    if (!session.hasOlderMessages() || session.loadingOlderMessages()) return
     session.loadOlderMessages()
   }
 
@@ -131,6 +133,7 @@ export const MessageList: Component<MessageListProps> = (props) => {
   createEffect(
     on(session.currentSessionID, (id, prev) => {
       save(prev)
+      hydrated.clear()
       setPendingRestore(id)
     }),
   )
@@ -162,32 +165,46 @@ export const MessageList: Component<MessageListProps> = (props) => {
 
   createEffect(
     on(
-      () => [session.currentSessionID(), session.status(), session.loading(), turns().length] as const,
+      () => [session.currentSessionID(), session.status(), session.loading()] as const,
       ([id, status, loading]) => {
         if (warmTimer) clearTimeout(warmTimer)
         if (prefetchTimer) clearTimeout(prefetchTimer)
         if (!id || status !== "idle" || loading) return
 
-        const ids = turns().flatMap((turn) => [
-          ...(turn.partial ? [] : [turn.user.id]),
-          ...turn.assistant.map((msg) => msg.id),
-        ])
-        let index = 0
-        const warm = () => {
-          if (session.currentSessionID() !== id || session.status() !== "idle") return
-          session.hydrateParts(ids.slice(index, index + WARM_CHUNK))
-          index += WARM_CHUNK
-          if (index < ids.length) warmTimer = setTimeout(warm, 0)
+        const currentTurns = untrack(turns)
+        const unhydrated: string[] = []
+        for (const turn of currentTurns) {
+          if (!turn.partial && !hydrated.has(turn.user.id)) {
+            hydrated.add(turn.user.id)
+            unhydrated.push(turn.user.id)
+          }
+          for (const msg of turn.assistant) {
+            if (!hydrated.has(msg.id)) {
+              hydrated.add(msg.id)
+              unhydrated.push(msg.id)
+            }
+          }
         }
-        warmTimer = setTimeout(warm, 0)
+
+        if (unhydrated.length > 0) {
+          let index = 0
+          const warm = () => {
+            if (session.currentSessionID() !== id || session.status() !== "idle") return
+            session.hydrateParts(unhydrated.slice(index, index + WARM_CHUNK))
+            index += WARM_CHUNK
+            if (index < unhydrated.length) warmTimer = setTimeout(warm, 0)
+          }
+          warmTimer = setTimeout(warm, 0)
+        }
 
         const count = warmed.get(id) ?? 0
         if (count < IDLE_PREFETCH_PAGES && session.hasOlderMessages() && !session.loadingOlderMessages()) {
           warmed.set(id, count + 1)
           prefetchTimer = setTimeout(() => {
             if (session.currentSessionID() !== id || session.status() !== "idle") return
+            if (!session.hasOlderMessages() || session.loadingOlderMessages()) return
             session.loadOlderMessages()
-          }, 250)
+          }, 300)
         }
       },
     ),
