@@ -1487,6 +1487,7 @@ export class AgentManagerProvider implements Disposable {
     // already excludes worktrees in collapsed sections.
     this.syncPollerSkips()
     this.statsPoller.setEnabled(worktrees.length > 0 || this.panel !== undefined)
+    this.statsPoller.trigger(100)
     this.prBridge.poller.setEnabled(worktrees.length > 0)
   }
 

@@ -64,8 +64,10 @@ interface GitStatsPollerOptions {
 
 export class GitStatsPoller {
   private timer: ReturnType<typeof setTimeout> | undefined
+  private watchTimer: ReturnType<typeof setTimeout> | undefined
   private active = false
   private busy = false
+  private pending = false
   private lastHash: string | undefined
   private lastLocalHash: string | undefined
   private lastLocalStats: LocalStats | undefined
@@ -73,6 +75,7 @@ export class GitStatsPoller {
   private readonly intervalMs: number
   private readonly hiddenIntervalMs: number
   private readonly git: GitOps
+  private readonly watchers = new Map<string, fs.FSWatcher>()
   private skipWorktreeIds = new Set<string>()
   private visible = true
 
@@ -108,6 +111,19 @@ export class GitStatsPoller {
     this.skipWorktreeIds.add(id)
   }
 
+  trigger(delay = 300): void {
+    if (!this.active) return
+    if (this.watchTimer) clearTimeout(this.watchTimer)
+    this.watchTimer = setTimeout(() => {
+      this.watchTimer = undefined
+      if (this.busy) {
+        this.pending = true
+        return
+      }
+      void this.poll()
+    }, delay)
+  }
+
   setEnabled(enabled: boolean): void {
     if (enabled) {
       if (this.active) return
@@ -124,7 +140,20 @@ export class GitStatsPoller {
       clearTimeout(this.timer)
       this.timer = undefined
     }
+    if (this.watchTimer) {
+      clearTimeout(this.watchTimer)
+      this.watchTimer = undefined
+    }
+    for (const watcher of this.watchers.values()) {
+      try {
+        watcher.close()
+      } catch (err) {
+        this.options.log("Failed to close watcher:", err)
+      }
+    }
+    this.watchers.clear()
     this.busy = false
+    this.pending = false
     this.lastHash = undefined
     this.lastLocalHash = undefined
     this.lastLocalStats = undefined
@@ -132,7 +161,9 @@ export class GitStatsPoller {
   }
 
   private currentInterval(): number {
-    return this.visible ? this.intervalMs : this.hiddenIntervalMs
+    if (!this.visible) return this.hiddenIntervalMs
+    const count = this.options.getWorktrees().length
+    return count > 1 ? Math.max(this.intervalMs, 10000) : this.intervalMs
   }
 
   private schedule(delay: number): void {
@@ -144,12 +175,78 @@ export class GitStatsPoller {
 
   private poll(): Promise<void> {
     if (!this.active) return Promise.resolve()
-    if (this.busy) return Promise.resolve()
+    if (this.busy) {
+      this.pending = true
+      return Promise.resolve()
+    }
     this.busy = true
+    this.syncWatchers()
     return this.fetch().finally(() => {
       this.busy = false
-      this.schedule(this.currentInterval())
+      if (this.pending) {
+        this.pending = false
+        this.trigger(300)
+      } else {
+        this.schedule(this.currentInterval())
+      }
     })
+  }
+
+  private syncWatchers(): void {
+    if (!this.active) return
+    const root = this.options.getWorkspaceRoot()
+    const targets = new Set<string>()
+
+    if (root) {
+      const gitDir = path.join(root, ".git")
+      if (fs.existsSync(gitDir)) {
+        targets.add(gitDir)
+        const worktreesDir = path.join(gitDir, "worktrees")
+        if (fs.existsSync(worktreesDir)) targets.add(worktreesDir)
+      }
+    }
+
+    for (const wt of this.options.getWorktrees()) {
+      if (this.skipWorktreeIds.has(wt.id)) continue
+      const abs = root && !path.isAbsolute(wt.path) ? path.join(root, wt.path) : wt.path
+      if (fs.existsSync(abs)) targets.add(abs)
+    }
+
+    // Close stale watchers
+    for (const [target, watcher] of this.watchers) {
+      if (!targets.has(target)) {
+        try {
+          watcher.close()
+        } catch (err) {
+          this.options.log(`Failed to close watcher for ${target}:`, err)
+        }
+        this.watchers.delete(target)
+      }
+    }
+
+    // Add new watchers
+    for (const target of targets) {
+      if (this.watchers.has(target)) continue
+      try {
+        const watcher = fs.watch(target, { recursive: false }, (_, filename) => {
+          const name = filename ? path.basename(filename) : ""
+          if (name.endsWith(".lock") || name.endsWith("~") || name.startsWith(".git-")) return
+          this.trigger()
+        })
+        watcher.on("error", (err) => {
+          this.options.log(`Watcher error on ${target}:`, err)
+          try {
+            watcher.close()
+          } catch (closeErr) {
+            this.options.log(`Failed to close errored watcher on ${target}:`, closeErr)
+          }
+          this.watchers.delete(target)
+        })
+        this.watchers.set(target, watcher)
+      } catch (err) {
+        this.options.log(`Failed to watch ${target}:`, err)
+      }
+    }
   }
 
   private async fetch(): Promise<void> {
@@ -181,29 +278,26 @@ export class GitStatsPoller {
       return
     }
 
-    // localDiff runs in-process via GitOps.execGit() which already acquires
-    // the shared semaphore internally; same goes for aheadBehind via
-    // GitOps.raw(). Wrapping either again here would deadlock.
-    const stats = (
-      await Promise.all(
-        active.map(async (wt) => {
-          try {
-            const base = remoteRef(wt)
-            const [diffs, ab] = await Promise.all([
-              this.options.localDiff(wt.path, base),
-              this.git.aheadBehind(wt.path, base),
-            ])
-            const files = diffs.length
-            const additions = diffs.reduce((sum, diff) => sum + diff.additions, 0)
-            const deletions = diffs.reduce((sum, diff) => sum + diff.deletions, 0)
-            return { worktreeId: wt.id, files, additions, deletions, ahead: ab.ahead, behind: ab.behind }
-          } catch (err) {
-            this.options.log(`Failed to fetch worktree stats for ${wt.branch} (${wt.path}):`, err)
-            return this.lastStats[wt.id]
-          }
-        }),
-      )
-    ).filter((item): item is WorktreeStats => !!item)
+    // Poll active worktrees sequentially to prevent process storms and NTFS locking
+    // when multiple agents are running simultaneously.
+    const stats: WorktreeStats[] = []
+    for (const wt of active) {
+      try {
+        const base = remoteRef(wt)
+        const [diffs, ab] = await Promise.all([
+          this.options.localDiff(wt.path, base),
+          this.git.aheadBehind(wt.path, base),
+        ])
+        const files = diffs.length
+        const additions = diffs.reduce((sum, diff) => sum + diff.additions, 0)
+        const deletions = diffs.reduce((sum, diff) => sum + diff.deletions, 0)
+        stats.push({ worktreeId: wt.id, files, additions, deletions, ahead: ab.ahead, behind: ab.behind })
+      } catch (err) {
+        this.options.log(`Failed to fetch worktree stats for ${wt.branch} (${wt.path}):`, err)
+        const prev = this.lastStats[wt.id]
+        if (prev) stats.push(prev)
+      }
+    }
 
     for (const item of stats) this.lastStats[item.worktreeId] = item
 

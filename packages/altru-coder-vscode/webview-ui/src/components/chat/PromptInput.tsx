@@ -469,7 +469,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   }
   const canSend = () =>
     hasInput() && !isDisabled() && !terminal.pending() && !git.pending() && !props.blocked?.() && !quotaBlocked()
-  const showStop = () => isBusy() && !hasInput()
+  const showStop = () => isBusy()
   const isAtEnd = () =>
     textareaRef ? atEnd(textareaRef.selectionStart, textareaRef.selectionEnd, textareaRef.value.length) : false
   const highlightMentions = () => {
@@ -1211,6 +1211,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
               size="small"
               class="prompt-attach-button"
               onClick={toggleAttach}
+              disabled={isDisabled()}
               aria-disabled={isDisabled()}
               aria-label={language.t("prompt.action.attach")}
               aria-haspopup="menu"
@@ -1352,48 +1353,49 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
               variant="ghost"
               size="small"
               onClick={handleEnhance}
+              disabled={!canEnhance()}
               aria-disabled={!canEnhance()}
               aria-label={language.t("prompt.action.enhance")}
             >
               <WandSparkles size={16} class={enhancing() ? "enhance-spinner" : ""} />
             </Button>
           </Tooltip>
-          <Show
-            when={showStop()}
-            fallback={
-              <Tooltip
-                value={
-                  quotaBlocked()
-                    ? "Altru built-in model token limit reached"
-                    : props.blocked?.()
-                      ? language.t("prompt.action.send.blocked")
-                      : language.t("prompt.action.send")
-                }
-                placement="top"
-              >
-                <Button
-                  variant="ghost"
-                  size="small"
-                  onClick={() => void handleSend()}
-                  aria-disabled={!canSend()}
-                  aria-label={language.t("prompt.action.send")}
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M1.5 1.5L14.5 8L1.5 14.5V9L10 8L1.5 7V1.5Z" />
-                  </svg>
-                </Button>
-              </Tooltip>
-            }
-          >
+          <Show when={showStop()}>
             <Tooltip value={language.t("prompt.action.stop")} placement="top">
               <Button
                 variant="ghost"
                 size="small"
                 onClick={() => session.abort()}
                 aria-label={language.t("prompt.action.stop")}
+                class="prompt-stop-button"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                   <rect x="3" y="3" width="10" height="10" rx="1" />
+                </svg>
+              </Button>
+            </Tooltip>
+          </Show>
+          <Show when={!isBusy() || hasInput()}>
+            <Tooltip
+              value={
+                quotaBlocked()
+                  ? "Altru built-in model token limit reached"
+                  : props.blocked?.()
+                    ? language.t("prompt.action.send.blocked")
+                    : language.t("prompt.action.send")
+              }
+              placement="top"
+            >
+              <Button
+                variant="ghost"
+                size="small"
+                onClick={() => void handleSend()}
+                disabled={!canSend()}
+                aria-disabled={!canSend()}
+                aria-label={language.t("prompt.action.send")}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M1.5 1.5L14.5 8L1.5 14.5V9L10 8L1.5 7V1.5Z" />
                 </svg>
               </Button>
             </Tooltip>
